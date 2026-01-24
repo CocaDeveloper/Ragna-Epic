@@ -1,0 +1,12 @@
+//--------------------------------------------------------------
+// FEATURE CONF
+//--------------------------------------------------------------
+
+// Roulette (Note 1)
+// Requires: 2014-10-22bRagexe or later
+feature.roulette: off
+
+// Itemlink Icons on NPC messages (Note 1)
+// Generates an itemicon string for an item and can be used for NPC's mes command.
+// Requires: 2023-03-02 or later
+feature.mesitemicon: off

@@ -4704,7 +4704,7 @@ static int32 battle_calc_attack_skill_ratio(struct Damage* wd, block_list *src,b
 
 	std::shared_ptr<s_skill_db> skill = skill_db.find(skill_id);
 	if (skill != nullptr && skill->impl != nullptr) {
-		skill->impl->calculateSkillRatio(wd, src, target, skill_lv, skillratio);
+		skill->impl->calculateSkillRatio(wd, src, target, skill_lv, skillratio, wd->miscflag);
 	}
 
 	switch(skill_id) {

@@ -1,0 +1,200 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  NPC - Encantador VIP
+//===============================================================
+// Versão: 1.1 - Acesso para GM
+//
+// Alteração v1.1:
+// - Adicionado acesso para GMs de nível 99.
+// - GMs recebem os mesmos benefícios de um Super VIP.
+//===============================================================
+
+1@herbs,271,84,5	script	Sabiku Arugoru	530,{
+
+	mes "^339966[Sabiku Arugoru]^000000";
+	mes "Saudações, ^FFA500"+strcharinfo(0)+"^000000!";
+	mes "Eu sou Sabiku Arugoru, o Encantador de Visuais.";
+	mes "Deseja aplicar ou remover um encantamento especial em seu ^ff0000Visual de Capa^000000?";
+	next;
+
+	switch(select("^339966[»]^000000 Encantar Visual","^339966[»]^000000 Remover Encantamento","^339966[»]^000000 Ver Lista de Encantamentos","^ff0000[»] Sair^000000")) {
+	case 1: // ENCANTAR
+		.@equip_id = getequipid(EQI_COSTUME_GARMENT);
+		setarray .@allowed_items[0],8885,8886,8887,8888,23030,23031,23032,23033,23034,23035,23036,23037,23038,23039;
+
+		if (.@equip_id == -1) {
+			mes "^339966[Sabiku Arugoru]^000000";
+		mes "Equipe o ^ff0000visual^000000 que deseja encantar.";
+			close;
+		}
+
+		if (!inarray(.@allowed_items, .@equip_id)) {
+			mes "^339966[Sabiku Arugoru]^000000";
+			mes "Este item não pode ser encantado.";
+			close;
+		}
+
+		if (getequipcardid(EQI_COSTUME_GARMENT,3) > 0) {
+			mes "^339966[Sabiku Arugoru]^000000";
+			mes "Este item já possui um encantamento.";
+			close;
+		}
+
+		if (Zeny < 50000000) {
+			mes "^339966[Sabiku Arugoru]^000000";
+			mes "Você precisa de ^FF000050.000.000z^000000 para encantar o seu visual.";
+			close;
+		}
+
+		mes "^339966[Sabiku Arugoru]^000000";
+		mes "O encantamento é ^FF0000aleatório^000000";
+		mes "e custará ^FF000050.000.000z^000000.";
+		mes " ";
+		mes "Deseja continuar?";
+		if (select("^339966[»]^000000 Sim, quero encantar.:^ff0000[»] Não, deixa pra lá.^000000") == 2) {
+			next;
+			mes "^339966[Sabiku Arugoru]^000000";
+			mes "Tudo bem! Volte quando estiver pronto.";
+			close;
+		}
+		next;
+		sleep2 500;
+		Zeny -= 50000000;
+		delequip EQI_COSTUME_GARMENT;
+
+		// RND de encantamentos
+		.@r = rand(100);
+		if (.@r < 10) .@card = 4796;	   	// HP+200
+		else if (.@r < 25) .@card = 4800;	// SP+50
+		else if (.@r < 40) .@card = 4870;	// SP+25
+		else if (.@r < 55) .@card = 4928;	// SP+10
+		else if (.@r < 70) .@card = 4795;	// HP+100
+		else {
+			.@stat = rand(6);
+			.@lvl = rand(1,3);
+			.@card = 4700 + (.@stat * 10) + (.@lvl - 1); // Str +1/2/3, Agi +1/2/3, etc
+		}
+
+		getitem2 .@equip_id,1,1,0,0,0,0,0,.@card;
+
+		mes "^339966[Sabiku Arugoru]^000000";
+		mes "Encantamento realizado com sucesso!";
+		specialeffect2 EF_REPAIRWEAPON;
+		close;
+
+	case 2: // REMOVER ENCANTAMENTO
+		.@equip_id = getequipid(EQI_COSTUME_GARMENT);
+		setarray .@allowed_items[0],8885,8886,8887,8888,23030,23031,23032,23033,23034,23035,23036,23037,23038,23039;
+
+		if (.@equip_id == -1) {
+			mes "^339966[Sabiku Arugoru]^000000";
+		mes "Equipe o ^ff0000visual^000000 que deseja remover o encantamento.";
+			close;
+		}
+
+		if (!inarray(.@allowed_items, .@equip_id)) {
+			mes "^339966[Sabiku Arugoru]^000000";
+			mes "Este item não pode ser desencantado por mim.";
+			close;
+		}
+
+		if (getequipcardid(EQI_COSTUME_GARMENT,3) == 0) {
+			mes "^339966[Sabiku Arugoru]^000000";
+			mes "Este item não possui um encantamento.";
+			close;
+		}
+
+		if (Zeny < 10000000) {
+			mes "^339966[Sabiku Arugoru]^000000";
+			mes "Você precisa de ^FF000010.000.000z^000000 para remover o encantamento.";
+			close;
+		}
+
+		mes "^339966[Sabiku Arugoru]^000000";
+		mes "Remover o encantamento custará ^FF000010.000.000z^000000.";
+		mes " ";
+		mes "Tem certeza que deseja remover o encantamento deste visual?";
+		if (select("^339966[»]^000000 Sim, remover encantamento.:^ff0000[»] Não, desisti.^000000") == 2) {
+			next;
+			mes "^339966[Sabiku Arugoru]^000000";
+			mes "Tudo bem! Volte quando estiver pronto.";
+			close;
+		}
+		next;
+		sleep2 500;
+		Zeny -= 10000000;
+
+		// Recupera os 3 primeiros slots de cartas
+		.@card1 = getequipcardid(EQI_COSTUME_GARMENT,0);
+		.@card2 = getequipcardid(EQI_COSTUME_GARMENT,1);
+		.@card3 = getequipcardid(EQI_COSTUME_GARMENT,2);
+
+		delequip EQI_COSTUME_GARMENT;
+		sleep2 300;
+		getitem2 .@equip_id,1,1,0,0,.@card1,.@card2,.@card3,0;
+
+		mes "^339966[Sabiku Arugoru]^000000";
+		mes "Encantamento removido com sucesso!";
+		specialeffect2 EF_REPAIRWEAPON;
+		close;
+
+	case 3: // LISTA DE ENCANTAMENTOS
+		mes "^339966[Sabiku Arugoru]^000000";
+		mes "Esses são os encantamentos que você poderá receber:";
+		next;
+		mes "^339966[Sabiku Arugoru]^000000";
+		mes "^ff0000Bônus de + HP:^000000";
+		mes "- HP +100";
+		mes "- HP +200";
+		next;
+		mes "^339966[Sabiku Arugoru]^000000";
+		mes "^ff0000Bônus de + SP:^000000";
+		mes "- SP +10";
+		mes "- SP +25";
+		mes "- SP +50";
+		next;
+		mes "^339966[Sabiku Arugoru]^000000";
+		mes "^ff0000Atributos (random):^000000";
+		mes "- Força +1 ~ +3";
+		mes "- Agilidade +1 ~ +3";
+		mes "- Vitalidade +1 ~ +3";
+		mes "- Inteligência +1 ~ +3";
+		mes "- Destreza +1 ~ +3";
+		mes "- Sorte +1 ~ +3";
+		next;
+		mes "^339966[Sabiku Arugoru]^000000";
+		mes "^ff0000Outros:^000000";
+		mes "- Dreno de HP (Chance)";
+		mes "- Dreno de SP (Chance)";
+		next;
+		mes "^339966[Sabiku Arugoru]^000000";
+		mes "Todos os bônus são aplicados ^ff0000aleatoriamente^000000 ao encantar o visual.";
+		mes " ";
+		mes "Boa sorte! OSS!";
+		close;
+
+	case 4:
+		mes "^339966[Sabiku Arugoru]^000000";
+		mes "Tudo bem. Estarei por aqui se mudar de ideia.";
+		close;
+	}
+	end;
+
+OnInit:
+
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 76;	
+		setunittitle getnpcid(0), "[Encantador Visual]";
+
+		while(1) {
+		showscript "[ Encantar Visual ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}

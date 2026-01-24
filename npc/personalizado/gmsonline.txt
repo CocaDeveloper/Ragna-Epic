@@ -1,0 +1,271 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                 GM's ONLINE + INQUÉRITO
+// ===================== Descrição: =============================
+
+/*
+TABELA SQL NECESSÁRIA:
+
+CREATE TABLE IF NOT EXISTS `E-Inquiry` (
+	`ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+	`Sender_ID` int(11) unsigned NOT NULL DEFAULT 0,
+	`Sender_Name` varchar(30) NOT NULL DEFAULT '',
+	`Title` text,
+	`Message` text,
+	`Status` tinyint(2) NOT NULL DEFAULT 0,
+	`Inquiry_Time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	`Reply` text,
+	`Reply_Time` datetime DEFAULT NULL,
+	`Reply_Name` varchar(30) NOT NULL DEFAULT '',
+	PRIMARY KEY (`ID`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+*/
+
+prontera,177,158,4	script	#gmsDisplay1	111,{
+OnInit:
+	//Chat em cima do npc.
+	while(1) {
+		showscript "[ Lista de GM's ]", getnpcid(0);
+		sleep 100;
+	}
+}
+
+prontera,177,159,4	script	GMs Online	440,{
+
+OnStartMenu:
+mes "^339966[Sistema GM's Online]^000000";
+mes "O que você gostaria de fazer?";
+next;
+
+switch( select( "Ver GM's Online",
+				"Sistema de Denúncias",
+				( getgmlevel() < .GMLevel )?"":"^FF0000[ GM ]^000000 Gerenciar Mensagens" )){
+
+Case 1: // Ver GM's Online
+	mes "^339966[Lista de GM's Online]^000000";
+	// Verifica se existem GMs online
+	if( getarraysize( .GM_Name$ ) == 0 ){
+		mes "^FF0000Nenhum GM está online no momento.^000000";
+		close;
+	}
+	mes "Lista de GM's Online: ^FF0000"+getarraysize( .GM_Name$ )+"^000000 STAFF";
+	mes "^ff0000_____________________________^000000";
+	// Substituir a seção problemática por esta versão corrigida:
+
+for( set .@i,0; .@i < getarraysize( .GM_Name$ ) ; set .@i,.@i + 1 ){
+    // Verifica se o jogador ainda está online
+    if( !isloggedin( getcharid(3,.GM_Name$[.@i]) ) ){
+        // Remove da lista se não estiver online
+        deletearray .GM_Name$[.@i],1;
+        deletearray .GM_Level[.@i],1;
+        set .@i,.@i-1; // Ajusta o índice
+        continue;
+    }
+    
+    // CORREÇÃO: Usar BL_PC em vez de 0
+    if( getmapxy( .@map$,.@x,.@y,BL_PC,.GM_Name$[.@i] ) == 0 ){
+        mes "^FF0000@ ^0000FF"+.GM_Name$[.@i]+"^000000";
+        mes "Localização : ^FF0000Oculta^000000";
+    } else {
+        mes "^FF0000@ ^0000FF"+.GM_Name$[.@i]+"^000000";
+        mes "Localização : ^FF0000Oculta^000000";
+    }
+    mes "^ff0000_____________________________^000000";
+}
+	close;
+
+Case 2: // Sistema de Denúncias
+	mes "^7401DF[Sistema de Denúncias]^000000";
+	mes "Se você estiver com problemas, poderá informar a equipe. Deseja fazer uma denúncia?";
+	next;
+	switch( select( "Ver Mensagens",
+					"Escrever Mensagens" )){
+	
+	Case 1: // Ver Mensagens
+		do{
+			mes "Quais os tipos de mensagens que você gostaria de ver?";
+			for( set .@i,0; .@i < 3; set .@i,.@i + 1 )
+				set .@Found[.@i],query_sql("SELECT `ID` FROM `E-Inquiry` WHERE `Status` = "+.@i+" AND `Sender_ID`='"+getcharid(3)+"'",.@ID );
+
+			set .@Msg,select("^FF0000Mensagens sem resposta [ ^FF0000"+.@Found[0]+"^000000 ]",
+							"^0000FFMensagens respondidas^000000 [ ^FF0000"+.@Found[1]+"^000000 ]",
+							"Mensagens arquivadas [ ^FF0000"+.@Found[2]+"^000000 ]" ) - 1;
+			set .@Replied,query_sql(" SELECT `ID`,`Title`,`Message`,`Inquiry_Time`,`Reply`,`Reply_Time`,`Reply_Name` FROM `E-Inquiry` WHERE `Status`= "+.@Msg+" AND `Sender_ID`='"+getcharid(3)+"' ",.@ID, .@Title$,.@Message$,.@Time$,.@Reply$,.@ReplyTime$,.@ReplyName$ );
+			if( !.@Replied ){
+				mes "Você não tem mensagens para ler.";
+				next;
+			}else{
+				set .@Menu$,"";
+				for( set .@i,0; .@i < .@Replied; set .@i,.@i + 1 )
+					set .@Menu$,.@Menu$ + "^FF0000[ "+( .@i+1 )+". ]^0000FF "+.@Title$[.@i]+":";
+				next;
+				set .@Select,select( .@Menu$ ) - 1;
+				mes "^00FF00____________________________^000000";
+				mes "^FF0000Data :^000000 : "+.@Time$[.@Select];
+				mes "^FF0000Título^000000 : "+.@Title$[.@Select];
+				mes "^00FF00____________________________^000000";
+				mes "^FF0000Mensagens^000000 : "+.@Message$[.@Select];
+				mes "^00FF00____________________________^000000";
+				if( .@Msg > 0 ){
+					mes "^0000FFResposta de ^FF0000"+.@ReplyName$[.@Select]+" ^000000 : "+.@Reply$[.@Select];
+					mes "^00FF00____________________________^000000";
+					mes "^0000FFTempo ^000000 : "+.@ReplyTime$[.@Select];
+				}
+				next;
+				set .@MsgOpt1,select("Ler outras Mensagens",( .@Msg == 1 )?"Mover para Arquivados":"","Deletar Mensagem" );
+				switch( .@MsgOpt1 ){
+					Case 2:
+						query_sql("UPDATE `E-Inquiry` SET `Status` = 2 WHERE `ID` = "+.@ID[.@Select]+" ");
+						mes "A Mensagem foi movida para Arquivados";
+						break;
+					Case 3:
+						query_sql("DELETE FROM `E-Inquiry` WHERE `ID` = "+.@ID[.@Select]+" ");
+						mes "A Mensagem foi apagada.";
+						break;
+					default:
+						break;
+				}
+			}
+		}while( .@MsgOpt1 < 3 );
+		break;
+
+	Case 2: // Escrever Mensagens
+		mes "^00FF00____________________________^000000";
+		mes "^FF0000NOTA :^000000 Todas as Mensagens serão gravadas para referências futuras, por isso, não abuse deste serviço. Caso contrário, serão tomadas as medidas necessárias";
+		do{
+			next;
+			mes "^00FF00____________________________^000000";
+			mes "^FF0000Título^000000 : "+.@Title$;
+			mes "^00FF00____________________________^000000";
+			mes "^FF0000Mensagens^000000 : "+.@Message$;
+			mes "^00FF00____________________________^000000";
+		
+			next;
+			set .@Select,select(( .@Title$ == "" )?"[ ^FF0000Incompleto^000000 ] Título":"[ ^0000FFCompletado^000000 ] Título",
+								( .@Message$ == "" )?"[ ^FF0000Incompleto^000000 ] Mensagem":"[^0000FFCompletado^000000 ] Mensagem",
+								( .@Title$ == "" || .@Message$ == "" )?"":"^FF0000ENVIAR MENSAGEM^000000" );
+		
+			switch( .@Select ){
+				Case 1:
+					mes "Digite um Título para o seu problema";
+					input .@Title$;
+					break;
+				Case 2:
+					mes "Explique brevemente o que é o seu problema";
+					set .@i,0;
+					do{
+						input getd(".@Message"+.@i+"$");
+						set .@Message$,.@Message$ + getd(".@Message"+.@i+"$")+" ";
+						set .@Continue,select("Completo:Continuar Mensagem");
+					}while( .@Continue == 2 );
+					break;
+				default: 
+					mes "Sua mensagem foi enviada.";
+					query_sql( "INSERT INTO `E-Inquiry` ( `Sender_ID`,`Sender_Name`,`Title`,`Message`,`Status`,`Inquiry_Time` ) VALUES ( "+getcharid(3)+",'"+escape_sql(strcharinfo(0))+"','"+escape_sql(.@Title$)+"','"+escape_sql(.@Message$)+"',0,'"+gettimestr("%Y-%m-%d %H:%M:%S",21)+"' ) ");
+					break;
+			}
+		}while( .@Select != 3 );
+		break;
+	}
+	break;
+
+Case 3: // Gerenciar Mensagens (GM)
+	do{
+		mes "Tudo bem, Qual o próximo ?";
+		next;
+		for( set .@i,0; .@i < 3; set .@i,.@i + 1 )
+			set .@Found[.@i],query_sql("SELECT `ID` FROM `E-Inquiry` WHERE `Status` = "+.@i+"",.@ID );
+
+		set .@Types,select("^FF0000Ler todas as mensagens não lidas [ ^FF0000"+.@Found[0]+"^000000 ]",
+							"Ler todas mensagens respondidas^000000 [ ^FF0000"+.@Found[1]+"^000000 ]",
+							"Ler todas mensagens arquivadas [ ^FF0000"+.@Found[2]+"^000000 ]" ) - 1;
+
+		set .@ManageMSG,query_sql(" SELECT `ID`,`Sender_Name`,`Title`,`Message`,`Inquiry_Time`,`Reply`,`Reply_Time`,`Reply_Name` FROM `E-Inquiry` WHERE `Status`= "+.@Types+" LIMIT 127",.@ID,.@Sender$, .@Title$,.@Message$,.@Time$,.@Reply$,.@ReplyTime$,.@ReplyName$ );
+		if( !.@ManageMSG ){
+			mes "Você não tem Mensagens para ler.";
+			next;
+		}else{
+			set .@Menu$,"";
+			for( set .@i,0; .@i < .@ManageMSG; set .@i,.@i + 1 )
+				set .@Menu$,.@Menu$ +"^FF0000[ "+( .@i+1 )+". ]^0000FF "+.@Title$[.@i]+":";
+			next;
+			set .@Select,select( .@Menu$ ) - 1;
+			mes "^00FF00____________________________^000000";
+			mes "^FF0000Data :^000000 : "+.@Time$[.@Select];
+			mes "^FF0000Autor :^000000 : "+.@Sender$[.@Select];
+			mes "^FF0000Título^000000 : "+.@Title$[.@Select];
+			mes "^00FF00____________________________^000000";
+			mes "^FF0000Mensagens^000000 : "+.@Message$[.@Select];
+			mes "^00FF00____________________________^000000";
+			if( .@Types > 0 ){
+				mes "^0000FFResposta de ^FF0000"+.@ReplyName$[.@Select]+" ^000000 : "+.@Reply$[.@Select];
+				mes "^00FF00____________________________^000000";
+				mes "^0000FFTempo ^000000 : "+.@ReplyTime$[.@Select];
+			}
+			next;
+			set .@MsgOpt1,select( ( .@Types == 2 )?"":"Responder mensagem","Ver outras mensagens","Deletar mensagem" );
+			switch( .@MsgOpt1 ){
+				Case 1:
+					set .@i,0;
+					set .@Reply$,"";
+					do{
+						input getd(".@Reply"+.@i+"$");
+						set .@Reply$,.@Reply$ + getd(".@Reply"+.@i+"$")+" ";
+						set .@Continue,select("Completo:Continuar Mensagens");
+					}while( .@Continue == 2 );
+					
+					query_sql("UPDATE `E-Inquiry` SET `Status` = 1,`Reply`='"+escape_sql(.@Reply$)+"',`Reply_Name`='"+escape_sql(strcharinfo(0))+"',`Reply_Time`='"+gettimestr("%Y-%m-%d %H:%M:%S",21)+"' WHERE `ID` = "+.@ID[.@Select]+" ");	
+					message strcharinfo(0),"Resposta foi enviada.";
+					break;
+				Case 3:
+					query_sql("DELETE FROM `E-Inquiry` WHERE `ID` = "+.@ID[.@Select]+" ");
+					mes "A mensagem foi deletada.";
+				default:
+					break;
+			}
+		}
+	}while( .@MsgOpt1 != 1 ); 
+	break;
+}
+close;
+
+OnInit:
+    set .MinGMLevel,20;        // Nível mínimo de GM para mostrar na lista
+    set .GMLevel,80;           // Nível mínimo de GM para gerenciar mensagens
+    cleararray .GM_Name$[0],"",getarraysize(.GM_Name$);
+    cleararray .GM_Level[0],0,getarraysize(.GM_Level);
+    end;
+
+OnPCLoginEvent:
+    if( getgmlevel() >= .MinGMLevel ){
+        // Verifica se o GM já está na lista (evita duplicação)
+        for( set .@i,0; .@i < getarraysize( .GM_Name$ ) ; set .@i,.@i + 1 ){
+            if( strcharinfo(0) == .GM_Name$[.@i] ) end; // Já existe na lista
+        }
+        
+        // Adiciona o GM à lista
+        set .@index, getarraysize( .GM_Name$ );
+        set .GM_Name$[.@index], strcharinfo(0);
+        set .GM_Level[.@index], getgmlevel();
+    }
+    end;
+
+OnPCLogoutEvent:
+    if( getgmlevel() < .MinGMLevel ) end;
+    
+    // Remove o GM da lista
+    for( set .@i,0; .@i < getarraysize( .GM_Name$ ) ; set .@i,.@i + 1 ){
+        if( strcharinfo(0) != .GM_Name$[.@i] ) continue;
+        deletearray .GM_Name$[.@i],1;
+        deletearray .GM_Level[.@i],1;
+        break; // Sai do loop após encontrar e remover
+    }
+    end;
+}

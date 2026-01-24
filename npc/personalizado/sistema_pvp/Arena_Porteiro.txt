@@ -1,0 +1,320 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//= Arena PvP Normal, Arena 1x1 e GVG
+//= Ranking Top 10 PvP, 1x1 e GvG
+//= Reset Automático todo dia 1 ou Manualmente
+//= Entrega premiação por RoDEX
+//= Os jogadores ganham 1 ponto por kill
+//= Possui loja para trocar pontos por itens
+//= Narrador PVP (Sons ao matar)
+//= Tabelas SQL com registro total
+//= Mostra a quantidade de jogadores nas arenas
+//= Mapa customizado EXCLUSIVO
+//= Remove Buffs selecionados pelo administrador
+//= Adicionado Delay de pontuação entre kills
+//= Adicionado restrição de kill consecutivo do mesmo jogador
+//= Adicionado horário para contabilizar os pontos de kill
+//===== Importante: ============================================
+//= Observação: NÃO ALTERE O NOME NO NPC
+//= Observação: Altere manualmente o mapa do Arena_Porteiro.txt
+//===== Créditos: ==============================================
+//= Bruxão BR - Modificado para Arena 1x1
+//===== Versao do NPC: =========================================
+//= 2.1
+//==============================================================
+//                       Porteiro PvP
+//==============================================================
+
+arena_pvp,34,79,5	script	Porteiro PvP	417,{
+
+	mes "^339966[Porteiro PvP]^000000";
+	mes (gettime(3)>= 6&&gettime(3)<= 12?"Bom dia":(gettime(3)>=13&&gettime(3)<=18?"Boa tarde":"Boa noite"))+", ^FFA500"+strcharinfo(0)+"^000000! Como posso ajudá-lo?";
+	switch(select("^339966[»]^000000 Sair da Arena PvP:^339966[»]^000000 Ir para Arena 1x1:^ff0000[»] Cancelar^000000")) {
+
+		case 1:
+		next;
+		mes "^339966[Porteiro PvP]^000000";
+		mes "Você tem certeza?";
+		
+		if (select("^339966[»]^000000 Sim:^ff0000[»] Não^000000") == 2) goto L_Cancel_PVP;
+		
+		next;
+		mes "^339966[Porteiro PvP]^000000";
+		
+		sleep2 500;
+		mes "5 segundos";
+		sleep2 500;
+		mes "4 segundos";
+		sleep2 500;	
+		mes "3 segundos";
+		sleep2 500;	
+		mes "2 segundos";
+		sleep2 500;	
+		mes "1 segundo";
+		
+		warp "SavePoint",0,0;
+		close;
+		
+		case 2:
+		next;
+		mes "^339966[Porteiro PvP]^000000";
+		
+		sleep2 500;
+		mes "5 segundos";
+		sleep2 500;
+		mes "4 segundos";
+		sleep2 500;	
+		mes "3 segundos";
+		sleep2 500;	
+		mes "2 segundos";
+		sleep2 500;	
+		mes "1 segundo";
+		
+		warp "arena_x1-1",23,6;
+		close;
+	
+		case 3:
+		goto L_Cancel_PVP;
+	}
+
+L_Cancel_PVP:
+	next;
+	mes "^339966[Porteiro PvP]^000000";
+	mes "Ok! Volte a falar comigo caso queira sair da Arena PvP.";
+	close;
+	
+OnInit:
+
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 56;	
+	setunittitle getnpcid(0), "[Rune-Midgard]";
+	
+	while(1) {
+		showscript "[ Porteiro PvP ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+//==============================================================
+//                       Porteiro Arena 1x1 (CORRIGIDO)
+//==============================================================
+
+arena_x1-1,19,8,5	script	Porteiro 1x1	417,{
+	
+	mes "^339966[Porteiro Arena 1x1]^000000";
+	mes (gettime(3)>= 6&&gettime(3)<= 12?"Bom dia":(gettime(3)>=13&&gettime(3)<=18?"Boa tarde":"Boa noite"))+", ^FFA500"+strcharinfo(0)+"^000000!";
+	mes "Esta é a ^ff0000Arena 1x1^000000, um local para duelos honrados!";
+	mes " ";
+	
+	// Contar jogadores usando flag global (CORRIGIDO)
+	if($arena1x1_player1$ == "" && $arena1x1_player2$ == "") {
+		.@status$ = "^00FF00Disponível^000000";
+		.@count = 0;
+	} else if($arena1x1_player1$ != "" && $arena1x1_player2$ == "") {
+		.@status$ = "^3399661 jogador esperando^000000";
+		.@count = 1;
+	} else {
+		.@status$ = "^FF0000Ocupada^000000";
+		.@count = 2;
+	}
+	
+	mes "Status da Arena: " + .@status$ + " (" + .@count + "/2).";
+	
+	next;
+	mes "^339966[Porteiro Arena 1x1]^000000";
+	mes "O que deseja fazer?";
+	switch(select("^339966[»]^000000 Entrar na Arena:^339966[»]^000000 Sair da Arena:^339966[»]^000000 Zona Segura:^339966[»]^000000 Informações:^ff0000[»] Cancelar^000000")) {
+
+		case 1:
+		// Verificar se jogador já está registrado
+		if($arena1x1_player1$ == strcharinfo(0) || $arena1x1_player2$ == strcharinfo(0)) {
+			next;
+			mes "^339966[Porteiro Arena 1x1]^000000";
+			mes "^ff0000Você já está na arena!^000000";
+			close2;
+			end;
+		}
+		
+		// Verificar disponibilidade
+		if($arena1x1_player1$ == "") {
+			// Primeira vaga livre
+			$arena1x1_player1$ = strcharinfo(0);
+			$arena1x1_player1_id = getcharid(0);
+				
+			mapannounce "arena_x1-1","[Arena 1x1]: O jogador " + strcharinfo(0) + " entrou na Arena 1x1!", bc_map, 0xFF0000;
+			
+		} else if($arena1x1_player2$ == "") {
+			// Segunda vaga livre
+			$arena1x1_player2$ = strcharinfo(0);
+			$arena1x1_player2_id = getcharid(0);
+				
+			mapannounce "arena_x1-1","[Arena 1x1]: O jogador " + strcharinfo(0) + " entrou na Arena 1x1!", bc_map, 0xFF0000;
+			
+		} else {
+			// Arena ocupada
+			next;
+			mes "^339966[Porteiro Arena 1x1]^000000";
+			mes "^ff0000A arena está ocupada no momento!^000000";
+			close;
+		}
+		
+		close2;
+		warp "arena_x1-1", 24, 24;
+		end;
+
+		case 2:
+    // Limpar registro do jogador E reorganizar slots
+    if($arena1x1_player1$ == strcharinfo(0)) {
+        // Se player1 saiu, mover player2 para player1
+        if($arena1x1_player2$ != "") {
+            $arena1x1_player1$ = $arena1x1_player2$;
+            $arena1x1_player1_id = $arena1x1_player2_id;
+            $arena1x1_player2$ = "";
+            $arena1x1_player2_id = 0;
+            mapannounce "arena_x1-1","[Arena 1x1]: O jogador " + strcharinfo(0) + " deixou a arena. " + $arena1x1_player1$ + " aguarda novo adversário!", bc_map, 0xFF0000;
+        } else {
+            $arena1x1_player1$ = "";
+            $arena1x1_player1_id = 0;
+            mapannounce "arena_x1-1","[Arena 1x1]: O jogador " + strcharinfo(0) + " deixou a arena.", bc_map, 0xFF0000;
+        }
+    } else if($arena1x1_player2$ == strcharinfo(0)) {
+        $arena1x1_player2$ = "";
+        $arena1x1_player2_id = 0;
+        mapannounce "arena_x1-1","[Arena 1x1]: O jogador " + strcharinfo(0) + " deixou a arena.", bc_map, 0xFF0000;
+    }
+    
+    next;
+    mes "^339966[Porteiro Arena 1x1]^000000";
+    sleep2 500;
+    mes "5 segundos";
+    sleep2 500;
+    mes "4 segundos";
+    sleep2 500;	
+    mes "3 segundos";
+    sleep2 500;	
+    mes "2 segundos";
+    sleep2 500;	
+    mes "1 segundo";
+    
+    warp "SavePoint",0,0;
+    end;
+
+		case 3:
+    // Limpar registro do jogador E reorganizar slots
+    if($arena1x1_player1$ == strcharinfo(0)) {
+        // Se player1 foi para zona segura, mover player2 para player1
+        if($arena1x1_player2$ != "") {
+            $arena1x1_player1$ = $arena1x1_player2$;
+            $arena1x1_player1_id = $arena1x1_player2_id;
+            $arena1x1_player2$ = "";
+            $arena1x1_player2_id = 0;
+            mapannounce "arena_x1-1","[Arena 1x1]: O jogador " + strcharinfo(0) + " foi para zona segura. " + $arena1x1_player1$ + " aguarda novo adversário!", bc_map, 0xFF0000;
+        } else {
+            $arena1x1_player1$ = "";
+            $arena1x1_player1_id = 0;
+            mapannounce "arena_x1-1","[Arena 1x1]: O jogador " + strcharinfo(0) + " foi para zona segura.", bc_map, 0xFF0000;
+        }
+    } else if($arena1x1_player2$ == strcharinfo(0)) {
+        $arena1x1_player2$ = "";
+        $arena1x1_player2_id = 0;
+        mapannounce "arena_x1-1","[Arena 1x1]: O jogador " + strcharinfo(0) + " foi para zona segura.", bc_map, 0xFF0000;
+    }
+    
+    next;
+    warp "arena_x1-1",23,6;
+    end;
+
+
+		case 4:
+		next;
+		mes "^339966[Porteiro Arena 1x1]^000000";
+		mes "^ff0000== Arena 1x1 - Informações ==^000000";
+		mes "• Arena para duelos 1 contra 1";
+		mes "• Apenas 2 jogadores podem lutar por vez!";
+		mes "• Sistema de registro automático.";
+		mes "• Cada vitória rende 1 Ponto PvP.";
+		end;
+		
+		case 5:
+		end;
+	}
+
+OnInit:
+	// Limpar variáveis ao reiniciar
+	$arena1x1_player1$ = "";
+	$arena1x1_player2$ = "";
+	$arena1x1_player1_id = 0;
+	$arena1x1_player2_id = 0;
+	
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 56;	
+	setunittitle getnpcid(0), "[Rune-Midgard]";
+
+	while(1) {
+		showscript "[ Porteiro 1x1 ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+//==============================================================
+//                       Porteiro GvG
+//==============================================================
+
+arena_gvg,30,70,5	script	Porteiro GvG	417,{
+
+	mes "^339966[Porteiro GvG]^000000";
+	mes (gettime(3)>= 6&&gettime(3)<= 12?"Bom dia":(gettime(3)>=13&&gettime(3)<=18?"Boa tarde":"Boa noite"))+", ^FFA500"+strcharinfo(0)+"^000000! Como posso ajudá-lo?";
+	switch(select("^3CB371[»]^000000 Sair da Arena GvG:^ff0000[»] Nada^000000")) {
+
+		case 1:
+		next;
+		mes "^339966[Porteiro GvG]^000000";
+		mes "Você tem certeza?";
+		
+		if (select("^3CB371[»]^000000 Sim:^ff0000[»] Não^000000") == 2) goto L_Cancel;
+		
+		next;
+		mes "^339966[Porteiro GvG]^000000";
+		
+		sleep2 500;
+		mes "5 segundos";
+		sleep2 500;
+		mes "4 segundos";
+		sleep2 500;	
+		mes "3 segundos";
+		sleep2 500;	
+		mes "2 segundos";
+		sleep2 500;	
+		mes "1 segundo";
+		
+		warp "SavePoint",0,0;
+		close;
+	
+		case 2:
+		goto L_Cancel;
+	}
+
+L_Cancel:
+	next;
+	mes "^339966[Porteiro GvG]^000000";
+	mes "Ok! Volte a falar comigo caso queira sair da Arena GvG.";
+	close;
+		
+OnInit:
+
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 56;	
+	setunittitle getnpcid(0), "[Rune-Midgard]";
+
+	while(1) {
+		showscript "[ Porteiro GvG ]", getnpcid(0);
+		sleep 100;
+	}	
+	end;
+}

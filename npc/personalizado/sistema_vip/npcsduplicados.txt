@@ -1,0 +1,432 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                 NPC's Duplicados Sala VIP 
+//===============================================================
+
+1@herbs, 290, 58, 4	duplicate(Curandeira)	Curandeira#vip1	936
+
+//===============================================================
+//                       Teste de Dano 
+//===============================================================
+
+1@herbs,262,116,0 	duplicate(Set Parameters#0)	Definir Parâmetros#VIP1	858
+1@herbs,262,113,0 	duplicate(Set Parameters#0)	Definir Parâmetros#VIP2	858
+1@herbs,262,110,0	duplicate(Set Parameters#0)	Definir Parâmetros#VIP3	858
+1@herbs,262,107,0	duplicate(Set Parameters#0)	Definir Parâmetros#VIP4	858
+1@herbs,259,107,0	duplicate(Set Parameters#0)	Definir Parâmetros#VIP5	858
+1@herbs,256,107,0	duplicate(Set Parameters#0)	Definir Parâmetros#VIP6	858
+1@herbs,253,107,0	duplicate(Set Parameters#0)	Definir Parâmetros#VIP7	858
+1@herbs,250,107,0	duplicate(Set Parameters#0)	Definir Parâmetros#VIP8	858
+1@herbs,250,110,0	duplicate(Set Parameters#0)	Definir Parâmetros#VIP9	858
+1@herbs,250,113,0	duplicate(Set Parameters#0)	Definir Parâmetros#VIP10	858
+1@herbs,250,116,0	duplicate(Set Parameters#0)	Definir Parâmetros#VIP11	858
+1@herbs,250,119,0	duplicate(Set Parameters#0)	Definir Parâmetros#VIP12	858
+1@herbs,253,119,0	duplicate(Set Parameters#0)	Definir Parâmetros#VIP13	858
+1@herbs,256,119,0	duplicate(Set Parameters#0)	Definir Parâmetros#VIP14	858
+1@herbs,259,119,0	duplicate(Set Parameters#0)	Definir Parâmetros#VIP15	858
+1@herbs,262,119,0	duplicate(Set Parameters#0)	Definir Parâmetros#VIP16	858
+
+//===============================================================
+//                     Bardo e Gyspy
+//===============================================================
+
+//1@herbs,269,103,0	duplicate(Bardo)	Bardo#7	479
+//1@herbs,273,103,0	duplicate(Odalisca)	Odalisca#1	485
+
+1@herbs,269,103,5	script	Poema de Bragi#vip1	479,3,3,{
+	end;
+	
+OnTouch:
+	if( .sbragi < gettimetick(2) ){			// triggered within area 7x7, start bragi if not on delay
+		unitskilluseid getnpcid(0),321,10;	// bragi(321) level 10
+		set .sbragi,gettimetick(2) + 10;	// delay 3 minute for npc to cast song
+	}
+	end;
+	
+OnInit:
+	setunitdata getnpcid(0),UNPC_INT,600;	// set npc INT 150
+	setunitdata getnpcid(0),UNPC_DEX,600;	// set NPC DEX 150
+	
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 70;	
+	setunittitle getnpcid(0), "[Rune-Midgard]";
+	end;
+}
+
+1@herbs,273,103,3	script	Dança Cigana#vip1	485,3,3,{
+	end;
+	
+OnTouch:
+	if( .sbragi < gettimetick(2) ){			// triggered within area 7x7, start bragi if not on delay
+		unitskilluseid getnpcid(0),330,10;	// bragi(321) level 10
+		set .sbragi,gettimetick(2) + 10;	// delay 3 minute for npc to cast song
+	}
+	end;
+	
+OnInit:
+	setunitdata getnpcid(0),UNPC_INT,150;	// set npc INT 150
+	setunitdata getnpcid(0),UNPC_DEX,150;	// set NPC DEX 150
+	
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 71;	
+	setunittitle getnpcid(0), "[Rune-Midgard]";	
+	end;
+}
+
+//===============================================================
+//                     Mestre Refino
+//===============================================================
+
+1@herbs,269,55,5	duplicate(Bigornox, o Ferreiro)	Bigornox, o Ferreiro#vip1	813
+
+1@herbs,267,55,5	script	 	10026,{}
+
+//===============================================================
+//                   Mensageiro Global
+//===============================================================
+
+//==================== Description: =============================
+//= NPC para enviar mensagens globais no servidor
+//= Consome megafone (12221) - Grátis para VIP
+//= Cooldown de 3 minutos entre mensagens
+//===============================================================
+
+1@herbs, 278, 53, 5	script	Mensageiro Expresso	888,{
+	// Verifica se o jogador é VIP
+	// ALTERE AQUI: Substitua pela sua verificação de VIP
+	.@is_vip = (getgroupid() >= 1) ? 1 : 0; // Mude conforme seu sistema VIP
+	
+	// Verifica cooldown (3 minutos = 180 segundos)
+	//if (gettimetick(2) < @mensagem_delay) {
+	//	.@tempo_restante = @mensagem_delay - gettimetick(2);
+	//	.@minutos = .@tempo_restante / 60;
+	//	.@segundos = .@tempo_restante % 60;
+	//	mes "^339966[Mensageiro Global]^000000";
+	//	mes "Você precisa aguardar mais " + .@minutos + " minuto(s) e " + .@segundos + " segundo(s) antes de enviar outra mensagem!";
+	//	if (!.@is_vip) {
+	//		mes "^0000FFJogadores VIP não possuem esta limitação!^000000";
+	//	}
+	//	close;
+	//}
+	
+	mes "^339966[Mensageiro Expresso]^000000";
+	mes "Olá, ^FFA500"+strcharinfo(0)+"^000000! Eu sou o ^ff0000Mensageiro Expresso^000000 do servidor.";
+	mes "Posso enviar a sua mensagem para todos os jogadores online!";
+	next;
+	
+	// Mostra informações baseadas no status VIP
+	if (.@is_vip) {
+		mes "^339966[Mensageiro Expresso]^000000";
+		mes "Como você é um ^00FF00Jogador VIP^000000, meus serviços serão totalmente gratuitos!";
+		mes "Você poderá enviar mensagens sem custo algum.";
+	} else {
+		mes "^339966[Mensageiro Expresso]^000000";
+		mes "^FF0000Para jogadores normais:^000000";
+		mes "• Custo: 1x Megafone";
+		mes "• Cooldown: 3 minutos entre mensagens";
+		mes "^0000FFJogadores VIP's e SUPERVIP's enviam mensagens gratuitamente!^000000";
+	}
+	next;
+	
+	// Verifica se tem megafone (apenas para não-VIP)
+	if (!.@is_vip) {
+		if (countitem(12221) < 1) {
+			mes "^339966[Mensageiro Expresso]^000000";
+			mes "^FF0000Você não possui um Megafone!^000000";
+			mes "Você precisa de 1x Megafone para enviar uma mensagem global.";
+			next;
+			mes "^339966[Mensageiro Expresso]^000000";
+			mes "Você pode adquirir megafones nas máquinas de cash, em eventos ou se tornar VIP para usar este serviço gratuitamente!";
+			close;
+		}
+	}
+	
+	mes "^339966[Mensageiro Expresso]^000000";
+	mes "Você deseja enviar uma mensagem global agora?";
+	next;
+	
+	switch(select("^339966[>]^000000 Sim, enviar mensagem.:^ff0000[>] Não, cancelar!^000000")) {
+		case 1:
+			mes "^339966[Mensageiro Expresso]^000000";
+			mes "Digite a sua mensagem:";
+			mes "^FF0000Atenção: Mensagens ofensivas podem resultar em punição!^000000";
+			next;
+			
+			// Input da mensagem
+			input .@mensagem$;
+			
+			// Verifica se a mensagem não está vazia
+			if (.@mensagem$ == "") {
+				mes "^339966[Mensageiro Expresso]^000000";
+				mes "Você não pode enviar uma mensagem vazia!";
+				close;
+			}
+			
+			// Verifica comprimento da mensagem (máximo 100 caracteres)
+			if (getstrlen(.@mensagem$) > 100) {
+				mes "^339966[Mensageiro Expresso]^000000";
+				mes "Sua mensagem é muito longa! Máximo 100 caracteres.";
+				mes "Caracteres atuais: " + getstrlen(.@mensagem$);
+				close;
+			}
+			
+			// Filtro básico de palavras ofensivas (opcional)
+			if (compare(.@mensagem$, "fdp") || compare(.@mensagem$, "puta") || compare(.@mensagem$, "merda")) {
+				mes "^339966[Mensageiro Expresso]^000000";
+				mes "^FF0000Sua mensagem contém palavras inadequadas!^000000";
+				mes "Por favor, reformule sua mensagem.";
+				close;
+			}
+			
+			// Confirmação da mensagem
+			mes "^339966[Mensageiro Expresso]^000000";
+			mes "Sua mensagem será:";
+			mes "^0000FF" + .@mensagem$ + "^000000";
+			next;
+			
+			mes "^339966[Mensageiro Expresso]^000000";
+			if (.@is_vip) {
+				mes "^00FF00[VIP] Envio gratuito!^000000";
+			} else {
+				mes "^FF0000Custo: 1x Megafone^000000";
+			}
+			mes "Confirmar o envio?";
+			next;
+			
+			switch(select("^339966[>]^000000 Sim, confirmar.:^ff0000[>] Não, cancelar!^000000")) {
+				case 1:
+					// Consome megafone apenas para não-VIP
+					if (!.@is_vip) {
+						delitem 12221, 1;
+					}
+					
+					// Define cooldown (3 minutos)
+					@mensagem_delay = gettimetick(2) + 180;
+					
+					// Envia mensagem global
+					if (.@is_vip) {
+						announce "[VIP] " + strcharinfo(0) + ": " + .@mensagem$, bc_all, 0xFFFF00;
+					} else {
+						announce "[Global] " + strcharinfo(0) + ": " + .@mensagem$, bc_all, 0xFFFF00;
+					}
+					
+					// Efeito visual no jogador
+					misceffect 247;
+					
+					mes "^339966[Mensageiro Expresso]^000000";
+					mes "^00FF00Mensagem enviada com sucesso!^000000";
+					mes "Sua mensagem foi transmitida para todos no servidor.";
+					if (!.@is_vip) {
+						mes "Próxima mensagem em: 3 minutos";
+					}
+					close;
+					
+				case 2:
+					mes "^339966[Mensageiro Expresso]^000000";
+					mes "Envio cancelado.";
+					close;
+			}
+			
+		case 2:
+			mes "^339966[Mensageiro Expresso]^000000";
+			mes "Volte sempre que quiser enviar uma mensagem!";
+			close;
+	}
+	
+OnInit:
+
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 47;	
+	setunittitle getnpcid(0), "[Correio Eletrônico]";
+
+	while(1) {
+	showscript "[ Mensageiro Expresso ]", getnpcid(0);
+	sleep 100;
+	}
+	end;
+
+}
+
+//===============================================================
+//                   Encantador Premium
+//===============================================================
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=+
+// Npc criado por: Douglas Santos
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=+
+// Nome do Npc: Encantador de Armas
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=+
+// Versão atual: 1.0
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=+
+// Npc criado em: 25/01/2016
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=+
+// Compatível com eAmod
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=+
+1@herbs,273,113,3	script	Elementalista	743,{
+	
+set .@npcencantador$,"^339966[Encantador Premium]^000000";
+set @PrecoEncantar,20000;	// Preço para encantar a arma
+	mes .@npcencantador$;
+	mes (gettime(3)>= 6&&gettime(3)<= 12?"Bom-dia":(gettime(3)>=13&&gettime(3)<=18?"Boa-tarde":"Boa-noite"))+", ^ffa500"+strcharinfo(0)+"^000000!";
+	mes "Para encantar sua arma irei cobrar uma taxa de: ^ff0000"+@PrecoEncantar+"z.^000000";
+	next;
+	if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2){
+	mes .@npcencantador$;
+	mes "Tudo bem! Volte quando precisar.";
+	close;
+	
+}
+	if(zeny < @PrecoEncantar){
+	mes .@npcencantador$;
+	mes "Você não tem o dinheiro suficiente.";
+	close;
+}
+	mes .@npcencantador$;
+	mes "Qual elemento você quer?";
+	next;
+	switch(select("^339966[»]^000000 Geada:^339966[»]^000000 Chama:^339966[»]^000000 Terremoto:^339966[»]^000000 Ventania:^339966[»]^000000 Sagrado:^ff0000[»] Sair^000000")){
+	case 1:
+		mes .@npcencantador$;
+		sc_start SC_WATERWEAPON,1200000,5;			// Encantar com Geada, Duração: 10 Minutos, Level 5
+		set zeny,zeny-@PrecoEncantar;
+		npctalk "Sua arma foi encantada com sucesso";
+		close;
+	case 2:
+		mes .@npcencantador$;
+		sc_start SC_FIREWEAPON,1200000,5;			// Encantar com Chama, Duração: 10 Minutos, Level 5
+		set zeny,zeny-@PrecoEncantar;
+		npctalk "Sua arma foi encantada com sucesso";
+		close;
+	case 3:
+		mes .@npcencantador$;
+		sc_start SC_EARTHWEAPON,1200000,5;			// Encantar com Terremoto, Duração: 10 Minutos, Level 5
+		set zeny,zeny-@PrecoEncantar;
+		npctalk "Sua arma foi encantada com sucesso";
+		close;
+	case 4:
+		mes .@npcencantador$;
+		sc_start SC_WINDWEAPON,1200000,5;			// Encantar com Ventania, Duração: 10 Minutos, Level 5
+		set zeny,zeny-@PrecoEncantar;
+		npctalk "Sua arma foi encantada com sucesso";
+		close;
+	case 5:
+		mes .@npcencantador$;
+		sc_start SC_ASPERSIO,1200000,5;			// Encantar com Sagrado, Duração: 10 Minutos, Level 5
+		set zeny,zeny-@PrecoEncantar;
+		npctalk "Sua arma foi encantada com sucesso";
+		close;
+	case 6:
+		next;
+		mes "^339966[Encantador Premium]^000000";
+		mes "Tudo bem! Volte quando precisar.";
+		close;
+	}
+	
+OnInit:
+
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 72;	
+		setunittitle getnpcid(0), "[Rune-Midgard]";
+
+		while(1) {
+		showscript "[ Elementalista ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+//malangdo,229,265,3	duplicate(Encantador Premium)	Encantador Test	743
+
+1@herbs,266,41,5	script	Guardião do Descanso#dup	687,{
+
+	setnpcdisplay "Guardião do Descanso#dup", 688;
+
+	mes "^339966[Guardião do Descanso]^000000";
+	mes "Hum... que sono! Quem foi que me acordou?";
+	mes "Ah... é você, ^FFA500"+strcharinfo(0)+"^000000.";
+	next;
+	mes "^339966[Guardião do Descanso]^000000";
+	mes "Eu sou o Guardião desta Área... zZzZzZ...";
+	mes "Você deseja que eu te leve para a ^ff0000Área de Descanso^000000?";
+	next;
+
+	switch(select("^339966[>]^000000 Sim, me leve para lá.:^ff0000[>] Não, obrigado!^000000")) {
+		case 1:
+			mes "^339966[Guardião do Descanso]^000000";
+			mes "Muito bem!... Tenha um bom descanso!";
+			close2;
+			specialeffect2 1062;
+			sleep2 800;
+			warp "1@pop3", 0, 0;
+			setnpcdisplay "Guardião do Descanso#dup", 687;
+			end;
+		case 2:
+			mes "^339966[Guardião do Descanso]^000000";
+			mes "Tudo bem... *bocejo*...";
+			mes "Vou voltar a dormir!";
+			mes "zZzZzZ...zZzZzZzZz....";
+			close2;
+			sleep2 500;
+			setnpcdisplay "Guardião do Descanso#dup", 687;
+			end;
+	}
+
+OnDialogClose:
+	sleep2 500;
+	setnpcdisplay "Guardião do Descanso#dup", 687;
+	end;
+
+OnInit:
+
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 48;	
+	setunittitle getnpcid(0), "[Arena do Sono]";
+	end;
+	
+	initnpctimer;
+	end;
+
+OnTimer10000:
+OnTimer20000:
+OnTimer30000:
+OnTimer45000:
+	setarray .mensagens$,
+		"zZzZzzzz...zZzZzZzZzzz",
+		"Que soninho bom!",
+		"*ronco*",
+		"Hmmm... sonhando com doces...",
+		"zZzZz... não me acordem...",
+		"*suspiro* que paz...",
+		"Dormindo como um anjo...",
+		"zZzZzzzz.... só mais cinco minutinhos...",
+		"Sonhar é tão bom... zZzZz...",
+		"Estou viajando nas nuvens... zZzZz...",
+		"Mais cinco minutinhos, por favor...",
+		"*ronc roncc*...",
+		"Queria um travesseiro mais fofo... zZzZz...",
+		"Deixa eu sonhar mais um pouco...",
+		"Hmmm... um sonho com muitos doces...",
+		"*bocejo*... que preguiça...",
+		"É tão bom descansar assim...",
+		"Estou em paz... zZzZz...",
+		"Não quero acordar tão cedo... zZzZz...",
+		"Hmmm... sonhando com aventuras...",
+		"*ronc*... zZzZz...",
+		"Esse lugar é tão calmo... zZzZz...",
+		"Me acorda só quando tiver comida...",
+		"Zzz... nem percebi você aí...",
+		"Estava sonhando com porings... zZzZz...",
+		"Zzz... sonhando com uma soneca infinita...",
+		"Hmmm... cama, cobertor e travesseiro... zZzZz...",
+		"Espero que o dia passe bem devagar... zZzZz...";
+
+	.@msg = rand(getarraysize(.mensagens$));
+	npctalk .mensagens$[.@msg];
+
+	stopnpctimer;
+	sleep rand(10000, 20000);
+	initnpctimer;
+	end;
+}

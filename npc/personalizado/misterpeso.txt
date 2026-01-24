@@ -1,0 +1,78 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+// 			             MISTER PESO
+//===============================================================
+
+prontera,165,199,5	script	Mister Peso	617,{
+    // ??? BLOCO DEFAULT (ao clicar) ???
+    mes "^339966[Gigante Cabus]^000000";
+	mes "Fala, frangote...";
+	mes "Meus bíceps são mais volumosos que montaria de MVP!";
+	next;
+	mes "^339966[Gigante Cabus]^000000";
+	mes "Quer ganhar músculos de titã e carregar peso como eu?";
+    mes "Traga um ^FF0000Gym Pass^000000 e deixe o resto comigo!";
+    next;
+    
+    // Verificar se já atingiu o limite de 10 usos
+    if (gympassmemory >= 10) {
+        mes "^339966[Gigante Cabus]^000000";
+        mes "Ei, frangote! Você já atingiu o limite máximo de treinos!";
+        mes "Seus músculos já estão no nível titanesco: ^ff0000" + gympassmemory + "/10^000000";
+        mes "Não há mais nada que eu possa fazer por você!";
+        close;
+    }
+    
+    if (select("^3CB371[>]^000000 Sim, me transforme!:^ff0000[>] Não, passo longe^000000.") == 1) {
+        if (countitem(7776) > 0) {
+            mes "^339966[Gigante Cabus]^000000";
+            mes "Excelente escolha! Sinta o poder fluir pelos seus tendões!";
+            mes "Imite meus movimentos e grite comigo: ^ff0000UH-RAH^000000!";
+            next;
+            specialeffect2 EF_EARTHSPIKE;
+            next;
+            specialeffect2 EF_DEVIL;
+            next;
+            specialeffect2 EF_COIN;
+            next;
+            specialeffect2 EF_SIGHTRASHER;
+            next;
+            mes "^339966[Gigante Cabus]^000000";
+            mes "Pronto! Seus músculos estão mais densos que minha almôndega!";
+            delitem 7776,1;                       // consome o ticket
+            set gympassmemory, gympassmemory + 1;
+            skill "ALL_INCCARRY", gympassmemory, SKILL_PERM_GRANT;
+            mes "^FF0000(+" + gympassmemory + " aumento(s) de carga)^000000";
+            mes "^0066CC(Restam " + (10 - gympassmemory) + " treino(s) disponível(is))^000000";
+        } else {
+            mes "^339966[Gigante Cabus]^000000";
+            mes "Ei, cadê seu ^ff0000Gym Pass^000000? Sem ingresso não tem pump!";
+        }
+    } else {
+        mes "^339966[Gigante Cabus]^000000";
+        mes "Fraco! Volte quando tiver coragem... e um ^ff0000Gym Pass^000000!";
+    }
+    close;
+
+// ??? OnInit: impeça que eu saia do lugar e comece os comentários ???
+OnInit:
+
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 53;	
+	setunittitle getnpcid(0), "[GYM Passe]";	
+
+    initnpctimer;
+    end;
+
+OnTimer100:
+    showscript "[ Mister Peso ]", getnpcid(0);
+    initnpctimer;
+    end;
+
+}

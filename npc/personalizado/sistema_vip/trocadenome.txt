@@ -1,0 +1,142 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  NPC - Trocar de Nome
+//===============================================================
+// Versão: 1.1 - Acesso para GM - 927 NPC
+//
+// Alteração v1.1:
+// - Adicionado acesso para GMs de nível 99.
+// - GMs recebem os mesmos benefícios de um Super VIP.
+//===============================================================
+
+1@herbs,300,67,3	script	Mestre das Identidades	775,{
+
+	// Restrição de acesso
+	if (getgmlevel() < 99 && #VIP_LEVEL != 2) {
+		mes "^339966[Mestre das Identidades]^000000";
+		mes "Saudações, ^FFA500"+strcharinfo(0)+"^000000!";
+		mes "Infelizmente, apenas jogadores ^ff0000Super VIP^000000 podem utilizar este serviço.";
+		mes "Adquira um ^ff0000Ticket Super VIP^000000 em nossa loja para desfrutar dos benefícios exclusivos!";
+		close;
+	}
+
+	// Restrição de 7 dias entre trocas (exceto ADM)
+	if (getgmlevel() < 99) {
+		if (#LAST_RENAME_TIME + (7 * 24 * 60 * 60) > gettimetick(2)) {
+			.@remaining = (#LAST_RENAME_TIME + (7 * 24 * 60 * 60)) - gettimetick(2);
+			.@days = .@remaining / (24 * 60 * 60);
+			.@hours = (.@remaining % (24 * 60 * 60)) / (60 * 60);
+			mes "^339966[Mestre das Identidades]^000000";
+			mes "Você poderá trocar seu nome novamente em:";
+			mes "^FF0000"+.@days+" dia(s) e "+.@hours+" hora(s).^000000";
+			close;
+		}
+	}
+
+	mes "^339966[Mestre das Identidades]^000000";
+	mes (gettime(3)>= 6&&gettime(3)<= 12?"Bom-dia":(gettime(3)>=13&&gettime(3)<=18?"Boa-tarde":"Boa-noite"))+", ^FFA500"+strcharinfo(0)+"^000000!";
+	mes "Você é um jogador ^00ff00SUPER VIP.^000000";
+	mes " ";
+	mes "Deseja trocar seu nome por ^FF000050.000 zeny^000000?";
+	next;
+	switch(select("^339966[»]^000000 Trocar Nome:^ff0000[»] Cancelar^000000")) {
+		case 2:
+			mes "^339966[Mestre das Identidades]^000000";
+			mes "Tudo bem, volte quando precisar dos meus serviços.";
+			close;
+	}
+
+	mes "^339966[Mestre das Identidades]^000000";
+	mes "Seu nome atual é: ^FFA500"+strcharinfo(0)+"^000000";
+	mes " ";
+	mes "Digite o novo nome desejado ^ff0000(não use números, símbolos ou caracteres especiais)^000000:";
+	input .@newname$;
+	next;
+
+	// Validação de tamanho
+	.@len = getstrlen(.@newname$);
+	if (.@len < 4 || .@len > 23) {
+		mes "^339966[Mestre das Identidades]^000000";
+		mes "O nome deve conter entre 4 e 23 caracteres.";
+		close;
+	}
+
+	// Validação de caracteres proibidos
+	.@invalid = 0;
+	.@proibidos$ = "0123456789~`´ãõ!@#$%^&*()_-+=[]{}|\\:;\"'<>,.?/áàâäãéèêëíìîïóòôöõúùûüçñÁÀÂÄÃÉÈÊËÍÌÎÏÓÒÔÖÕÚÙÛÜÇÑ°µ±‰€£¥¢©®™?•†‡§¶…«»";
+	for (.@i = 0; .@i < getstrlen(.@proibidos$); .@i++) {
+		if (compare(.@newname$, charat(.@proibidos$, .@i)+"")) {
+			.@invalid = 1;
+			break;
+		}
+	}
+
+	if (.@invalid) {
+		mes "^339966[Mestre das Identidades]^000000";
+		mes "^ff0000Atenção:^000000 Nome com caracteres inválidos.";
+		mes " ";
+		mes "^ff0000Não utilize números, símbolos ou caracteres especiais.^000000";
+		close;
+	}
+
+	// Verifica duplicidade de nome
+	query_sql("SELECT `char_id` FROM `char` WHERE `name` = '"+escape_sql(.@newname$)+"'", .@check);
+	if (.@check) {
+		mes "^339966[Mestre das Identidades]^000000";
+		mes "Este nome já está em uso por outro jogador! Tente novamente com outro nome.";
+		close;
+	}
+
+	mes "^339966[Mestre das Identidades]^000000";
+	mes "Deseja confirma a troca do nome para: ^00FF00"+.@newname$+"^000000?";
+	next;
+	switch(select("^339966[»]^000000 Confirmar:^ff0000[»] Cancelar^000000")) {
+		case 2:
+			mes "^339966[Mestre das Identidades]^000000";
+			mes "Tudo bem, volte quando precisar dos meus serviços.";
+			close;
+	}
+
+	// Verifica zeny
+	if (Zeny < 50000) {
+		mes "^339966[Mestre das Identidades]^000000";
+		mes "Você não possui zeny suficiente para utilizar os meus serviços.";
+		close;
+	}
+
+	// Cobra zeny
+	Zeny -= 50000;
+
+	// Atualiza nome no banco de dados
+	query_sql("UPDATE `char` SET `name` = '"+escape_sql(.@newname$)+"' WHERE `char_id` = "+getcharid(0));
+
+	// Marca o tempo da troca
+	if (getgmlevel() < 99)
+		#LAST_RENAME_TIME = gettimetick(2);
+
+	mes "^339966[Mestre das Identidades]^000000";
+	mes "Seu nome foi alterado com sucesso para ^00FF00"+.@newname$+"^000000.";
+	mes " ";
+	mes "Você será desconectado para aplicar a alteração.";
+	close2;
+	atcommand "@kick "+strcharinfo(0);
+	end;
+
+OnInit:
+
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 82;	
+		setunittitle getnpcid(0), "[Trocador de Nome]";
+
+		while(1) {
+		showscript "[ Change Name ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}

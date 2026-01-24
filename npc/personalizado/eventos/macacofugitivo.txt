@@ -1,0 +1,71 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//          MACACO FUGITIVO - SCRIPT ORIGINAL HRAFNIR
+//===============================================================
+
+-	script	box_event_active	-1,{
+	OnInit:
+		bindatcmd "startbox", strnpcinfo(3) + "::OnStartBox";
+		initnpctimer;
+		end;
+	OnTimer10800000:
+		donpcevent strnpcinfo(3) + "::OnStartBox_Internal";
+		initnpctimer;
+		end;
+	OnStartBox:
+		if (getgmlevel() < 99) {
+			dispbottom "Apenas GMs podem iniciar o evento.";
+			end;
+		}
+		donpcevent strnpcinfo(3) + "::OnStartBox_Internal";
+		end;
+	OnStartBox_Internal:
+		// Mapa fixo: Prontera
+		$BoxEvent_Map$ = "prontera";
+		$BoxEvent_MapName$ = "Prontera";
+		
+		// Coordenadas aleatórias em Prontera
+		// Área segura: X entre 100-250, Y entre 100-250
+		$BoxEvent_X = 100 + rand(151);
+		$BoxEvent_Y = 100 + rand(151);
+		
+		// Frases engraçadas
+		setarray .@phrases$[0],
+			"Um Macaco Fugitivo extremamente suspeito surgiu em " + $BoxEvent_MapName$ + " carregando um baú gigante nas costas!",
+			"Atenção! Um Macaco Fugitivo contrabandista de tesouros invadiu " + $BoxEvent_MapName$ + "!",
+			"O Macaco Fugitivo chegou em " + $BoxEvent_MapName$ + "... e ele está recheado de itens brilhantes!",
+			"Rápido! Antes que o Macaco Fugitivo fuja com o baú, capture-o em " + $BoxEvent_MapName$ + "!";
+		
+		announce .@phrases$[rand(4)], bc_all;
+		
+		$BoxEvent_MobGID = monster($BoxEvent_Map$, $BoxEvent_X, $BoxEvent_Y, "Macaco Fugitivo", 1585, 1, strnpcinfo(3) + "::OnBoxDead");
+		
+		sleep 60000;
+		donpcevent strnpcinfo(3) + "::OnEscapeCheck";
+		end;
+	OnEscapeCheck:
+		if (isloggedin($BoxEvent_MobGID)) {
+			unitkill $BoxEvent_MobGID;
+			mapannounce $BoxEvent_Map$, "O Macaco Fugitivo contrabandista de tesouros fugiu sorrateiramente com seu baú!", bc_map;
+		}
+		end;
+	OnBoxDead:
+		setarray .@items[0], 22702, 22703, 22704, 22705, 22706, 22702, 12103, 12110, 12109, 7621;
+		for (.@i = 0; .@i < 1000; .@i++) {
+			.@x = $BoxEvent_X + rand(-50, 50);
+			.@y = $BoxEvent_Y + rand(-50, 50);
+			.@item = .@items[rand(getarraysize(.@items))];
+			makeitem .@item, 1, $BoxEvent_Map$, .@x, .@y;
+			sleep2 10;
+		}
+		mapannounce $BoxEvent_Map$, "O Macaco Fugitivo foi derrotado! Seu baú explodiu espalhando tesouros por todo o chão!", bc_map;
+		$BoxEvent_MobGID = 0;
+		end;
+}

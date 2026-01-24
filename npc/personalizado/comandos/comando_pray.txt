@@ -1,0 +1,60 @@
+//===== rAthena Script =======================================
+//= Kido's Second Scrip Release: Super Novice Prayer Command
+//===== By: ==================================================
+//= Kido with the help of Dastgir with the gettimestick stuff
+//===== Current Version: =====================================
+//= 1.0 First pre-release without gettimestick
+//= 2.0 Added gettimestick thanks to Dastgir
+//===== Compatible With: =====================================
+//= As far as i know, only with rAthena
+//===== Description: =========================================
+//= It's just a command that when used by a Super Novice it will start to pray and to summon the Guardian Angel.
+//= Only workfs for Super Novice.
+//= I did this because in my server the SN Prayer didn't work and i couldn't figure it out how to make it work lol.
+//= I also had a hard time with gettime gettimestick addtimer etc etc stuff, i just didn't catch it, but thanks to Dastgir now it's working pretty good with gettimestick
+//= There's no bug with this script, report if any (?)
+//= Another bad side is the fact that if the SN dies before the 3 minutes of wait to use the command again the SN won't be able to use it
+//=but i think this can be fixed with some HP checks.
+//= The pray of the SN is only visible to the player who uses the command (anti chat flood and or spam purpose).
+//===== Version Change Log ==================================
+//= 1.0: First release, already tested and no bugs (report if any?)
+//===== YOU CAN NOT ==========================================
+//= Remove the credits
+//= Re-release it as yours
+//= Re-release them in any way (modified or otherwise)
+//= Sell it (make money with it)
+//===== YOU CAN ==============================================
+//= Improve it
+//= Change the name of the NPC
+//= Add stuff
+//============================================================
+-	script	snprayer	-1,{ //Name of the NPC is snprayer
+
+	OnInit: //The script starts when loaded
+		bindatcmd "pray",strnpcinfo(3)+"::OnAtcommand",0,99; //The command is @pray and only a GM level 99 can force other users to use the command
+		end;
+	
+	OnAtcommand: //The script starts the SN Prayer text
+		if( BaseJob==Job_SuperNovice ) { //Check to ensure that only Super Novices can use the command, reade the last else if non Super Novice uses the command
+			if (@CalledAngel >= gettimetick(2)) { //Check to ensure the player to wait before the player calls the Guardian Angel again, an attepmt to stop them for spaming the command. Thnaks Dastgir for the gettimestick thing.
+				message strcharinfo(0),"Wait at least "+(CalledAngel-gettimetick(2))+" Seconds to call your Andel Guardian once more!"; //Let's them know that they have to wait at least 3 Minutes
+				end;
+			}
+			set @CalledAngel,gettimetick(2)+(3*60)+8;	//3 minutes(waiting time) + 8seconds(spell cast time)
+			message strcharinfo(0),"Dear angel, can you hear my voice?"; //Start of the pray
+			sleep2 2000;
+			message strcharinfo(0),"I am "+ strcharinfo(0 )+" Super Novice~";
+			sleep2 2000;
+			message strcharinfo(0),"Help me out~ Please~ T_T";
+			sleep2 2000;
+			sc_start 92,180000,5; //Start of the skill Critical Explosion
+			skilleffect 270,777;  //Visual Skill effect of the Critical Explosion
+			sc_start SC_INCCRI,300000,30; //Extra Critical Rate to ensure the SN gets the +50 Crit Rate that should get when praying
+			specialeffect2 338;   //SN Angel
+			sleep2 1500;
+			message strcharinfo(0),strcharinfo(0 )+" you just got blessed by the Super Novice Angel !!!";
+		}
+		else { 
+			message strcharinfo(0),"You prayed with the hope to see an Angel, but looks like they only appear for Super Novices ...";  //If the player is not a Super Novice
+		}
+} //end of this script

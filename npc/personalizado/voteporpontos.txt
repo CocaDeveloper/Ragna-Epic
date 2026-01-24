@@ -1,0 +1,240 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//              SISTEMA DE VOTE POR PONTOS
+//===============================================================
+
+// ============================================================================
+// Sistema de Vote por Pontos - rAthena - Revisado e Corrigido
+// ============================================================================
+
+// NPC Principal - Vote por Pontos
+prontera,146,174,5	script	Sistema de Votação	837,{
+
+	// Configurações do Sistema
+	.@cooldown_hours = 24;  // Cooldown em horas
+	.@vote_points = 1;      // Pontos ganhos por voto
+	.@max_votes = 3;        // Máximo de votos antes do cooldown
+
+	mes "^339966[Sistema de Votação]^000000";
+	mes "Olá, ^FFA500"+strcharinfo(0)+"^000000!";
+	mes "Aqui você poderá ganhar pontos votando em nosso servidor para trocar por itens especiais!";
+	next;
+
+	// Menu principal
+	switch(select("^3CB371[>]^000000 Votar no Servidor:^3CB371[>]^000000 Verificar Pontos:^3CB371[>]^000000 Loja de Pontos:^3CB371[>]^000000 Informações:^ff0000[>] Sair^000000")) {
+		case 1:
+			// Verificar cooldown
+			if(#VOTE_DELAY > gettimetick(2)) {
+				.@time_left = #VOTE_DELAY - gettimetick(2);
+				.@hours = .@time_left / 3600;
+				.@minutes = (.@time_left % 3600) / 60;
+				mes "^339966[Sistema de Votação]^000000";
+				mes "^ff0000VOTAÇÃO NEGADA^000000";
+				mes "Você atingiu o limite de votos diários.";
+				mes "Votos: ^FF0000" + ((.@max_votes - #VOTE_COUNT) < 0 ? 0 : (.@max_votes - #VOTE_COUNT)) + "/" + .@max_votes + "^000000";
+				mes "Tempo restante: ^FF0000" + .@hours + "h " + .@minutes + "m^000000";
+				mes " ";
+				mes "Volte aqui quando o tempo acabar!";
+				close;
+			}
+
+			mes "^339966[Sistema de Votação]^000000";
+			mes "^00FF00Ótimo!^000000 Você pode votar agora!";
+			mes "Votos restantes: ^0000FF" + (.@max_votes - #VOTE_COUNT) + "/" + .@max_votes + "^000000";
+			mes "^FF0000AVISO IMPORTANTE:^000000";
+			mes "1. Escolha a opção para votar.";
+			mes "2. Vote em nosso servidor.";
+			mes "3. Volte aqui e confirme seu voto.";
+			next;
+
+			.@vote_site = select("^3CB371[>]^000000 Top Ragnarok:^3CB371[>]^000000 Ragnarok List:^3CB371[>]^000000 RO Server List:^ff0000[>] Cancelar^000000");
+			if(.@vote_site == 4) {
+				mes "^339966[Sistema de Votação]^000000";
+				mes "Votação cancelada.";
+				close;
+			}
+
+			setarray .@site_names$[0], "Top Ragnarok", "Ragnarok List", "RO Server List";
+			setarray .@site_links$[0], "https://www.topragnarok.org", "https://www.ragnaroklist.com", "https://www.roserverlist.net";
+			.@selected_site = .@vote_site - 1;
+
+			mes "^339966[Sistema de Votação]^000000";
+			mes "^ff0000Site selecionado:^000000 " + .@site_names$[.@selected_site];
+			mes " ";
+			mes "Copie e cole no seu navegador:";
+			mes "^0000FF" + .@site_links$[.@selected_site] + "^000000";
+			mes " ";
+			mes "Aguardando confirmação...";
+			next;
+
+			if(select("^3CB371[>]^000000 Confirmar Voto:^ff0000[>] Cancelar^000000") == 2) {
+				mes "^339966[Sistema de Votação]^000000";
+				mes "Votação cancelada.";
+				close;
+			}
+			
+			mes "^339966[Sistema de Votação]^000000";
+			mes "Verificando voto...";
+			sleep2 5000;
+			mes "^00FF00Seu voto foi confirmado com sucesso!^000000";
+			next;
+
+			#VOTE_POINTS += .@vote_points;
+			#VOTE_COUNT++;
+
+			if(#VOTE_COUNT >= .@max_votes) {
+				#VOTE_DELAY = gettimetick(2) + (.@cooldown_hours * 3600);
+			}
+
+			mes "^339966[Sistema de Votação]^000000";
+			mes "Parabéns!";
+			mes " ";
+			mes "Você Ganhou: ^0000FF" + .@vote_points + " Vote Point(s)^000000.";
+			mes "Votos Confirmados: ^0000FF" + #VOTE_COUNT + "/" + .@max_votes + "^000000";
+			mes "Total de Pontos: ^0000FF" + #VOTE_POINTS + "^000000";
+
+			announce strcharinfo(0) + " votou no servidor em " + .@site_names$[.@selected_site] + " e ganhou " + .@vote_points + " Vote Point!", bc_all;
+			close;
+
+		case 2:
+			// Verificar pontos
+			mes "^339966[Sistema de Votação]^000000";
+			mes "Meus pontos: ^0000FF" + #VOTE_POINTS + " pontos.^000000";
+			if(#VOTE_DELAY > gettimetick(2)) {
+				.@time_left = #VOTE_DELAY - gettimetick(2);
+				.@hours = .@time_left / 3600;
+				.@minutes = (.@time_left % 3600) / 60;
+				mes "Status atual: ^FF0000Carregando...^000000";
+				mes "Tempo restante: ^FF0000" + .@hours + "h " + .@minutes + "m^000000";
+			} else {
+				mes "Status: ^00FF00Disponível para votar^000000";
+				mes "Votos restantes: ^0000FF" + (.@max_votes - #VOTE_COUNT) + "/" + .@max_votes + "^000000";
+			}
+			close;
+			
+		case 3:
+			// Loja de Pontos
+			mes "^339966[Sistema de Votação]^000000";
+			mes "^0000FFLoja de Vote Points^000000";
+			mes "Seus pontos: ^0000FF" + #VOTE_POINTS + "^000000";
+			next;
+			mes "^339966[Loja de Pontos]^000000";
+			mes "^FF0000Itens Disponíveis:^000000";
+			mes "• Megafone - ^0000FF5 pontos^000000";
+			mes "• VIP Ticket 1 Dia - ^0000FF10 pontos^000000";
+			mes "• TCG Card - ^0000FF15 pontos^000000";
+			mes "• Pill de Agilidade - ^0000FF20 pontos^000000";
+			mes "• Blessing Scroll - ^0000FF25 pontos^000000";
+			mes "• Yggdrasil Berry - ^0000FF30 pontos^000000";
+			mes "• Bubble Gum - ^0000FF35 pontos^000000";
+			mes "• Battle Manual - ^0000FF40 pontos^000000";
+			next;
+			
+			if(select("^3CB371[>]^000000 Abrir Loja:^ff0000[>] Voltar^000000") == 1) {
+				callshop "vote_shop", 1;
+				npcshopattach "vote_shop";
+			}
+			close;
+
+		case 4:
+			mes "^339966[Sistema de Votação]^000000";
+			mes "^0000FFComo Funciona:^000000";
+			mes "• Escolha uma das opções de link.";
+			mes "• Ganhe " + .@vote_points + " ponto por voto.";
+			mes "• Máximo de " + .@max_votes + " votos a cada " + .@cooldown_hours + " horas.";
+			mes "• Troque seus pontos por itens especiais na Loja de Pontos.";
+			close;
+
+		case 5:
+			mes "^339966[Sistema de Votação]^000000";
+			mes "Obrigado pela visita!";
+			close;
+	}
+
+OnInit:
+
+setunitdata getnpcid(0), UNPC_GROUP_ID, 30;	
+setunittitle getnpcid(0), "[Vote por Pontos]";
+
+	while(1) {
+		showscript "[ Vote por Pontos ]", getnpcid(0);
+		sleep 100; // Aumentei o tempo para reduzir spam
+	}
+	end;
+}
+
+// ============================================================================
+// Loja de Vote Points
+// ============================================================================
+
+-	shop	vote_shop	-1,12221:5000,12227:10000,7227:15000,12103:20000,12119:25000,607:30000,12210:35000,12211:40000
+
+// ============================================================================
+// Sistema de Compras da Loja
+// ============================================================================
+
+-	script	vote_system_shop	-1,{
+OnBuyItem:
+	// Definir preços dos itens em Vote Points
+	setarray .@item_ids[0], 12221, 12227, 7227, 12103, 12119, 607, 12210, 12211;
+	setarray .@item_costs[0], 5, 10, 15, 20, 25, 30, 35, 40;
+	setarray .@item_names$[0], "Megafone", "VIP Ticket 1 Dia", "TCG Card", "Pill de Agilidade", "Blessing Scroll", "Yggdrasil Berry", "Bubble Gum", "Battle Manual";
+	
+	// Verificar se o item existe na lista
+	.@item_index = -1;
+	for(.@i = 0; .@i < getarraysize(.@item_ids); .@i++) {
+		if(@bought_nameid == .@item_ids[.@i]) {
+			.@item_index = .@i;
+			break;
+		}
+	}
+	
+	if(.@item_index == -1) {
+		mes "[^FF0000Erro^000000]";
+		mes "Item não encontrado no sistema!";
+		close;
+	}
+	
+	.@item_cost = .@item_costs[.@item_index];
+	.@total_cost = .@item_cost * @bought_quantity;
+	
+	// Verificar se tem pontos suficientes
+	if(#VOTE_POINTS < .@total_cost) {
+		mes "[^0000FFLoja de Vote Points^000000]";
+		mes "Você não tem Vote Points suficientes!";
+		mes "Necessário: ^FF0000" + .@total_cost + "^000000 pontos";
+		mes "Você tem: ^0000FF" + #VOTE_POINTS + "^000000 pontos";
+		close;
+	}
+	
+	// Verificar espaço no inventário
+	if(checkweight(@bought_nameid, @bought_quantity) == 0) {
+		mes "[^0000FFLoja de Vote Points^000000]";
+		mes "Seu inventário está muito pesado!";
+		mes "Libere espaço e tente novamente.";
+		close;
+	}
+	
+	// Processar compra
+	#VOTE_POINTS -= .@total_cost;
+	getitem @bought_nameid, @bought_quantity;
+	
+	mes "[^0000FFLoja de Vote Points^000000]";
+	mes "^00FF00Compra realizada com sucesso!^000000";
+	mes "Item: ^0000FF" + .@item_names$[.@item_index] + "^000000";
+	mes "Quantidade: ^0000FF" + @bought_quantity + "^000000";
+	mes "Custo: ^FF0000" + .@total_cost + "^000000 pontos";
+	mes "Pontos restantes: ^0000FF" + #VOTE_POINTS + "^000000";
+	
+	// Log da transação
+	logmes "VOTE SHOP: Comprou " + @bought_quantity + "x " + .@item_names$[.@item_index] + " por " + .@total_cost + " pontos";
+	
+	close;
+}

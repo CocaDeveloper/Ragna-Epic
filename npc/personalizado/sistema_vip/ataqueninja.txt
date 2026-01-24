@@ -1,0 +1,405 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                 Assassino Sombrio 
+//===============================================================
+
+1@herbs,271,96,5	script	Assassino Sombrio	1560,{
+	set $preco_ninja, 10000000;
+
+	// INICIA O MENU //
+	M_Inicio:
+	mes "^339966[Shinobi]^000000";
+	mes "Estou sempre vigilante!";
+	mes " ";
+	mes " ";
+	mes "^ff0000O que você deseja?^000000";
+	next;
+	if (getgmlevel() > 90) goto M_GM;
+	menu "^339966[»]^000000 Comprar Ninjas", M_Comprar, "^339966[»]^000000 Assassinar alguém", M_Matar, "^339966[»]^000000 Verificar seus Ninjas", M_Verificar, "^339966[»]^000000 Status de Ataques", M_Status, "^ff0000[»] Cancelar^000000", M_Sair;
+	
+	M_GM:
+	menu "^339966[»]^000000 Comprar Ninjas", M_Comprar, "^339966[»]^000000 Assassinar alguém", M_Matar, "^339966[»]^000000 Verificar seus Ninjas", M_Verificar, "^339966[»]^000000 Status de Ataques", M_Status, "^339966[»]^000000 Adicionar Ninjas", M_Adicionar, "^339966[»]^000000 Reset Player", M_Reset, "^ff0000[»] Cancelar^000000", M_Sair;
+
+	// MENU GM PARA ADICIONAR NINJAS //
+	M_Adicionar:
+	mes "^339966[Shinobi]^000000";
+	mes "Quantos ninjas você quer disponibilizar?";
+	next;
+	set @adicionar, 0;
+	input @adicionar;
+	if (@adicionar <= 0) {
+		mes "^339966[Shinobi]^000000";
+		mes "^ff0000Quantidade inválida.^000000";
+		close;
+	}
+	set $ninjas_disponiveis, $ninjas_disponiveis + @adicionar;
+	mes "^339966[Shinobi]^000000";
+	mes @adicionar + " ninjas adicionados.";
+	mes "Total disponível: ^ff0000" + $ninjas_disponiveis;
+	close;
+
+	// MENU GM PARA RESETAR JOGADOR //
+	M_Reset:
+	mes "^339966[Shinobi]^000000";
+	mes "Digite o nome do jogador ou IP para resetar limites:";
+	next;
+	set @nome_reset$, "";
+	input @nome_reset$;
+	if (@nome_reset$ == "") {
+		mes "^339966[Shinobi]^000000";
+		mes "^ff0000Nome/IP inválido.^000000";
+		close;
+	}
+	
+	// Verifica se é um IP (contém pontos)
+	if (compare(@nome_reset$, ".")) {
+		// Reset por IP
+		set @ip_hash_reset, atoi(substr(@nome_reset$, 0, 3)) + atoi(substr(@nome_reset$, 4, 3)) + atoi(substr(@nome_reset$, 8, 3)) + atoi(substr(@nome_reset$, 12, 3));
+		query_sql "DELETE FROM `acc_reg_num` WHERE `key` LIKE '$ataques_ip_%' OR `key` LIKE '$ultimo_ataque_ip_"+@ip_hash_reset+"_%'";
+		mes "^339966[Shinobi]^000000";
+		mes "Limites do IP ^ff0000" + @nome_reset$ + "^000000 foram resetados.";
+	} else {
+		// Reset por nome de jogador (método antigo + novo)
+		query_sql "DELETE FROM `acc_reg_num` WHERE `account_id` = (SELECT `account_id` FROM `char` WHERE `name` = '"+escape_sql(@nome_reset$)+"') AND `key` IN ('#ataques_hoje', '#ultimo_ataque', '#data_atual')";
+		mes "^339966[Shinobi]^000000";
+		mes "Limites de ^ff0000" + @nome_reset$ + "^000000 foram resetados.";
+	}
+	close;
+
+	// COMPRAR NINJAS //
+	M_Comprar:
+	mes "^339966[Shinobi]^000000";
+	mes "Quantos ninjas você quer comprar?";
+	mes "Há ^ff0000" + $ninjas_disponiveis + "^000000 ninjas disponíveis.";
+	mes "Eles custam ^ff0000" + $preco_ninja + " zeny^000000 cada.";
+	next;
+	
+	set @comprar, 0;
+	input @comprar;
+	
+	if (@comprar <= 0) {
+		mes "^339966[Shinobi]^000000";
+		mes "^ff0000Quantidade inválida.^000000";
+		next;
+		goto M_Inicio;
+	}
+	
+	if ($ninjas_disponiveis < 1) goto SemNinjas;
+	if ($ninjas_disponiveis < @comprar) goto NinjasInsuficientes;
+	
+	set @preco_total, @comprar * $preco_ninja;
+	if (Zeny < @preco_total) goto SemZeny;
+
+	mes "^339966[Shinobi]^000000";
+	mes "Isso custará ^ff0000" + @preco_total + " zeny^000000.";
+	next;
+	menu "^339966[»]^000000 Continuar", -, "^ff0000[»] Cancelar^000000", M_Sair;
+
+	set Zeny, Zeny - @preco_total;
+	set #ninjas, #ninjas + @comprar;
+	set $ninjas_disponiveis, $ninjas_disponiveis - @comprar;
+
+	mes "^339966[Shinobi]^000000";
+	mes "Obrigado pela compra.";
+	mes "Você agora possui ^FF0000" + #ninjas + "^000000 ninjas ativos.";
+	close;
+
+	// VERIFICAR STATUS DE ATAQUES //
+	M_Status:
+	// Verifica se é um novo dia
+	set @data_hoje, gettime(5) * 100 + gettime(3); // MMDD
+	if (#data_atual != @data_hoje) {
+		set #ataques_hoje, 0;
+		set #data_atual, @data_hoje;
+	}
+	
+	set @ataques_restantes, 5 - #ataques_hoje;
+	if (@ataques_restantes < 0) set @ataques_restantes, 0;
+	
+	// Calcula tempo restante do cooldown
+	set @tempo_atual, gettimetick(2);
+	set @cooldown_restante, (#ultimo_ataque + 1800) - @tempo_atual; // 1800 = 30 minutos
+	
+	mes "^339966[Shinobi]^000000";
+	mes "^ff0000=== STATUS DE ATAQUES ===^000000";
+	mes " ";
+	mes "Ataques restantes hoje: ^ff0000" + @ataques_restantes + "/5^000000";
+	
+	if (@cooldown_restante > 0) {
+		set @minutos, @cooldown_restante / 60;
+		set @segundos, @cooldown_restante % 60;
+		mes "Próximo ataque em: ^ff0000" + @minutos + "m " + @segundos + "s^000000";
+	} else {
+		mes "Status: ^339966Pronto para atacar^000000";
+	}
+	
+	mes " ";
+	mes "Último ataque bem-sucedido: " + (#ultimo_ataque > 0 ? "Sim" : "Nunca");
+	close;
+
+	// ASSASSINAR ALGUÉM //
+	M_Matar:
+	if (agitcheck()) goto M_Ocupado;
+	
+	// ADMs não têm restrições
+	if (getgmlevel() < 60) {
+		// Obtém o IP do jogador para controle por IP
+		set @player_ip$, getcharip(getcharid(3));
+		
+		// Verifica se é um novo dia e reseta contadores baseado no IP
+		set @data_hoje, gettime(5) * 100 + gettime(3); // MMDD
+		set @ip_hash, atoi(substr(@player_ip$, 0, 3)) + atoi(substr(@player_ip$, 4, 3)) + atoi(substr(@player_ip$, 8, 3)) + atoi(substr(@player_ip$, 12, 3));
+		
+		// Cria uma variável única baseada no IP e data
+		set @ip_data_key, @ip_hash * 10000 + @data_hoje;
+		
+		// Verifica variáveis do IP para limite diário
+		query_sql "SELECT COUNT(*) FROM `acc_reg_num` WHERE `key` = '$ataques_ip_"+@ip_data_key+"' AND `value` >= 5", @ip_ataques_hoje;
+		if (@ip_ataques_hoje > 0) goto LimiteDiarioIP;
+		
+		// Verifica cooldown baseado no IP
+		query_sql "SELECT MAX(`value`) FROM `acc_reg_num` WHERE `key` LIKE '$ultimo_ataque_ip_"+@ip_hash+"%'", @ultimo_ataque_ip;
+		set @tempo_atual, gettimetick(2);
+		if (@ultimo_ataque_ip > 0 && (@tempo_atual < (@ultimo_ataque_ip + 1800))) goto EmCooldownIP;
+	}
+	
+	mes "^339966[Shinobi]^000000";
+	mes "Digite o nome do alvo.";
+	mes "^FF0000Digite o nome exato, senão não conseguirei encontrar a vítima.^000000";
+	next;
+	menu "^339966[»]^000000 Continuar", -, "^ff0000[»] Cancelar^000000", M_Sair;
+	
+	set @nome_alvo$, "";
+	input @nome_alvo$;
+	
+	if (@nome_alvo$ == "" || @nome_alvo$ == strcharinfo(0)) {
+		mes "^339966[Shinobi]^000000";
+		mes "^ff0000Nome inválido ou você não pode atacar a si mesmo.^000000";
+		next;
+		goto M_Inicio;
+	}
+	
+	// Verifica se o nome contém palavras protegidas
+	set @nome_lower$, strtolower(@nome_alvo$);
+	if (compare(@nome_lower$, "gm") || compare(@nome_lower$, "adm") || compare(@nome_lower$, "admin") || 
+		compare(@nome_lower$, "administrador") || compare(@nome_lower$, "[gm]") || 
+		compare(@nome_lower$, "[adm]") || compare(@nome_lower$, "[admin]")) goto NomeProtegido;
+	
+	// Verifica se o alvo é ADM level 60+
+	query_sql "SELECT `group_id` FROM `login` WHERE `account_id` = (SELECT `account_id` FROM `char` WHERE `name` = '"+escape_sql(@nome_alvo$)+"')", @nivel_alvo;
+	if (@nivel_alvo >= 60) goto AlvoProtegido;
+	
+	next;
+	mes "^339966[Shinobi]^000000";
+	mes "Ninjas Ativos: ^ff0000" + #ninjas;
+	mes "Ninjas Descansando: ^ff0000" + #ninjas_descansando;
+	mes " ";
+	mes "^ff0000Quantos você quer enviar?^000000";
+	
+	set @quantidade, 0;
+	input @quantidade;
+	
+	if (@quantidade < 2) goto MinimoNinjas;
+	if (@quantidade > #ninjas) goto NinjasInsuficientes1;
+	if (@quantidade > 10) goto MuitosNinjas;
+	
+	// Incrementa contador de ataques do dia baseado no IP (apenas para não-ADMs)
+	if (getgmlevel() < 60) {
+		// Atualiza contador diário do IP
+		query_sql "INSERT INTO `acc_reg_num` (`account_id`, `key`, `index`, `value`) VALUES (0, '$ataques_ip_"+@ip_data_key+"', 0, 1) ON DUPLICATE KEY UPDATE `value` = `value` + 1";
+	}
+	
+	// Calcula chance de sucesso baseada na quantidade de ninjas
+	set @chance_base, rand(1, 12);
+	set @bonus_quantidade, @quantidade;
+	
+	set #ninjas, #ninjas - @quantidade;
+	set #ninjas, #ninjas + #ninjas_descansando;
+	set #ninjas_descansando, 0;
+	
+	next;
+	
+	if (@quantidade < @chance_base) goto M_Falha;
+
+	// ATAQUE BEM-SUCEDIDO //
+	mes "^339966[Shinobi]^000000";
+	mes "Enviando ninjas agora...";
+	next;
+	
+	// Registra timestamp do último ataque bem-sucedido baseado no IP (apenas para não-ADMs)
+	if (getgmlevel() < 60) {
+		set @timestamp_atual, gettimetick(2);
+		query_sql "INSERT INTO `acc_reg_num` (`account_id`, `key`, `index`, `value`) VALUES (0, '$ultimo_ataque_ip_"+@ip_hash+"_"+@timestamp_atual+"', 0, "+@timestamp_atual+") ON DUPLICATE KEY UPDATE `value` = "+@timestamp_atual;
+	}
+	
+	mes "^339966[Shinobi]^000000";
+	set @ninjas_sobreviventes, rand(1, @quantidade);
+	set #ninjas_descansando, @ninjas_sobreviventes;
+	mes "Seu ataque foi bem-sucedido, mas apenas ^FF0000" + #ninjas_descansando + "^000000 ninjas sobreviveram.";
+	mes " ";
+	mes "^ff0000Próximo ataque disponível em 30 minutos.^000000";
+
+	atcommand "@nuke " + @nome_alvo$;
+	announce "[Shinobi]: "+ @nome_alvo$ + " foi assassinado(a) pelos ninjas de " + strcharinfo(0) + ".", bc_all;
+	close;
+
+	// ATAQUE FALHADO //
+	M_Falha:
+	next;
+	mes "^339966[Shinobi]^000000";
+	mes "Enviando ninjas agora...";
+	next;
+	
+	mes "^339966[Shinobi]^000000";
+	set @ninjas_sobreviventes, rand(0, @quantidade - 1);
+	set #ninjas_descansando, @ninjas_sobreviventes;
+	mes "Seu ataque falhou e apenas ^FF0000" + #ninjas_descansando + "^000000 ninjas sobreviveram.";
+	mes " ";
+	mes "^339966Você pode tentar novamente imediatamente.^000000";
+
+	announce "[Shinobi]: "+ @nome_alvo$ + " sobreviveu ao ataque ninja de " + strcharinfo(0) + ".", bc_all;
+	close;
+
+	// NINJAS OCUPADOS PARA GDE //
+	M_Ocupado:
+	mes "^339966[Shinobi]^000000";
+	mes "Desculpe, todos os meus ninjas estão ocupados com a ^ff0000Guerra do Emperium.^000000";
+	close;
+
+	// VERIFICAR SEUS NINJAS //
+	M_Verificar:
+	mes "^339966[Shinobi]^000000";
+	mes "Você possui:";
+	mes " ";
+	mes "^FF0000" + #ninjas + "^000000 Ninjas Ativos.";
+	mes "^0000FF" + #ninjas_descansando + "^000000 Ninjas Descansando.";
+	close;
+
+	// MENSAGENS DE ERRO //
+	LimiteDiarioIP:
+	mes "^339966[Shinobi]^000000";
+	mes "^ff0000Este IP já atingiu o limite de 5 ataques por dia.^000000";
+	mes "Volte amanhã para mais assassinatos.";
+	mes " ";
+	mes "IP: ^ff0000" + @player_ip$ + "^000000";
+	close;
+
+	EmCooldownIP:
+	set @cooldown_restante, (@ultimo_ataque_ip + 1800) - @tempo_atual;
+	set @minutos, @cooldown_restante / 60;
+	set @segundos, @cooldown_restante % 60;
+	mes "^339966[Shinobi]^000000";
+	mes "^ff0000Você ainda está em cooldown do último ataque bem-sucedido.^000000";
+	mes " ";
+	mes "Tempo restante: ^ff0000" + @minutos + " minutos e " + @segundos + " segundos^000000";
+	close;
+
+	NomeProtegido:
+	mes "^339966[Shinobi]^000000";
+	mes "^ff0000Este nome está sob proteção especial.^000000";
+	mes "Meus ninjas se recusam a atacá-lo.";
+	close;
+
+	LimiteDiario:
+	mes "^339966[Shinobi]^000000";
+	mes "^ff0000Você já atingiu o limite de 5 ataques por dia.^000000";
+	mes "Volte amanhã para mais assassinatos.";
+	close;
+
+	EmCooldown:
+	set @cooldown_restante, (#ultimo_ataque + 1800) - @tempo_atual;
+	set @minutos, @cooldown_restante / 60;
+	set @segundos, @cooldown_restante % 60;
+	mes "^339966[Shinobi]^000000";
+	mes "^ff0000Seus ninjas ainda estão se recuperando do último ataque bem-sucedido.^000000";
+	mes " ";
+	mes "Tempo restante: ^ff0000" + @minutos + " minutos e " + @segundos + " segundos^000000";
+	close;
+
+	AlvoProtegido:
+	mes "^339966[Shinobi]^000000";
+	mes "^ff0000Esse alvo está sob proteção especial.^000000";
+	mes "Meus ninjas se recusam a atacá-lo.";
+	close;
+
+	MinimoNinjas:
+	next;
+	mes "^339966[Shinobi]^000000";
+	mes "^ff0000Você precisa enviar pelo menos 2 ninjas para um ataque.^000000";
+	close;
+
+	NenhumNinjaEnviado:
+	next;
+	mes "^339966[Shinobi]^000000";
+	mes "Você não pode matar ninguém sem ninjas.";
+	close;
+
+	MuitosNinjas:
+	next;
+	mes "^339966[Shinobi]^000000";
+	mes "Você só pode enviar no máximo ^ff000010 ninjas^000000 por vez.";
+	close;
+
+	SemZeny:
+	next;
+	mes "^339966[Shinobi]^000000";
+	mes "^ff0000Você não tem zeny suficiente.^000000";
+	close;
+
+	NinjasInsuficientes:
+	mes "^339966[Shinobi]^000000";
+	mes "^ff0000Não há ninjas suficientes para comprar.^000000";
+	close;
+
+	SemNinjas:
+	mes "^339966[Shinobi]^000000";
+	mes "^ff0000Não há ninjas disponíveis para compra.^000000";
+	close;
+
+	NinjasInsuficientes1:
+	next;
+	mes "^339966[Shinobi]^000000";
+	mes "^ff0000Você não possui ninjas suficientes.^000000";
+	close;
+
+	M_Sair:
+	mes "^339966[Shinobi]^000000";
+	mes "Até logo.";
+	close;
+
+	// TIMER PARA ADICIONAR NINJAS AUTOMATICAMENTE //
+	OnClock0600:
+	set $ninjas_disponiveis, $ninjas_disponiveis + 2;
+	end;
+
+	OnClock1200:
+	set $ninjas_disponiveis, $ninjas_disponiveis + 2;
+	end;
+
+	OnClock1800:
+	set $ninjas_disponiveis, $ninjas_disponiveis + 3;
+	end;
+
+	OnClock0000:
+	set $ninjas_disponiveis, $ninjas_disponiveis + 3;
+	end;
+
+OnInit:
+	set $ninjas_disponiveis, 10; // Inicia com 10 ninjas disponíveis
+
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 78;	
+		setunittitle getnpcid(0), "[Adaga Voadora]";
+
+		while(1) {
+		showscript "[ Assassino Sombrio ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}

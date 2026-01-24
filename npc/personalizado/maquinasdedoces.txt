@@ -1,0 +1,50 @@
+prontera,128,216,4	script	Maquina#3	10545,{
+    mes "[???]";
+    mes "Opa... quem está aí? Espera, algo está errado...";
+    mes "Parece que minha alma ainda está em fase beta!";
+    mes "Os deuses de Midgard estão debatendo meu destino";
+    mes "– Thor quer me lançar um raio de inspiração,";
+    mes "– Odin insiste em revisitar meus códigos antigos,";
+    mes "– E Freyja está ocupada penteando meus traços de personalidade.";
+    mes "Se tudo correr bem, em breve sentirei aquele frio na barriga";
+    mes "chamado... de existência!";
+    mes "Volte mais tarde para o grande bugfix final!";
+    close;
+}
+prontera,131,219,5	script	Maquina#4	506,{
+    mes "[???]";
+    mes "Opa... quem está aí? Espera, algo está errado...";
+    mes "Parece que minha alma ainda está em fase beta!";
+    mes "Os deuses de Midgard estão debatendo meu destino";
+    mes "– Thor quer me lançar um raio de inspiração,";
+    mes "– Odin insiste em revisitar meus códigos antigos,";
+    mes "– E Freyja está ocupada penteando meus traços de personalidade.";
+    mes "Se tudo correr bem, em breve sentirei aquele frio na barriga";
+    mes "chamado... de existência!";
+    mes "Volte mais tarde para o grande bugfix final!";
+    close;
+}
+prontera,128,219,5	script	Palhaço Pipoca	715,{
+
+	OnInit:
+		npcspeed 200;
+		initnpctimer;
+		end;
+
+	OnTimer5000:
+		if (rand(100) < 100) {
+			.@f = rand(8);
+			switch (.@f) {
+				case 0: npctalk " Senhoras e senhores, segurem seus chapéus... ou corações!"; break;
+				case 1: npctalk " Preparem-se para o truque que vai sumir seu tédio!"; break;
+				case 2: npctalk " Malabarismo? Aqui quem malabra é o meu nariz de palhaço!"; break;
+				case 3: npctalk " Já viram um poring equilibrando-se no meu sapato?"; break;
+				case 4: npctalk " Mágica do dia: faço sua tristeza desaparecer — quase sempre!"; break;
+				case 5: npctalk " Risos à esquerda, gargalhadas à direita, diversão no centro!"; break;
+				case 6: npctalk " Se está aí parado, levante e finja entusiasmo!"; break;
+				case 7: npctalk " E no grande final, abraço coletivo... metafórico ou não!"; break;
+			}
+		}
+		initnpctimer;
+		end;
+}

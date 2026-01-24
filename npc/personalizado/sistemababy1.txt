@@ -1,0 +1,306 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                     Sistema Baby  
+//===============================================================
+
+prontera.gat,120,207,3	script	#BabyDisplay1	111,{
+	
+	OnInit:
+
+	//Chat em cima do npc.
+
+	while(1) {
+		showscript "[ Sistema Baby ]", getnpcid(0);
+		sleep 100;
+	}
+	
+}
+
+prontera.gat,121,207,3	script	Baby Job Master	944,{
+	
+	if (class == 0) goto makebaby;
+	if (class == 4023) goto Go1st;
+	if (class == 4024 || class == 4025 || class == 4026 || class == 4027 || class == 4028 || class == 4029) goto Go2nd;
+	if (class >= 4030) goto ur2nd;
+	
+	mes "^339966[Baby Aslan]^000000";
+	mes "Desculpe, só falo com babys...";
+	mes "Você não é um baby!";
+	mes "Por favor use a ^ff0000Mestre das Classes^000000.";
+	close;
+	
+	ur2nd:
+	mes "^339966[Baby Aslan]^000000";
+	mes "Não posso fazer mais nada por você!";
+	mes "^ff0000Você já alcançou a segunda classe.^000000";
+	close;
+	
+	makebaby:
+	if(joblevel>1) goto Lbabyjobone;
+	if(baselevel>1) goto Lbabybaseone;
+	
+	mes "^339966[Baby Aslan]^000000";
+	mes "Olá, ^FFA500"+StrCharInfo(0)+"^000000!";
+	mes"Eu sou o ^ff0000Mestre das Classes Baby!^000000";
+	mes " ";
+	mes "Você quer se tornar um Baby?";
+	menu "^339966[»]^000000 Sim, claro!",Lyes,"^ff0000[»] Não!^000000",Lno;
+	
+	Lbabyjobone:
+	mes "^339966[Baby Aslan]^000000";
+	mes "Desculpe, você não está no ^ff0000Level 1/1^000000";
+	close;
+	
+	Lbabybaseone:
+	mes "^339966[Baby Aslan]^000000";
+	mes "Desculpe, você não está no ^ff0000Level 1/1^000000";
+	close;
+	
+	Lyes:
+	next;
+	mes "^339966[Baby Aslan]^000000";
+	mes "^ff0000Ploct, Pluct!^000000";
+	mes "Pronto, agora você é um Baby.";
+	jobchange 4023;// Job: Baby_Novice
+	close;
+	
+	Lno:
+	mes "^339966[Baby Aslan]^000000";
+	mes " Ok, vá embora seu grandão! >.> ";
+	close;
+	
+	Go1st:
+	if(joblevel<10) goto Lbabyjobten;
+	if(SkillPoint != 0) goto Lbabyskillpt;
+	
+	mes "^339966[Baby Aslan]^000000";
+	mes "Para qual classe baby você gostaria de mudar?";
+	mes " ";
+	mes "^ff0000Escolha sua primeira classe...^000000";
+	next;
+	
+	mes "^339966[Baby Aslan]^000000";
+	mes "Escolha uma classe:";
+	menu "^339966[»]^000000 Baby Espadachim",LbabySword,"^339966[»]^000000 Baby Mago",LbabyMage,"^339966[»]^000000 Baby Gatuno",LbabyThief,"^339966[»]^000000 Baby Mercador",LbabyMerc,"^339966[»]^000000 Baby Acólito",LbabyAco,"^339966[»]^000000 Baby Arqueiro",LbabyArch,"^339966[»]^000000 Baby Super Novice",LbabySupNovi,"^ff0000[»] Cancelar^000000",LCancel;
+	
+	Lbabyjobten:
+	mes "^339966[Baby Aslan]^000000";
+	mes "Ugh, você precisa ter pelo menos ^ff0000Job Level 10^000000 antes de mudar para a primeira classe... vá matar alguns porings ou algo assim.";
+	close;
+	
+	mes "^339966[Baby Aslan]^000000";
+	mes "Por favor use todos os seus ^ff0000pontos^000000 antes de mudar para a próxima classe! ";
+	close;
+	
+	LbabySupNovi:
+	next;
+	mes "^339966[Baby Aslan]^000000";
+	if(baselevel<35) goto LReqnovi;
+	mes "Você não quer ser um cara mainstream? Então, ^ff0000Super Novice.^000000 é a escolha certa, aproveite!!!";
+	jobchange 4045;// Job: Super_Novice
+	close;
+	LReqnovi:
+	mes "Você precisa estar no level 35,";
+	mes "para ser um ^ff0000Super Novice.^000000";
+	close;
+	
+	
+	LbabySword:
+	next;
+	mes "^339966[Baby Aslan]^000000";
+	mes "Wow, fantástico! Não parece que todo esse trabalho duro valeu a pena? *kekeke* Eu vejo o ^B70004SANGUE de Porings^000000 em suas mãos! Você realmente é adequado para a classe ^ff0000Espadachim^000000! ";
+	jobchange 4024;// Job: Job_BabySwordman
+	close;
+	
+	LbabyMage:
+	next;
+	mes "^339966[Baby Aslan]^000000";
+	mes "Legal, agora você pode finalmente usar o poder da ^2200DFM^7600F9A^AF00FBG^DA00DFI^000000^ff0000A^000000, sua energia espiritual!!!";
+	jobchange 4025;// Job: Job_BabyMage
+	close;
+	
+	LbabyThief:
+	next;
+	mes "^339966[Baby Aslan]^000000";
+	mes "Essas suas mãos astutas realmente parecem que precisam agarrar algo (sem comentários)..... vá em frente e roube!!";
+	jobchange 4029;// Job: Job_BabyThief
+	close;
+	
+	LbabyMerc:
+	next;
+	mes "^339966[Baby Aslan]^000000";
+	mes "Oh sim, Sr. Rico, ALGUÉM aqui adora o som de moedas tilintando...";
+	mes "Bem, não sou eu!.. .. ... bah.. ";
+	jobchange 4028;// Job: Job_BabyMerchant
+	close;
+	
+	LbabyAco:
+	next;
+	mes "^339966[Baby Aslan]^000000";
+	mes "Yay.. vá ler uma Bíblia.. ou sei lá.. er..yeah";
+	jobchange 4027;// Job: Job_BabyAcolyte
+	close;
+	
+	LbabyArch:
+	next;
+	mes "^339966[Baby Aslan]^000000";
+	mes "Eu costumava cutucar coisas com um graveto quando era criança..";
+	mes "Acho que você é como eu! Você arremessa gravetos pontiagudos nas coisas! Kekeke...";
+	jobchange 4026;// Job: Job_BabyArcher
+	close;
+	
+	
+	Go2nd:
+	if(SkillPoint != 0) goto Lbabyskillpt;
+	if(joblevel<40) goto Lbabyjobforty;
+	
+	mes "^339966[Baby Aslan]^000000";
+	mes "Para qual classe baby você gostaria de mudar?";
+	mes " ";
+	mes "^ff0000Escolha sua segunda classe...^000000";
+	next;
+	
+	mes "^339966[Baby Aslan]^000000";
+	mes "Escolha uma classe:";
+	menu "^339966[»]^000000 Baby Cavaleiro",LbabyKnight,"^339966[»]^000000 Baby Bruxo",LbabyWizard,"^339966[»]^000000 Baby Caçador",LbabyHunter,"^339966[»]^000000 Baby Ferreiro",LbabyBlacksmith,"^339966[»]^000000 Baby Assassino",LbabyAssassin,"^339966[»]^000000 Baby Sacerdote",LbabyPriest,"^339966[»]^000000 Baby Templário",LbabyCrusader,"^339966[»]^000000 Baby Sábio",LbabySage,"^339966[»]^000000 Baby Gyspy/Bardo",LbabyDancerbard,"^339966[»]^000000 Baby Alquimista",LbabyAlchemist,"^339966[»]^000000 Baby Stalker",LbabyRogue,"^339966[»]^000000 Baby Monge",LbabyMonk,"^ff0000[»] Cancelar^000000",LCancel;
+	
+	Lbabyjobforty:
+	mes "^339966[Baby Aslan]^000000";
+	mes "Você deve ter pelo menos o ^ffJob Level 40^000000 antes de pensar em mudar para a Segunda Classe.";
+	close;
+	
+	
+	LbabyHunter:
+	next;
+	if(class != 4026) goto wrong1stjob;
+	mes "^339966[Baby Aslan]^000000";
+	mes "Oh que bom, você atendeu todos os requisitos... se divertiu arremessando gravetos pontiagudos nos monstros? Bem, adivinha o quê?";
+	mes "Agora você pode arremessar gravetos pontiagudos nos monstros e mantê-los em um lugar! w00t, yeah! Armadilhas são uma coisa ótima...";
+	jobchange 4034;// Job: Job_Hunter
+	close;
+	
+	LbabyKnight:
+	next;
+	if(class != 4024) goto wrong1stjob;
+	mes "^339966[Baby Aslan]^000000";
+	mes "w00t w00t! Você foi um Espadachim toda sua vida...";
+	mes "Certo, você está pronto para se tornar o praticante da justiça, a personificação do heroísmo, a própria alma e vida da coragem! ";
+	mes "Você está pronto para se tornar... um ^ff0000Baby Cavaleiro^000000! ";
+	jobchange 4030;// Job: Job_Knight
+	close;
+	
+	LbabyBlacksmith:
+	next;
+	if(class != 4028) goto wrong1stjob;
+	mes "^339966[Baby Aslan]^000000";
+	mes "Oooo~~ Que bom que bom! Você atende a todoooos os requisitos! Adivinha o que eu vou fazer ...";
+	mes "SIM! Você adivinhou! Eu te transformei em um ^ff0000Ferreiro^000000! Você não está ORGULHOSO de si mesmo... w00t! Ho yeah! ";
+	jobchange 4033;// Job: Job_Blacksmith
+	close;
+	
+	LbabyAssassin:
+	next;
+	if(class != 4029) goto wrong1stjob;
+	mes "^339966[Baby Aslan]^000000";
+	mes "Você sabia que eu costumava ser um ^ff0000Assassino^000000? Bem, eu fiz algumas coisas no meu cabelo, fiz uma plástica, alguns implantes aqui e ali...";
+	mes "Ai meu, informação demais, né? Kekeke, ok, vá e se torne a mais sinistra de todas as Classes neste mundo... ^ff0000Assassino...";
+	jobchange 4035;// Job: Job_Assassin
+	close;
+	
+	LbabyPriest:
+	next;
+	if(class != 4027) goto wrong1stjob;
+	mes "^339966[Baby Aslan]^000000";
+	mes "Eu aposto que você está malditamente cansado de não ter recuperação de SP, certo? Bem, eu estou cansado de ouvir pequenos Acólitos Abraçadores de Jesus gritarem isso toda vez... ";
+	mes "Yay! Você agora alcançou o ^ff0000Sacerdócio^000000!";
+	jobchange 4031;// Job: Job_Priest
+	close;
+	
+	LbabyWizard:
+	next;
+	if(class != 4025) goto wrong1stjob;
+	mes "^339966[Baby Aslan]^000000";
+	mes "Weeee, não é ótimo finalmente se tornar um ^ff0000Bruxo^000000? É como um banho morno.... ahhhhhhh...";
+	jobchange 4032;// Job: Job_Wizard
+	close;
+	
+	LbabyCrusader:
+	next;
+	if(class != 4024) goto wrong1stjob;
+	mes "^339966[Baby Aslan]^000000";
+	mes "Mmmmm, eu sempre gostei de ^ff0000Templários^000000...";
+	mes "Oooo~~~ yeah, isso aí...";
+	jobchange 4037;// Job: Job_Crusader
+	close;
+	
+	LbabyDancerbard:
+	next;
+	if(class != 4026) goto wrong1stjob;
+	mes "^339966[Baby Aslan]^000000";
+if(sex==1) mes "Yay! Vá tocar algumas baladas para algumas ^ff0000Dançarinas^000000 ou algo assim, eu simplesmente não aguento suas notas... ewww.";
+	if(sex==1) jobchange 4042;// Job: Job_Bard
+	if(sex==0) mes "Uh-huh, rebole esses quadris garota ^_~ ^ff0000Dançarinas^000000 são tãooo sexy...";
+	if(sex==0) jobchange 4043;// Job: Job_Dancer
+	close;
+	
+	LbabyAlchemist:
+	next;
+	if(class != 4028) goto wrong1stjob;
+	mes "^339966[Baby Aslan]^000000";
+	mes "Legal! Vá fazer algumas poções! Abra uma Farmácia! yeah yeah yeah! ";
+	jobchange 4041;// Job: Job_Alchem
+	close;
+	
+	LbabyRogue:
+	next;
+	if(class != 4029) goto wrong1stjob;
+	mes "^339966[Baby Aslan]^000000";
+	mes "Wow! Você.. está.. TÃÃÃÃO LEGAL!! KYAAHH!!";
+	jobchange 4040;// Job: Job_Rogue
+	close;
+	
+	LbabyMonk:
+	next;
+	if(class != 4027) goto wrong1stjob;
+	mes "^339966[Baby Aslan]^000000";
+	mes "Legal.... ^ff0000Monges^000000 são bem legais mesmo!";
+	jobchange 4038;// Job: Job_Monk
+	close;
+	
+	LbabySage:
+	next;
+	if(class != 4025) goto wrong1stjob;
+	mes "^339966[Baby Aslan]^000000";
+	mes "Ahhhh, tão legal! Eu nunca vou me cansar de ver pessoas se transformando... KYAHH!!";
+	mes "Vá em frente ^ff0000Sábio^000000! Mostre para esses magos o que um verdadeiro manipulador de mana pode fazer! Mwahaha...";
+	jobchange 4039;// Job: Job_Sage
+	close;
+	
+	wrong1stjob:
+	mes "^339966[Baby Aslan]^000000";
+	mes "Opa, sua primeira classe está errada! Por favor, escolha a segunda classe correta.";
+	close;
+	
+	Lbabyskillpt:
+	mes "^339966[Baby Aslan]^000000";
+	mes "Por favor use todos os seus ^ff0000pontos^000000 antes de mudar para a próxima classe! ";
+	close;
+	
+	
+	LCancel:
+	mes "^339966[Baby Aslan]^000000";
+	mes "Blah.. seja assim mesmo...";
+	close;
+
+OnInit:
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 44;	
+	setunittitle getnpcid(0), "[Baby Aslan]";
+	end;
+}

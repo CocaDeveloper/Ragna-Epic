@@ -1,0 +1,99 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  NPC - Resetadora VIP
+//===============================================================
+// Versão: 1.1 - Acesso para GM
+//
+// Alteração v1.1:
+// - Adicionado acesso para GMs de nível 99.
+// - GMs recebem os mesmos benefícios de um Super VIP.
+//===============================================================
+
+1@herbs,271,63,5	script	Resetadora VIP	90,{
+
+//-------------------------
+// Função principal
+//-------------------------
+	mes "^339966[Rachel Smith]^000000";
+
+	// Saudação com base na hora
+	mes (gettime(3)>= 6 && gettime(3)<= 12 ? "Bom-dia" : (gettime(3)>=13 && gettime(3)<=18 ? "Boa-tarde" : "Boa-noite"))+", ^ffa500"+strcharinfo(0)+"^000000!";
+	mes "Sou a responsável por reconfigurar sua mente e seu corpo...";
+	mes "Posso ajudá-lo a re-aprender suas habilidades, atributos ou ambos.";
+
+	next;
+
+	// Restrição para VIPs e Super VIPs
+	if (getgroupid() < 1) {
+		mes "^339966[Rachel Smith]^000000";
+		mes "^FF0000Apenas jogadores VIPs ou Super VIPs podem usar este serviço.^000000";
+		close;
+	}
+
+	// Verifica se o jogador está com muito peso
+	if (((Weight * 100) / MaxWeight) > 49) {
+		mes "^339966[Rachel Smith]^000000";
+		mes "Você está carregando muitos itens.";
+		mes "Guarde um pouco e volte a me procurar.";
+		close;
+	}
+
+	mes "^339966[Rachel Smith]^000000";
+	mes "E então... o que deseja resetar?";
+	next;
+
+	switch(select("^339966[»]^000000 Atributos:^339966[»]^000000 Habilidades:^339966[»]^000000 Ambos:^ff0000[»] Cancelar^000000")) {
+		case 1: callsub SF_resetCharacter, 1; break;
+		case 2: callsub SF_resetCharacter, 2; break;
+		case 3: callsub SF_resetCharacter, 3; break;
+		default:
+			mes "^339966[Rachel Smith]^000000";
+			mes "Tudo bem... estarei aqui se mudar de ideia.";
+			emotion 19;
+			close;
+	}
+
+	end;
+
+//-------------------------
+// Sub-função de Reset
+// Arg(0): 1 = atributos | 2 = skills | 3 = ambos
+//-------------------------
+SF_resetCharacter:
+	mes "^339966[Rachel Smith]^000000";
+	mes "Certo... redefinindo sua alma...";
+	sleep2 1000;
+	mes "Pronto!";
+	mes "Reset concluído com sucesso.";
+
+	// Aumenta contador (opcional, pode ser ignorado)
+	set reset, reset + 1;
+
+	// Reseta atributos
+	if (getarg(0) & 1)
+		resetstatus;
+
+	// Reseta habilidades
+	if (getarg(0) & 2)
+		resetskill;
+
+	close;
+
+OnInit:
+
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 67;	
+	setunittitle getnpcid(0), "[Resetadora]";
+
+while(1) {
+		showscript "[ Resetadora VIP ]", getnpcid(0);
+		sleep 100;
+	}
+    end;
+}

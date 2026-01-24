@@ -1,0 +1,102 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                   REMOVEDORA DE CARTAS
+// ===================== Descrição: =============================
+
+prontera,171,180,1	script	Velha Removedora#eAustom	78,{
+	set .zenycost,700000;    // Preço padrão para uso do serviço (em Zeny)
+	set .percardcost,10000;  // Preço por carta para uso do serviço (in Zeny)
+	set .faildestroy,0;      // Há a chance do equipamento ser quebrado? (1=sim, 0=não)
+	disable_items;
+	mes "^339966[Velha Removedora]^000000";
+	mes (gettime(3)>= 6&&gettime(3)<= 12?"Bom-dia":(gettime(3)>=13&&gettime(3)<=18?"Boa-tarde":"Boa-noite"))+", ^008aff"+strcharinfo(0)+"^000000 !";
+	mes "Eu tenho o poder de remover cartas de quaisquer equipamentos. Essa ideia lhe agrada?";
+	mes "Sem chance de quebrar.";
+	next;
+	switch(select("^3CB371[»]^000000 Sim.:^3CB371[»]^000000 Quanto você cobra?:^ff0000[»] Não, obrigado.^000000")) {
+	case 1:
+		mes "^339966[Velha Removedora]^000000";
+		mes "Muito bem, qual item você quer que eu examine?";
+		next;
+		setarray .@indices[1], EQI_HEAD_TOP, EQI_ARMOR, EQI_HAND_L, EQI_HAND_R, EQI_GARMENT, EQI_SHOES, EQI_ACC_L, EQI_ACC_R, EQI_HEAD_MID, EQI_HEAD_LOW;
+		for( set .@i,1; .@i <= 10; set .@i,.@i+1 ) {
+			if( getequipisequiped(.@indices[.@i]) )
+				set .@menu$, .@menu$ + F_getpositionname(.@indices[.@i]) + "-[" + getequipname(.@indices[.@i]) + "]";
+			set .@menu$, .@menu$ + ":";
+		}
+		set .@part, .@indices[ select(.@menu$) ];
+		if(!getequipisequiped(.@part)) {
+			mes "^339966[Velha Removedora]^000000";
+			mes "Calma ai jovem... Não há nenhum equipamento na área selecionada.";
+			close;
+		}
+		if(getequipcardcnt(.@part) == 0) {
+			mes "^339966[Velha Removedora]^000000";
+			mes "Calma ai jovem.. Não há nenhuma carta anexada a este equipamento. Não posso fazer nada com ele.";
+			close;
+		}
+		set .@cardcount,getequipcardcnt(.@part);
+		
+		if (!checkweight(1202,(.@cardcount+1))) { 
+			mes "^3355FFSó um minuto!";
+			mes "Eu não posso oferecer qualquer um dos meus";
+			mes "para você, porque";
+			mes "você está carregando muito";
+			mes "material. Coloque seus itens extras em";
+			mes "seu storage e volte a falar comigo.";
+			close;
+		}
+		mes "^339966[Velha Removedora]^000000";
+		mes "Este equipamento possui " + .@cardcount + " cartas anexadas a ele. Para executar minha magia vou precisar de " + (.zenycost+(.@cardcount * .percardcost)) + " zeny.";
+		next;
+		if(select("^3CB371[»]^000000 Muito bem. Faça.:^ff0000[»]^000000 Deixa pra lá.") == 2) {
+			mes "^339966[Velha Removedora]^000000";
+			mes "Tudo bem. Retorne se você precisar de meus serviços.";
+			close;
+		}
+if((zeny < (.zenycost+(.@cardcount * .percardcost)))) {
+	mes "^339966[Velha Removedora]^000000";
+	mes "Você não possui todos os itens necessários para executar minha magia. Volte quando possuir todos.";
+	close;
+}
+
+		mes "^339966[Velha Removedora]^000000";
+		mes "Antes de começar devo avisá-lo que minha magia sempre será bem-sucedida. Não se preocupe, seus itens e cartas estão seguros.";
+		next;
+		set Zeny, Zeny - (.zenycost+(.@cardcount * .percardcost));
+		//delitem 1000,1; //Star_Crumb
+		//delitem 715,1; //Yellow_Gemstone
+		
+		// Remover qualquer chance de falha, garantindo sucesso.
+		successremovecards .@part;
+		mes "^339966[Velha Removedora]^000000";
+		mes "O processo foi um sucesso! Aqui está seu item e suas cartas.";
+		close;
+	case 2:
+		mes "^339966[Velha Removedora]^000000";
+		mes "Eu cobro uma taxa fixa de "+callfunc("F_InsertComma",.zenycost)+" zeny, além de "+callfunc("F_InsertComma",.percardcost)+" zeny por cada carta que será removida. Em adicional.";
+		close;
+	case 3:
+		mes "^339966[Velha Removedora]^000000";
+		mes "Tudo bem. Retorne se você precisar de meus serviços.";
+		close;
+	}
+	
+OnInit:
+	
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 64;	
+	setunittitle getnpcid(0), "[Removedora de Cartas]";
+	
+	while(1) {
+		showscript "[ Removedora ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}

@@ -1,0 +1,402 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  EVENTO PORING BOMB
+// ===================== Descrição: =============================
+// Arena de Evento Bomb Poring, no qual os jogadores devem correr
+// dos Bomb Poring e o último sobrevivente é o vencedor.
+//===============================================================
+
+1@herbs,303,38,3	script	Poring Bomb	1904,{
+
+	set .@GMLevel,60;	// Nível GM necessário para acessar o painel admin
+	set .@n$,"^FF1493[Poring Bomb]^000000";
+
+	// Painel Administrativo
+	if (getgmlevel()>=.@GMLevel) {
+		mes .@n$;
+		mes "Painel Administrativo";
+		mes "Status: " + ($portaobombporing ? "^00FF00ATIVO^000000" : "^FF0000INATIVO^000000");
+		next;
+		switch(select("^339966[»]^000000 Iniciar Evento:^339966[»]^000000 Parar Evento:^339966[»]^000000 Menu Jogador")) {
+		case 1:
+			mes .@n$;
+			if ($portaobombporing) {
+				mes "O evento já está ativo!";
+				close;
+			}
+			mes "Deseja iniciar o Evento Poring Bomb manualmente?";
+			if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+			
+			donpcevent "CoreBombPoring::OnAdminStart";
+			next;
+			mes .@n$;
+			mes "Evento Poring Bomb foi iniciado manualmente!";
+			close;
+		case 2:
+			mes .@n$;
+			if (!$portaobombporing) {
+				mes "O evento não está ativo!";
+				close;
+			}
+			mes "Deseja parar o evento?";
+			mes "Isso fechará a entrada imediatamente.";
+			if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+			
+			donpcevent "CoreBombPoring::OnAdminStop";
+			next;
+			mes .@n$;
+			mes "Evento parado com sucesso!";
+			close;
+		case 3:
+			// Continua para o menu normal do jogador
+			break;
+		}
+	}
+
+	// Menu normal para jogadores
+	mes .@n$;
+	mes (gettime(3)>= 6&&gettime(3)<= 12?"Bom-dia":(gettime(3)>=13&&gettime(3)<=18?"Boa-tarde":"Boa-noite"))+", ^ffa500"+strcharinfo(0)+"^000000!";
+	mes "Você possui ^ff0000"+pontosevento+"^000000 pontos de evento.";
+	mes " ";
+	mes " ";
+	mes "^ff0000O que deseja fazer?^000000";
+	switch(select("^339966[»]^000000 Ir para o evento:^339966[»]^000000 Ver horários:^ff0000[»] Sair^000000")) {
+	case 01:
+		if($portaobombporing == 0){ 
+		next; 
+		mes .@n$;
+		mes "^ff0000O evento está fechado no momento. Por favor, volte mais tarde!^000000";
+		close;
+		}
+		next;
+		mes .@n$;
+		mes "Tem certeza que deseja entrar na Arena do Evento?";
+		next;
+		if( select("^339966[»]^000000 Sim, por favor:^ff0000[»] Não, obrigado^000000") == 1 ) {
+			mes .@n$;
+			mes "Muito bem, vou te mandar para a Arena do Evento!";
+			close2;
+			sc_end SC_ALL;
+			percentheal 100,100;
+			warp "quiz_02",162,348;
+			end;
+		}
+		close;
+
+	case 02:
+		next;
+		mes .@n$;
+		mes "O evento acontece às:";
+		mes "• ^ffa50002H30min^000000";
+		mes "• ^ffa50006H30min^000000";
+		mes "• ^ffa50010H30min^000000";
+		mes "• ^ffa50014H30min^000000";
+		mes "• ^ffa50018H30min^000000";
+		mes "• ^ffa50022H30min^000000";
+		mes "Horário do servidor.";
+		close;
+
+	case 03:
+		close;
+	}
+	
+OnInit:
+
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 1009;	
+		setunittitle getnpcid(0), "[Rune-Midgard]";
+
+		while(1) {
+		showscript "[ Poring Bomb ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+-	script	CoreBombPoring	-1,{
+
+OnInit:
+	set $portaobombporing,0;
+	set $ev_bombporing_flag,0;
+	set $@bp_timer_waiting, 5; // Tempo em minutos para entrada
+	set $ev_bombporing_round, 0;
+	set $ev_bombporing_players, 0;
+	set .@GMLevel,60;	// Nível GM necessário para comandos
+	
+	// Configuração de recompensas do vencedor (mesmo padrão do Noviço vs Zumbi)
+	setarray .winneritem, 1001007, 5;  // 5x Moedas de Evento
+	set .winnerpoints, 3;  // +3 pontos de evento
+	
+	// Comandos apenas para ADMs (liberados no mapa)
+	bindatcmd "pbstart", strnpcinfo(0)+"::OnCmdStart",.@GMLevel,60;
+	bindatcmd "pbstop", strnpcinfo(0)+"::OnCmdStop",.@GMLevel,60;
+	
+// Mapflags
+setarray .@mapflag,
+    mf_nowarp,
+    mf_nowarpto,
+    mf_noskill,
+    mf_noteleport,
+    mf_nomemo,
+    mf_nosave,
+    mf_noicewall,
+    mf_nobranch,
+    mf_noreturn;
+    
+for ( .@i = 0; .@i < getarraysize(.@mapflag); .@i++)
+    setmapflag "quiz_02", .@mapflag[.@i];
+
+// Permite comandos apenas para GMs nível 60+
+	setmapflag "quiz_02", mf_nocommand, 60;
+	end;
+
+// Comandos administrativos
+OnCmdStart:
+	if ($portaobombporing) {
+		dispbottom "[Poring Bomb]: O evento já está ativo!";
+		end;
+	}
+	dispbottom "[Poring Bomb]: Iniciando evento manualmente...";
+	donpcevent "CoreBombPoring::OnAdminStart";
+	end;
+
+OnCmdStop:
+	if (!$portaobombporing) {
+		dispbottom "[Poring Bomb]: O evento não está ativo!";
+		end;
+	}
+	dispbottom "[Poring Bomb]: Parando evento...";
+	donpcevent "CoreBombPoring::OnAdminStop";
+	end;
+
+// Labels administrativos
+OnAdminStart:
+	if ($portaobombporing) end; // Evita iniciar se já estiver ativo
+	set $portaobombporing, 1;
+	set $ev_bombporing_flag, 1;
+	set $ev_bombporing_timer, $@bp_timer_waiting;
+//	enablenpc "Poring Bomb"; // REMOVIDO - NPC já está sempre visível
+	enablenpc "Juiz Cowboy#bombporing";
+	enablenpc "Mascote I-ha#bombporing";
+	killmonsterall "quiz_02";
+	announce "[Poring Bomb]: O Evento Poring Bomb está prestes a começar! Para participar, digite: @eventos e fale com o npc... Vocês têm " + $@bp_timer_waiting + " minutos!!", bc_all | bc_yellow;
+	goto EventSequence;
+
+OnAdminStop:
+	set $portaobombporing, 0;
+	set $ev_bombporing_flag, 0;
+	set $ev_bombporing_round, 0;
+	set $ev_bombporing_players, 0;
+//	disablenpc "Poring Bomb"; // REMOVIDO - NPC continuará visível
+	disablenpc "Juiz Cowboy#bombporing";
+	disablenpc "Mascote I-ha#bombporing";
+	killmonsterall "quiz_02";
+	mapwarp "quiz_02","prontera",155,191;
+	announce "[Poring Bomb]: Um ADM parou o Evento Poring Bomb. Não houve vencedores... Até a próxima!!", bc_all | bc_yellow;
+	end;
+
+// Horários automáticos
+OnClock0230:
+OnClock0630:
+OnClock1030:
+OnClock1430:
+OnClock1830:
+OnClock2130:
+	if (!$portaobombporing) {
+		set $portaobombporing, 1;
+		set $ev_bombporing_flag, 1;
+		set $ev_bombporing_timer, $@bp_timer_waiting;
+//		enablenpc "Poring Bomb"; // REMOVIDO - NPC já está sempre visível
+		enablenpc "Juiz Cowboy#bombporing";
+		enablenpc "Mascote I-ha#bombporing";
+		killmonsterall "quiz_02";
+		announce "[Poring Bomb]: O Evento Poring Bomb está prestes a começar! Para participar, digite: @eventos e fale com o npc... Vocês têm " + $@bp_timer_waiting + " minutos!!", bc_all | bc_yellow;
+	}
+
+EventSequence:
+	sleep 60000; // 1 minuto
+	announce "[Poring Bomb]: A entrada para Poring Bomb fechará em 4 minutos!", bc_all | bc_yellow;
+	sleep 60000; // 1 minuto
+	announce "[Poring Bomb]: A entrada para Poring Bomb fechará em 3 minutos!", bc_all | bc_yellow;
+	sleep 60000; // 1 minuto
+	announce "[Poring Bomb]: A entrada para Poring Bombg fechará em 2 minutos!", bc_all | bc_yellow;
+	sleep 60000; // 1 minuto
+	announce "[Poring Bomb]: A entrada para Poring Bomb fechará em 1 minuto!", bc_all | bc_yellow;
+	sleep 60000; // 1 minuto
+	set $portaobombporing, 0;
+//	disablenpc "Poring Bomb"; // REMOVIDO - NPC continuará visível
+	announce "[Poring Bomb]: A entrada para o Poring Bomb foi fechada! Tente novamente na próxima!!", bc_all | bc_yellow;
+	
+	
+	if ( getmapusers("quiz_02") <= 1 ) {
+		announce "[Poring Bomb]: O evento foi cancelado! Não houve participantes suficientes.", bc_all | bc_yellow;
+		set $portaobombporing, 0;
+		set $ev_bombporing_flag, 0;
+		set $ev_bombporing_round, 0;
+		set $ev_bombporing_players, 0;
+		disablenpc "Juiz Cowboy#bombporing";
+		disablenpc "Mascote I-ha#bombporing";
+		mapwarp "quiz_02", "prontera", 155, 191;
+		end;
+	}
+	
+	set $ev_bombporing_flag, 2;
+	set $ev_bombporing_round, 1;
+	
+	sleep 5000;
+	mapannounce "quiz_02", "[Poring Bomb]: Bem-vindos ao desafio! O último a sobreviver será o vencedor!", bc_yellow;
+	sleep 3000;
+	
+	// Primeira rodada
+	donpcevent "CoreBombPoring::OnMobSpawn";
+	end;
+
+OnMobSpawn:
+	// Atualiza contagem de jogadores atual
+	set $ev_bombporing_players, getmapusers("quiz_02");
+	
+	// Verifica se já temos um vencedor
+	if ($ev_bombporing_players <= 1) {
+		donpcevent "CoreBombPoring::OnEnd";
+		end;
+	}
+	
+	sleep 2000;
+	
+	// Calcula quantidade de mobs baseado na rodada e jogadores
+	set .@base_mobs, 3 + ($ev_bombporing_round * 2);
+	set .@player_factor, ($ev_bombporing_players > 5) ? ($ev_bombporing_players - 3) : 1;
+	set .@mob_count, .@base_mobs + .@player_factor;
+	
+	// Máximo de 50 mobs por rodada
+	if (.@mob_count > 50) set .@mob_count, 50;
+	
+	areamonster "quiz_02",150,336,173,359,"Evento Poring Bomb",1904,.@mob_count,"CoreBombPoring::OnMobDie";
+	
+	mapannounce "quiz_02", "[Poring Bomb]: Rodada " + $ev_bombporing_round + " - " + .@mob_count + " Poring Bomb! Jogadores restantes: " + $ev_bombporing_players, bc_yellow;
+	end;
+
+OnMobDie:
+	set .@mobcount, mobcount("quiz_02","CoreBombPoring::OnMobDie");
+	set $ev_bombporing_players, getmapusers("quiz_02");
+	
+	// Se não há mais jogadores
+	if ($ev_bombporing_flag && $ev_bombporing_players <= 0) {
+		killmonsterall "quiz_02";
+		announce "[Poring Bomb]: Todos jogadores falharam no Poring Bomb! Não houve vencedores!", bc_all | bc_yellow;
+		donpcevent "CoreBombPoring::OnEnd";
+		end;
+	}
+	
+	// Se todos os mobs da rodada atual morreram
+	if ($ev_bombporing_flag && .@mobcount <= 0) {
+		set $ev_bombporing_round, $ev_bombporing_round + 1;
+		sleep 3000;
+		mapannounce "quiz_02", "[Poring Bomb]: Rodada " + ($ev_bombporing_round - 1) + " concluída! Próxima rodada em 5 segundos!", bc_yellow;
+		sleep 2000;
+		donpcevent "CoreBombPoring::OnMobSpawn";
+	}
+	end;
+
+// ===== SISTEMA DE VENCEDOR SIMPLIFICADO =====
+OnPCDieEvent:
+	if ( $ev_bombporing_flag == 2 && strcharinfo(3) == "quiz_02" ) {
+		warp "prontera",155,191;
+		if ( getmapusers("quiz_02") == 1 ) {
+			killmonsterall "quiz_02";
+			.@size = getmapunits(BL_PC,"quiz_02",.@aid);
+			.@amt = getarraysize(.winneritem);
+			set $ev_bombporing_flag, 0;
+			set $portaobombporing, 0;
+			set $ev_bombporing_round, 0;
+			set $ev_bombporing_players, 0;
+			attachrid .@aid;
+			announce "[Poring Bomb]: O jogador " + strcharinfo(0) + " foi o vencedor!", bc_all | bc_yellow;
+			// Dar recompensas ao vencedor
+			for ( .@j = 0; .@j < .@amt; .@j += 2 )
+				getitem .winneritem[.@j], .winneritem[.@j+1];
+			set pontosevento, pontosevento + .winnerpoints;
+			dispbottom "[Poring Bomb]: Você recebeu +3 pontos de evento por vencer o Poring Bomb.";
+			warp "prontera",155,191;
+			disablenpc "Juiz Cowboy#bombporing";
+			disablenpc "Mascote I-ha#bombporing";
+			end;
+		}
+	}
+	end;
+
+OnEnd:
+	set $ev_bombporing_flag, 0;
+	set $portaobombporing, 0;
+	set $ev_bombporing_round, 0;
+	set $ev_bombporing_players, 0;
+	mapwarp "quiz_02", "prontera", 155, 191;
+	disablenpc "Juiz Cowboy#bombporing";
+	disablenpc "Mascote I-ha#bombporing";
+	killmonsterall "quiz_02";
+	end;
+}
+
+// NPC Juiz do Evento
+quiz_02,160,364,5	script	Juiz Cowboy#bombporing	10211,{
+	if ($ev_bombporing_flag) {
+		switch(rand(0,5)) {
+		default:
+		case 0:
+			npctalk "Fique de olho nos Poring Bomb, eles podem te derrotar facilmente.";
+			break;
+		case 1:
+			npctalk "Cuidado aí, isso pode explodir na sua cara!";
+			break;
+		case 2:
+			npctalk "Concentre-se, não vai querer perder esta partida né?";
+			break;
+		case 3:
+			npctalk "Eu avisei que ia dar problema!";
+			break;
+		case 4:
+			npctalk "CORREEEEE PESSOAL!!!! Iiiii-Haaaaaaa!!!! Jogadores restantes: " + getmapusers("quiz_02");
+			break;
+		}
+	}
+	end;
+	
+OnInit:
+	disablenpc strnpcinfo(0);
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 1009;	
+	setunittitle getnpcid(0), "[Rune-Midgard]";
+	end;
+}
+
+// Pet do Juiz - Bomb Poring
+quiz_02,161,364,3	script	Mascote I-ha#bombporing	1904,{
+	end;
+	
+OnInit:
+	disablenpc strnpcinfo(0);
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 1009;	
+	setunittitle getnpcid(0), "[Rune-Midgard]";
+	end;
+}
+
+// Mapflags
+quiz_02	mapflag	nowarp
+quiz_02	mapflag	nowarpto
+quiz_02	mapflag	noskill
+quiz_02	mapflag	noteleport
+quiz_02	mapflag	nomemo
+quiz_02	mapflag	nosave	SavePoint
+quiz_02	mapflag	noicewall
+quiz_02	mapflag	nobranch
+quiz_02	mapflag	noreturn
+quiz_02	mapflag	nocommand
+quiz_02	mapflag	nopenalty	// Evita perda de EXP ao morrer
+
+// Duplicate do NPC principal
+new_evt,175,170,5	duplicate(Poring Bomb)	Poring Bomb#evento	1904

@@ -1,0 +1,230 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  Placas Prontera
+//===============================================================
+prontera,141,232,1	script	Loja de Utilidades	835,{
+    set .@rand, rand(1,7);
+    switch (.@rand) {
+        case 1:
+            npctalk "Loja de utilidades à esquerda. É aqui que se encontram desde pentes até botas furadas!";
+            break;
+        case 2:
+            npctalk "Acho que eu deveria aprender a ler... Mas quem me dera ter braços para virar páginas!";
+            break;
+        case 3:
+            npctalk "Quem escreveu essa placa claramente precisa melhorar a caligrafia – ou trocar a pena!";
+            break;
+        case 4:
+            npctalk "Se estiver perdido, siga o cheiro de poções fervendo. Spoiler: é por ali!";
+            break;
+        case 5:
+            npctalk "Bem-vindo à melhor loja de utilidades de Midgard! (Ou pelo menos era para ser…)";
+            break;
+        case 6:
+            npctalk "Cuidado com os Porings vagalumes: eles adoram brincar de ligar e desligar placas!";
+            break;
+		case 7:
+            npctalk "ShiRO - Ragnarok Online: A sua melhor diversão!";
+            break;
+    }
+	
+OnInit:
+
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 61;	
+	setunittitle getnpcid(0), "[Rune-Midgard]";
+    end;
+}
+
+prontera,141,231,1	script	#lojautlidds	111,{
+
+OnInit:
+
+	while(1) {
+	showscript "[ Utilidades ]", getnpcid(0);
+	sleep 100;
+}
+end;
+}
+
+//================================================================================================
+
+prontera,172,229,6	script	Loja de Equipamentos	835,{
+    set .@rand, rand(1,7);
+    switch (.@rand) {
+        case 1:
+            npctalk "Loja de armamentos à direita – onde espadas choram de emoção!";
+            break;
+        case 2:
+            npctalk "Aqui é a porta certa para quem quer ver balas voando… no estoque!";
+            break;
+        case 3:
+            npctalk "Cuidado: quem for forte demais pode sair carregando um canhão no bolso!";
+            break;
+        case 4:
+            npctalk "Dizem que até Odin ficou com inveja do arsenal daqui. Confira você mesmo!";
+            break;
+        case 5:
+            npctalk "Se estiver sem ideia para presente, um machado sempre resolve!";
+            break;
+        case 6:
+            npctalk "Aviso: vendedores podem oferecer espada +1… mas só depois do café!";
+            break;
+		case 7:
+            npctalk "ShiRO - Ragnarok Online: A sua melhor diversão!";
+            break;
+    }
+	
+OnInit:
+
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 61;	
+	setunittitle getnpcid(0), "[Rune-Midgard]";
+    end;
+}
+
+prontera,172,228,6	script	#lojaequpmt	111,{
+
+OnInit:
+
+	while(1) {
+	showscript "[ Equipamentos ]", getnpcid(0);
+	sleep 100;
+}
+end;
+}
+
+//==============================================================================================
+
+prontera,145,156,3	script	Mercado Negro	835,{
+    set .@rand, rand(1,7);
+    switch (.@rand) {
+        case 1:
+            npctalk "Loja de armamentos ao Norte de Prontera – onde espadas choram de emoção!";
+            break;
+        case 2:
+            npctalk "Aqui é a porta certa para quem quer ver balas voando… no estoque!";
+            break;
+        case 3:
+            npctalk "Cuidado: quem for forte demais pode sair carregando um canhão no bolso!";
+            break;
+        case 4:
+            npctalk "Dizem que até Odin ficou com inveja do arsenal daqui. Confira você mesmo!";
+            break;
+        case 5:
+            npctalk "Se estiver sem ideia para presente, um machado sempre resolve!";
+            break;
+        case 6:
+            npctalk "Aviso: vendedores podem oferecer espada +1… mas só depois do café!";
+            break;
+		case 7:
+            npctalk "ShiRO - Ragnarok Online: A sua melhor diversão!";
+            break;
+    }
+	
+OnInit:
+
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 61;	
+	setunittitle getnpcid(0), "[Área Comercial]";
+    end;
+}
+
+prontera,145,155,3	script	#mercnegro	111,{
+
+OnInit:
+
+	while(1) {
+	showscript "[ Mercado Negro ]", getnpcid(0);
+	sleep 100;
+}
+end;
+}
+
+//===============================================================
+//                  Placas PvP
+//===============================================================
+
+arena_pvp,44,80,5	script	Zona Segura 01	837,{
+OnInit:
+
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 68;	
+	setunittitle getnpcid(0), "[Safe Zone 01]";
+
+	// Nome acima do NPC
+		while(1) {
+		showscript "[ Zona Segura 01 ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+arena_pvp,80,55,3	script	Zona Segura 02	837,{
+OnInit:
+
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 68;	
+	setunittitle getnpcid(0), "[Safe Zone 02]";
+
+	// Nome acima do NPC
+		while(1) {
+		showscript "[ Zona Segura 02 ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+arena_pvp,55,19,3	script	Zona Segura 03	837,{
+OnInit:
+
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 68;	
+	setunittitle getnpcid(0), "[Safe Zone 03]";
+
+	// Nome acima do NPC
+		while(1) {
+		showscript "[ Zona Segura 03 ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+arena_pvp,19,55,7	script	Zona Segura 04	837,{
+OnInit:
+
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 68;	
+	setunittitle getnpcid(0), "[Safe Zone 04]";
+
+	// Nome acima do NPC
+		while(1) {
+		showscript "[ Zona Segura 04 ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+prontera,168,170,1	script	#acessohall	111,{
+
+OnInit:
+
+	while(1) {
+	showscript "[ Acesso ao Hall ]", getnpcid(0);
+	sleep 100;
+}
+end;
+}
+
+prontera,131,187,1	script	#acessocassino	111,{
+
+OnInit:
+
+	while(1) {
+	showscript "[ Cassino YoYo ]", getnpcid(0);
+	sleep 100;
+}
+end;
+}
+
+prontera,75,355,1	script	#fogueiraprt	10252,{}

@@ -1,0 +1,335 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//           RESET DE POSIÇÕES - STAR GLADIATOR
+//===============================================================
+//  Descrição: NPC para resetar as posições de Sol, Lua e
+//             Estrela dos Taekwon Masters (Star Gladiator)
+//===============================================================
+
+prontera,155,177,4	script	Mestre das Estrelas	4_M_TAEKWON,{
+
+	set .@n$,"^FF6347[Mestre das Estrelas]^000000";
+	
+	mes .@n$;
+	mes "Saudações, " + strcharinfo(0) + "!";
+	mes "Eu sou o guardião dos segredos celestiais.";
+	next;
+	
+	// Verificar se é Star Gladiator ou Soul Linker
+	if(BaseJob != Job_Star_Gladiator) {
+		mes .@n$;
+		mes "Desculpe, mas apenas ^FF0000Star Gladiators^000000";
+		mes "podem utilizar meus serviços.";
+		mes " ";
+		mes "Sua classe atual não me permite ajudá-lo.";
+		close;
+	}
+	
+	mes .@n$;
+	mes "Vejo que você é um ^FF6347Star Gladiator^000000!";
+	mes "Posso ajudá-lo a realinhar suas";
+	mes "posições celestiais.";
+	next;
+	
+	// Verificar posições atuais
+	set .@sol$, getskilllv("SG_SUN") ? "^00FF00Configurado^000000" : "^FF0000Não configurado^000000";
+	set .@lua$, getskilllv("SG_MOON") ? "^00FF00Configurado^000000" : "^FF0000Não configurado^000000";
+	set .@estrela$, getskilllv("SG_STAR") ? "^00FF00Configurado^000000" : "^FF0000Não configurado^000000";
+	
+	mes .@n$;
+	mes "^0000FFSuas posições atuais:^000000";
+	mes "????????????????????";
+	mes "?? ^FF4500Sol (Mapa):^000000 " + .@sol$;
+	mes "?? ^4169E1Lua (Monstro):^000000 " + .@lua$;
+	mes "? ^FFD700Estrela (Feeling):^000000 " + .@estrela$;
+	mes "????????????????????";
+	next;
+	
+	mes .@n$;
+	mes "O que deseja fazer?";
+	next;
+	
+	switch(select("^FF4500[??] Resetar Sol (Mapa)^000000:^4169E1[??] Resetar Lua (Monstro)^000000:^FFD700[?] Resetar Estrela (Feeling)^000000:^FF0000[??] Resetar TUDO^000000:^00FF00[??] Informações^000000:^808080[??] Sair^000000")) {
+	
+	case 1: // Resetar Sol (Mapa)
+		mes .@n$;
+		mes "Você deseja resetar sua posição ^FF4500SOL^000000?";
+		mes " ";
+		mes "^FF0000Isso removerá o mapa configurado";
+		mes "e você poderá escolher um novo.^000000";
+		next;
+		
+		if(select("^00FF00Sim, resetar Sol^000000:^FF0000Não, cancelar^000000") == 2) {
+			mes .@n$;
+			mes "Operação cancelada.";
+			close;
+		}
+		
+		// Verificar pagamento
+		if(.custo_individual > 0) {
+			if(.tipo_pagamento == 0) { // Zeny
+				if(Zeny < .custo_individual) {
+					mes .@n$;
+					mes "Você precisa de ^FF0000" + .custo_individual + " Zeny^000000";
+					mes "para resetar a posição Sol.";
+					close;
+				}
+				set Zeny, Zeny - .custo_individual;
+			} else { // Item
+				if(countitem(.item_pagamento) < .custo_individual) {
+					mes .@n$;
+					mes "Você precisa de ^FF0000" + .custo_individual + "x " + getitemname(.item_pagamento) + "^000000";
+					mes "para resetar a posição Sol.";
+					close;
+				}
+				delitem .item_pagamento, .custo_individual;
+			}
+		}
+		
+		// Resetar Sol
+		resetfeel;
+		
+		mes .@n$;
+		mes "^00FF00Posição SOL resetada com sucesso!^000000";
+		mes " ";
+		mes "Você pode configurar um novo mapa";
+		mes "usando a skill ^FF4500'Solar, Lunar e Estelar'^000000.";
+		close;
+		
+	case 2: // Resetar Lua (Monstro)
+		mes .@n$;
+		mes "Você deseja resetar sua posição ^4169E1LUA^000000?";
+		mes " ";
+		mes "^FF0000Isso removerá o monstro configurado";
+		mes "e você poderá escolher um novo.^000000";
+		next;
+		
+		if(select("^00FF00Sim, resetar Lua^000000:^FF0000Não, cancelar^000000") == 2) {
+			mes .@n$;
+			mes "Operação cancelada.";
+			close;
+		}
+		
+		// Verificar pagamento
+		if(.custo_individual > 0) {
+			if(.tipo_pagamento == 0) { // Zeny
+				if(Zeny < .custo_individual) {
+					mes .@n$;
+					mes "Você precisa de ^FF0000" + .custo_individual + " Zeny^000000";
+					mes "para resetar a posição Lua.";
+					close;
+				}
+				set Zeny, Zeny - .custo_individual;
+			} else { // Item
+				if(countitem(.item_pagamento) < .custo_individual) {
+					mes .@n$;
+					mes "Você precisa de ^FF0000" + .custo_individual + "x " + getitemname(.item_pagamento) + "^000000";
+					mes "para resetar a posição Lua.";
+					close;
+				}
+				delitem .item_pagamento, .custo_individual;
+			}
+		}
+		
+		// Resetar Lua (mesmo comando)
+		resetfeel;
+		
+		mes .@n$;
+		mes "^00FF00Posição LUA resetada com sucesso!^000000";
+		mes " ";
+		mes "Você pode configurar um novo monstro";
+		mes "usando a skill ^4169E1'Solar, Lunar e Estelar'^000000.";
+		close;
+		
+	case 3: // Resetar Estrela (Feeling)
+		mes .@n$;
+		mes "Você deseja resetar sua posição ^FFD700ESTRELA^000000?";
+		mes " ";
+		mes "^FF0000Isso removerá o local/feeling configurado";
+		mes "e você poderá escolher um novo.^000000";
+		next;
+		
+		if(select("^00FF00Sim, resetar Estrela^000000:^FF0000Não, cancelar^000000") == 2) {
+			mes .@n$;
+			mes "Operação cancelada.";
+			close;
+		}
+		
+		// Verificar pagamento
+		if(.custo_individual > 0) {
+			if(.tipo_pagamento == 0) { // Zeny
+				if(Zeny < .custo_individual) {
+					mes .@n$;
+					mes "Você precisa de ^FF0000" + .custo_individual + " Zeny^000000";
+					mes "para resetar a posição Estrela.";
+					close;
+				}
+				set Zeny, Zeny - .custo_individual;
+			} else { // Item
+				if(countitem(.item_pagamento) < .custo_individual) {
+					mes .@n$;
+					mes "Você precisa de ^FF0000" + .custo_individual + "x " + getitemname(.item_pagamento) + "^000000";
+					mes "para resetar a posição Estrela.";
+					close;
+				}
+				delitem .item_pagamento, .custo_individual;
+			}
+		}
+		
+		// Resetar Estrela (mesmo comando)
+		resetfeel;
+		
+		mes .@n$;
+		mes "^00FF00Posição ESTRELA resetada com sucesso!^000000";
+		mes " ";
+		mes "Você pode configurar um novo local";
+		mes "usando a skill ^FFD700'Solar, Lunar e Estelar'^000000.";
+		close;
+		
+	case 4: // Resetar TUDO
+		mes .@n$;
+		mes "^FF0000ATENÇÃO!^000000";
+		mes "Você está prestes a resetar";
+		mes "^FF0000TODAS as suas posições celestiais!^000000";
+		mes " ";
+		mes "?? Sol (Mapa)";
+		mes "?? Lua (Monstro)";
+		mes "? Estrela (Feeling)";
+		next;
+		
+		mes .@n$;
+		mes "Tem certeza absoluta?";
+		mes "^FF0000Esta ação não pode ser desfeita!^000000";
+		next;
+		
+		if(select("^00FF00Sim, resetar TUDO^000000:^FF0000Não, cancelar^000000") == 2) {
+			mes .@n$;
+			mes "Operação cancelada.";
+			mes "Suas posições permanecem intactas.";
+			close;
+		}
+		
+		// Verificar pagamento total
+		if(.custo_total > 0) {
+			if(.tipo_pagamento == 0) { // Zeny
+				if(Zeny < .custo_total) {
+					mes .@n$;
+					mes "Você precisa de ^FF0000" + .custo_total + " Zeny^000000";
+					mes "para resetar todas as posições.";
+					close;
+				}
+				set Zeny, Zeny - .custo_total;
+			} else { // Item
+				if(countitem(.item_pagamento) < .custo_total) {
+					mes .@n$;
+					mes "Você precisa de ^FF0000" + .custo_total + "x " + getitemname(.item_pagamento) + "^000000";
+					mes "para resetar todas as posições.";
+					close;
+				}
+				delitem .item_pagamento, .custo_total;
+			}
+		}
+		
+		// Resetar tudo
+		resetfeel;
+		
+		mes .@n$;
+		mes "^00FF00Todas as posições foram resetadas!^000000";
+		mes " ";
+		mes "?? Sol ? Limpo";
+		mes "?? Lua ? Limpo";
+		mes "? Estrela ? Limpo";
+		next;
+		
+		mes .@n$;
+		mes "Você pode configurar novas posições";
+		mes "usando a skill ^FFD700'Solar, Lunar e Estelar'^000000.";
+		mes " ";
+		mes "Boa sorte em sua jornada!";
+		close;
+		
+	case 5: // Informações
+		mes .@n$;
+		mes "^0000FFInformações sobre Posições Celestiais:^000000";
+		mes "????????????????????????";
+		next;
+		
+		mes .@n$;
+		mes "^FF4500?? SOL (Mapa):^000000";
+		mes "Configura um mapa onde você";
+		mes "recebe bônus de ATK e DEF.";
+		mes " ";
+		mes "^4169E1?? LUA (Monstro):^000000";
+		mes "Configura um tipo de monstro";
+		mes "contra o qual você causa mais dano.";
+		next;
+		
+		mes .@n$;
+		mes "^FFD700? ESTRELA (Feeling):^000000";
+		mes "Configura um local especial que";
+		mes "aumenta seus atributos e poderes.";
+		mes " ";
+		mes "Para usar estas posições, você precisa";
+		mes "da skill ^00FF00'Solar, Lunar e Estelar'^000000.";
+		next;
+		
+		mes .@n$;
+		mes "^FF0000Custos de Reset:^000000";
+		mes "????????????????????????";
+		if(.custo_individual > 0) {
+			if(.tipo_pagamento == 0) {
+				mes "Reset Individual: ^00FF00" + .custo_individual + " Zeny^000000";
+			} else {
+				mes "Reset Individual: ^00FF00" + .custo_individual + "x " + getitemname(.item_pagamento) + "^000000";
+			}
+		} else {
+			mes "Reset Individual: ^00FF00GRÁTIS^000000";
+		}
+		
+		if(.custo_total > 0) {
+			if(.tipo_pagamento == 0) {
+				mes "Reset Total: ^00FF00" + .custo_total + " Zeny^000000";
+			} else {
+				mes "Reset Total: ^00FF00" + .custo_total + "x " + getitemname(.item_pagamento) + "^000000";
+			}
+		} else {
+			mes "Reset Total: ^00FF00GRÁTIS^000000";
+		}
+		close;
+		
+	case 6: // Sair
+		mes .@n$;
+		mes "Que as estrelas guiem seu caminho!";
+		close;
+	}
+
+OnInit:
+	// ========== CONFIGURAÇÕES ==========
+	
+	// Tipo de pagamento (0 = Zeny, 1 = Item)
+	set .tipo_pagamento, 0;
+	
+	// Item de pagamento (se tipo_pagamento = 1)
+	set .item_pagamento, 7227; // TCG Card (exemplo)
+	
+	// Custo para resetar uma posição individual
+	set .custo_individual, 1000000; // 1kk de Zeny
+	
+	// Custo para resetar TODAS as posições
+	set .custo_total, 2500000; // 2.5kk de Zeny (desconto!)
+	
+	// ===================================
+	
+	while(1) {
+		showscript "[ Mestre das Estrelas ]", getnpcid(0);
+		sleep 3000;
+	}
+	end;
+}

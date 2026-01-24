@@ -1,0 +1,654 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                NPC - Procurador Global
+//===============================================================
+// Versão: 1.1 - Acesso para GM
+//
+// Alteração v1.1:
+// - Adicionado acesso para GMs de nível 99.
+// - GMs recebem os mesmos benefícios de um Super VIP.
+//===============================================================
+
+1@herbs,293,53,3	script	Procurador Global	125,{
+	
+// ========================================================
+// Configurações ******************************************
+// ========================================================
+// Nível do Jogador VIP (Padrão 10)
+   set .viplvl, 1;
+// Delay de Re-envio Jogador Não-Vip (Padrão 600/10Minutos)
+   set @delaynvip, 300;
+// Delay de Re-envio Jogador Vip (Padrão 300/5Minutos)
+   set @delayvip, 150;
+// Nome do NPC (Padrão Arnold Procurador)
+   set .nome$, "^339966[Arnold Procurador]^000000";
+// ========================================================
+if(#espera >= gettimetick(2)){
+	if(getgroupid() < 5){
+		mes .nome$;
+		mes "Você não pode enviar mensagens";
+		mes "constantemente. Você só poderá";
+		mes "enviar uma mensagem a cada ^ff0000"+@delaynvip/60+"^000000";
+		mes "^ff0000minutos.^000000";
+		close;
+	}
+	else{
+		mes .nome$;
+		mes "Você não pode enviar mensagens";
+		mes "constantemente. Você só poderá";
+		mes "enviar uma mensagem a cada ^ff0000"+@delayvip/60+"^000000";
+		mes "^ff0000minutos.^000000";
+		close;
+	}
+}
+mes .nome$;
+mes (gettime(3)>= 6&&gettime(3)<= 12?"Bom-dia":(gettime(3)>=13&&gettime(3)<=18?"Boa-tarde":"Boa-noite"))+", ^FFA500"+strcharinfo(0)+"^000000!";
+mes "Escolha o serviço:";
+switch(select("^339966[»]^000000 Grupo","^339966[»]^000000 Clã","^339966[»]^000000 Comércio","^ff0000[»] Sair^000000")){
+	case 1:
+	next;
+	menu "^339966[»]^000000 Preciso de grupo",L_QG,"^339966[»]^000000 Recruto pra grupo",L_RG,"^ff0000[»] Cancelar^000000",L_Exit;
+	L_QG:
+		announce "O jogador "+strcharinfo(0)+" procura um grupo. Classe: "+jobname(Class)+". Nível: "+BaseLevel+".",bc_all,0xFFFF00;
+		if(getgroupid() < 5){
+			set #espera, gettimetick(2) + @delaynvip;
+		}
+		else{
+			set #espera, gettimetick(2) + @delayvip;
+		}
+		close;
+	L_RG:
+		if(getcharid(1) == 0){
+			mes .nome$;
+			mes "Você precisa estar em um";
+			mes "grupo para poder usar esta";
+			mes "função do anunciador.";
+			close;
+		}
+		else{
+			next;
+			mes .nome$;
+			mes "Qual classe você está recrutando?";
+			menu "^339966[»]^000000 Classes 1-1",L_11,"^339966[»]^000000 Classes 2-1",L_21,"^339966[»]^000000 Classes 2-2",L_22,"^339966[»]^000000 Super Aprendiz",L_SA1,"^ff0000[»] Cancelar^000000",L_Exit;
+			L_11:
+				next;
+				menu "^339966[»]^000000 Arqueiro",L_Arc,"^339966[»]^000000 Mercador",L_Merca,"^339966[»]^000000 Mago",L_Mago,"^339966[»]^000000 Espadachim",L_Espa,"^339966[»]^000000 Noviço",L_Nov,"^339966[»]^000000 Gatuno",L_Gat,"^ff0000[»] Cancelar^000000",L_Exit;
+	
+				L_Arc:	
+					announce "O jogador "+strcharinfo(0)+" de nível "+BaseLevel+" está recrutando Arqueiro para o grupo "+strcharinfo(1)+".",bc_all,0xFFFF00;
+					if(getgroupid() < 5){
+						set #espera, gettimetick(2) + @delaynvip;
+					}
+					else{
+						set #espera, gettimetick(2) + @delayvip;
+					}
+					close;
+					end;
+				L_Merca: 
+					announce "O jogador "+strcharinfo(0)+" de nível "+BaseLevel+" está recrutando Mercador para o grupo "+strcharinfo(1)+".",bc_all,0xFFFF00;
+					if(getgroupid() < 5){
+						set #espera, gettimetick(2) + @delaynvip;
+					}
+					else{
+						set #espera, gettimetick(2) + @delayvip;
+					}
+					close;
+					end;
+					
+				L_Mago: 
+					announce "O jogador "+strcharinfo(0)+" de nível "+BaseLevel+" está recrutando Mago para o grupo "+strcharinfo(1)+".",bc_all,0xFFFF00;
+					if(getgroupid() < 5){
+						set #espera, gettimetick(2) + @delaynvip;
+					}
+					else{
+						set #espera, gettimetick(2) + @delayvip;
+					}
+					close;
+					end;
+					
+				L_Espa: 
+					announce "O jogador "+strcharinfo(0)+" de nível "+BaseLevel+" está recrutando Espadachim para o grupo "+strcharinfo(1)+".",bc_all,0xFFFF00;
+					if(getgroupid() < 5){
+						set #espera, gettimetick(2) + @delaynvip;
+					}
+					else{
+						set #espera, gettimetick(2) + @delayvip;
+					}
+					close;
+					end;
+				L_Nov:  
+					announce "O jogador "+strcharinfo(0)+" de nível "+BaseLevel+" está recrutando Noviço para o grupo "+strcharinfo(1)+".",bc_all,0xFFFF00;
+					if(getgroupid() < 5){
+						set #espera, gettimetick(2) + @delaynvip;
+					}
+					else{
+						set #espera, gettimetick(2) + @delayvip;
+					}
+					close;
+					end;
+				L_Gat:  
+					announce "O jogador "+strcharinfo(0)+" de nível "+BaseLevel+" está recrutando Gatuno para o grupo "+strcharinfo(1)+".",bc_all,0xFFFF00;
+					if(getgroupid() < 5){
+						set #espera, gettimetick(2) + @delaynvip;
+					}
+					else{
+						set #espera, gettimetick(2) + @delayvip;
+					}
+					close;
+					end;
+				L_SA:
+					close;
+			L_21:
+				next;
+				menu "^339966[»]^000000 Caçador",L_Caca,"^339966[»]^000000 Ferreiro",L_Fer,"^339966[»]^000000 Bruxo",L_Bru,"^339966[»]^000000 Cavaleiro",L_Cav,"^339966[»]^000000 Sacerdote",L_Sac,"^339966[»]^000000 Mercenário",L_Mer,"^ff0000[»] Cancelar^000000",L_Exit;
+				
+				L_Caca:	
+					announce "O jogador "+strcharinfo(0)+" de nível "+BaseLevel+" está recrutando Caçador para o grupo "+strcharinfo(1)+".",bc_all,0xFFFF00;
+					if(getgroupid() < 5){
+						set #espera, gettimetick(2) + @delaynvip;
+					}
+					else{
+						set #espera, gettimetick(2) + @delayvip;
+					}
+					close;
+					end;
+				L_Fer:  
+					announce "O jogador "+strcharinfo(0)+" de nível "+BaseLevel+" está recrutando Ferreiro para o grupo "+strcharinfo(1)+".",bc_all,0xFFFF00;
+					if(getgroupid() < 5){
+						set #espera, gettimetick(2) + @delaynvip;
+					}
+					else{
+						set #espera, gettimetick(2) + @delayvip;
+					}
+					close;
+					end;
+				L_Bru:  
+					announce "O jogador "+strcharinfo(0)+" de nível "+BaseLevel+" está recrutando Bruxo para o grupo "+strcharinfo(1)+".",bc_all,0xFFFF00;
+					if(getgroupid() < 5){
+						set #espera, gettimetick(2) + @delaynvip;
+					}
+					else{
+						set #espera, gettimetick(2) + @delayvip;
+					}
+					close;
+					end;
+				L_Cav:  
+					announce "O jogador "+strcharinfo(0)+" de nível "+BaseLevel+" está recrutando Cavaleiro para o grupo "+strcharinfo(1)+".",bc_all,0xFFFF00;
+					if(getgroupid() < 5){
+						set #espera, gettimetick(2) + @delaynvip;
+					}
+					else{
+						set #espera, gettimetick(2) + @delayvip;
+					}
+					close;
+					end;
+	
+				L_Sac:  
+					announce "O jogador "+strcharinfo(0)+" de nível "+BaseLevel+" está recrutando Sacerdote para o grupo "+strcharinfo(1)+".",bc_all,0xFFFF00;
+					if(getgroupid() < 5){
+						set #espera, gettimetick(2) + @delaynvip;
+					}
+					else{
+						set #espera, gettimetick(2) + @delayvip;
+					}
+					close;
+					end;
+				L_Mer: 
+					announce "O jogador "+strcharinfo(0)+" de nível "+BaseLevel+" está recrutando Mercenário para o grupo "+strcharinfo(1)+".",bc_all,0xFFFF00;
+					if(getgroupid() < 5){
+						set #espera, gettimetick(2) + @delaynvip;
+					}
+					else{
+						set #espera, gettimetick(2) + @delayvip;
+					}
+					close;
+					end;
+			L_22:
+			next;
+			menu "^339966[»]^000000 Bardo",L_Bar,"^339966[»]^000000 Odalisca",L_Oda,"^339966[»]^000000 Alquimista",L_Alq,"^339966[»]^000000 Sábio",L_Sage,"^339966[»]^000000 Templário",L_Tem,"^339966[»]^000000 Monge",L_Mon,"^339966[»]^000000 Arruaceiro",L_Arru,"^ff0000[»] Cancelar^000000",L_Exit;
+				L_Bar:	
+					announce "O jogador "+strcharinfo(0)+" de nível "+BaseLevel+" está recrutando Bardo para o grupo "+strcharinfo(1)+".",bc_all,0xFFFF00;
+					if(getgroupid() < 5){
+						set #espera, gettimetick(2) + @delaynvip;
+					}
+					else{
+						set #espera, gettimetick(2) + @delayvip;
+					}
+					close;
+					end;
+				L_Oda:	
+					announce "O jogador "+strcharinfo(0)+" de nível "+BaseLevel+" está recrutando Odalisca para o grupo "+strcharinfo(1)+".",bc_all,0xFFFF00;
+					if(getgroupid() < 5){
+						set #espera, gettimetick(2) + @delaynvip;
+					}
+					else{
+						set #espera, gettimetick(2) + @delayvip;
+					}
+					close;
+					end;
+				L_Alq:	
+					announce "O jogador "+strcharinfo(0)+" de nível "+BaseLevel+" está recrutando Alquimista para o grupo "+strcharinfo(1)+".",bc_all,0xFFFF00;
+					if(getgroupid() < 5){
+						set #espera, gettimetick(2) + @delaynvip;
+					}
+					else{
+						set #espera, gettimetick(2) + @delayvip;
+					}
+					close;
+					end;
+				L_Sage:	
+					announce "O jogador "+strcharinfo(0)+" de nível "+BaseLevel+" está recrutando Sábio para o grupo "+strcharinfo(1)+".",bc_all,0xFFFF00;
+					if(getgroupid() < 5){
+						set #espera, gettimetick(2) + @delaynvip;
+					}
+					else{
+						set #espera, gettimetick(2) + @delayvip;
+					}
+					close;
+					end;
+				L_Tem:	
+					announce "O jogador "+strcharinfo(0)+" de nível "+BaseLevel+" está recrutando Templário para o grupo "+strcharinfo(1)+".",bc_all,0xFFFF00;
+					if(getgroupid() < 5){
+						set #espera, gettimetick(2) + @delaynvip;
+					}
+					else{
+						set #espera, gettimetick(2) + @delayvip;
+					}
+					close;
+					end;
+				L_Mon:	
+					announce "O jogador "+strcharinfo(0)+" de nível "+BaseLevel+" está recrutando Monge para o grupo "+strcharinfo(1)+".",bc_all,0xFFFF00;
+					if(getgroupid() < 5){
+						set #espera, gettimetick(2) + @delaynvip;
+					}
+					else{
+						set #espera, gettimetick(2) + @delayvip;
+					}
+					close;
+					end;
+				L_Arru:	
+					announce "O jogador "+strcharinfo(0)+" de nível "+BaseLevel+" está recrutando Arruaceiro para o grupo "+strcharinfo(1)+".",bc_all,0xFFFF00;
+					if(getgroupid() < 5){
+						set #espera, gettimetick(2) + @delaynvip;
+					}
+					else{
+						set #espera, gettimetick(2) + @delayvip;
+					}
+					close;
+					end;
+				L_SA1:
+					announce "O jogador "+strcharinfo(0)+" de nível "+BaseLevel+" está recrutando Super Aprendiz para o grupo "+strcharinfo(1)+".",bc_all,0xFFFF00;
+					if(getgroupid() < 5){
+						set #espera, gettimetick(2) + @delaynvip;
+					}
+					else{
+						set #espera, gettimetick(2) + @delayvip;
+					}
+					close;
+					end;
+		}
+		case 2:
+		next;
+		menu "^339966[»]^000000 Preciso de clã",L_QC,"^339966[»]^000000 Recruto para clã",L_RC,"^ff0000[»] Cancelar^000000",L_Exit;
+		L_QC:
+			announce "O jogador "+strcharinfo(0)+" procura um clã. Classe: "+jobname(Class)+". Nível: "+BaseLevel+".",bc_all,0xFFFF00;
+			if(getgroupid() < 5){
+				set #espera, gettimetick(2) + @delaynvip;
+			}
+			else{
+				set #espera, gettimetick(2) + @delayvip;
+			}
+			close;
+			end;
+		L_RC:	
+			if(getcharid(2) == 0){
+				mes .nome$;
+				mes "Você precisa estar em um";
+				mes "clã para poder usar esta";
+				mes "função do anunciador.";
+				close;
+			}
+			else{
+				next;
+				mes .nome$;
+				mes "Digite um nível mínimo para";
+				mes "o recrutamento.";
+				input @nivelmin;
+				if(@nivelmin > 255){
+					next;
+					mes .nome$;
+					mes "Este nível não existe.";
+					close;
+				}
+				else{
+					next;
+					mes .nome$;
+					mes "Qual classe você está recrutando?";
+					menu "^339966[»]^000000 Classes 1-1",L_11c,"^339966[»]^000000 Classes 2-1",L_21c,"^339966[»]^000000 Classes 2-2",L_22c,"^339966[»]^000000 Super Aprendiz",L_SA2,"^ff0000[»] Cancelar^000000",L_Exit;
+					
+					L_11c:
+						next;
+						menu "^339966[»]^000000 Arqueiro",L_Arcc,"^339966[»]^000000 Mercador",L_Mercac,"^339966[»]^000000 Mago",L_Magoc,"^339966[»]^000000 Espadachim",L_Espac,"^339966[»]^000000 Noviço",L_Novc,"^339966[»]^000000 Gatuno",L_Gatc,"^ff0000[»] Cancelar^000000",L_Exit;
+						
+						L_Arcc:
+							announce "O jogador "+strcharinfo(0)+" está recrutando Arqueiro de nível "+@nivelmin+" ou maior para o clã "+strcharinfo(2)+".",bc_all,0xFFFF00;
+							if(getgroupid() < 5){
+								set #espera, gettimetick(2) + @delaynvip;
+							}
+							else{
+								set #espera, gettimetick(2) + @delayvip;
+							}
+							close;
+							end;
+						L_Mercac:
+							announce "O jogador "+strcharinfo(0)+" está recrutando Mercador de nível "+@nivelmin+" ou maior para o clã "+strcharinfo(2)+".",bc_all,0xFFFF00;
+							if(getgroupid() < 5){
+								set #espera, gettimetick(2) + @delaynvip;
+							}
+							else{
+								set #espera, gettimetick(2) + @delayvip;
+							}
+							close;
+							end;
+						L_Magoc:
+							announce "O jogador "+strcharinfo(0)+" está recrutando Mago de nível "+@nivelmin+" ou maior para o clã "+strcharinfo(2)+".",bc_all,0xFFFF00;
+							if(getgroupid() < 5){
+								set #espera, gettimetick(2) + @delaynvip;
+							}
+							else{
+								set #espera, gettimetick(2) + @delayvip;
+							}
+							close;
+							end;
+						L_Espac:
+							announce "O jogador "+strcharinfo(0)+" está recrutando Espadachim de nível "+@nivelmin+" ou maior para o clã "+strcharinfo(2)+".",bc_all,0xFFFF00;
+							if(getgroupid() < 5){
+								set #espera, gettimetick(2) + @delaynvip;
+							}
+							else{
+								set #espera, gettimetick(2) + @delayvip;
+							}
+							close;
+							end;
+						L_Novc:  
+							announce "O jogador "+strcharinfo(0)+" está recrutando Noviço de nível "+@nivelmin+" ou maior para o clã "+strcharinfo(2)+".",bc_all,0xFFFF00;
+							if(getgroupid() < 5){
+								set #espera, gettimetick(2) + @delaynvip;
+							}
+							else{
+								set #espera, gettimetick(2) + @delayvip;
+							}
+							close;
+							end;
+						L_Gatc:
+							announce "O jogador "+strcharinfo(0)+" está recrutando Gatuno de nível "+@nivelmin+" ou maior para o clã "+strcharinfo(2)+".",bc_all,0xFFFF00;
+							if(getgroupid() < 5){
+								set #espera, gettimetick(2) + @delaynvip;
+							}
+							else{
+								set #espera, gettimetick(2) + @delayvip;
+							}
+							close;
+							end;
+					
+						L_SA2:
+							announce "O jogador "+strcharinfo(0)+" está recrutando Super Aprendiz de nível "+@nivelmin+" ou maior para o clã "+strcharinfo(2)+".",bc_all,0xFFFF00;
+							if(getgroupid() < 5){
+								set #espera, gettimetick(2) + @delaynvip;
+							}
+							else{
+								set #espera, gettimetick(2) + @delayvip;
+							}
+							close;
+							end;
+					L_21c:
+						next;
+						menu "^339966[»]^000000 Caçador",L_Cacac,"^339966[»]^000000 Ferreiro",L_Ferc,"^339966[»]^000000 Bruxo",L_Bruc,"^339966[»]^000000 Cavaleiro",L_Cavc,"^339966[»]^000000 Sacerdote",L_Sacc,"^339966[»]^000000 Mercenário",L_Mercc,"^FF0000[»] Cancelar^000000",L_Exit;
+						
+						L_Cacac:	
+							announce "O jogador "+strcharinfo(0)+" está recrutando Caçador de nível "+@nivelmin+" ou maior para o clã "+strcharinfo(2)+".",bc_all,0xFFFF00;
+							if(getgroupid() < 5){
+								set #espera, gettimetick(2) + @delaynvip;
+							}
+							else{
+								set #espera, gettimetick(2) + @delayvip;
+							}
+							close;
+							end;
+						L_Ferc:
+							announce "O jogador "+strcharinfo(0)+" está recrutando Ferreiro de nível "+@nivelmin+" ou maior para o clã "+strcharinfo(2)+".",bc_all,0xFFFF00;
+							if(getgroupid() < 5){
+								set #espera, gettimetick(2) + @delaynvip;
+							}
+							else{
+								set #espera, gettimetick(2) + @delayvip;
+							}
+							close;
+							end;
+						L_Bruc:
+							announce "O jogador "+strcharinfo(0)+" está recrutando Bruxo de nível "+@nivelmin+" ou maior para o clã "+strcharinfo(2)+".",bc_all,0xFFFF00;
+							if(getgroupid() < 5){
+								set #espera, gettimetick(2) + @delaynvip;
+							}
+							else{
+								set #espera, gettimetick(2) + @delayvip;
+							}
+							close;
+							end;
+						L_Cavc:
+							announce "O jogador "+strcharinfo(0)+" está recrutando Cavaleiro de nível "+@nivelmin+" ou maior para o clã "+strcharinfo(2)+".",bc_all,0xFFFF00;
+							if(getgroupid() < 5){
+								set #espera, gettimetick(2) + @delaynvip;
+							}
+							else{
+								set #espera, gettimetick(2) + @delayvip;
+							}
+							close;
+							end;
+						L_Sacc:
+							announce "O jogador "+strcharinfo(0)+" está recrutando Sacerdote de nível "+@nivelmin+" ou maior para o clã "+strcharinfo(2)+".",bc_all,0xFFFF00;
+							if(getgroupid() < 5){
+								set #espera, gettimetick(2) + @delaynvip;
+							}
+							else{
+								set #espera, gettimetick(2) + @delayvip;
+							}
+							close;
+							end;
+						L_Mercc: 
+							announce "O jogador "+strcharinfo(0)+" está recrutando Mercenário de nível "+@nivelmin+" ou maior para o clã "+strcharinfo(2)+".",bc_all,0xFFFF00;
+							if(getgroupid() < 5){
+								set #espera, gettimetick(2) + @delaynvip;
+							}
+							else{
+								set #espera, gettimetick(2) + @delayvip;
+							}
+							close;
+							end;
+					L_22c:
+						next;
+						menu "^339966[»]^000000 Bardo",L_Barc,"^339966[»]^000000 Odalisca",L_Odac,"^339966[»]^000000 Alquimista",L_Alqc,"^339966[»]^000000 Sábio",L_Sagec,"^339966[»]^000000 Templário",L_Temc,"^339966[»]^000000 Monge",L_Monc,"^339966[»]^000000 Arruaceiro",L_Arruc,"^ff0000[»] Cancelar^000000",L_Exit;
+		
+						L_Barc:
+							announce "O jogador "+strcharinfo(0)+" está recrutando Bardo de nível "+@nivelmin+" ou maior para o clã "+strcharinfo(2)+".",bc_all,0xFFFF00;
+							if(getgroupid() < 5){
+								set #espera, gettimetick(2) + @delaynvip;
+							}
+							else{
+								set #espera, gettimetick(2) + @delayvip;
+							}
+							close;
+							end;
+						L_Odac:
+							announce "O jogador "+strcharinfo(0)+" está recrutando Odalisca de nível "+@nivelmin+" ou maior para o clã "+strcharinfo(2)+".",bc_all,0xFFFF00;
+							if(getgroupid() < 5){
+								set #espera, gettimetick(2) + @delaynvip;
+							}
+							else{
+								set #espera, gettimetick(2) + @delayvip;
+							}
+							close;
+							end;
+						L_Alqc:
+							announce "O jogador "+strcharinfo(0)+" está recrutando Alquimista de nível "+@nivelmin+" ou maior para o clã "+strcharinfo(2)+".",bc_all,0xFFFF00;
+							if(getgroupid() < 5){
+								set #espera, gettimetick(2) + @delaynvip;
+							}
+							else{
+								set #espera, gettimetick(2) + @delayvip;
+							}
+							close;
+							end;
+						L_Sagec:	
+							announce "O jogador "+strcharinfo(0)+" está recrutando Sábio de nível "+@nivelmin+" ou maior para o clã "+strcharinfo(2)+".",bc_all,0xFFFF00;
+							if(getgroupid() < 5){
+								set #espera, gettimetick(2) + @delaynvip;
+							}
+							else{
+								set #espera, gettimetick(2) + @delayvip;
+							}
+							close;
+							end;
+						L_Temc:	
+							announce "O jogador "+strcharinfo(0)+" está recrutando Templário de nível "+@nivelmin+" ou maior para o clã "+strcharinfo(2)+".",bc_all,0xFFFF00;
+							if(getgroupid() < 5){
+								set #espera, gettimetick(2) + @delaynvip;
+							}
+							else{
+								set #espera, gettimetick(2) + @delayvip;
+							}
+							close;
+							end;
+						L_Monc:
+							announce "O jogador "+strcharinfo(0)+" está recrutando Monge de nível "+@nivelmin+" ou maior para o clã "+strcharinfo(2)+".",bc_all,0xFFFF00;
+							if(getgroupid() < 5){
+								set #espera, gettimetick(2) + @delaynvip;
+							}
+							else{
+								set #espera, gettimetick(2) + @delayvip;
+							}
+							close;
+							end;
+						L_Arruc:
+							announce "O jogador "+strcharinfo(0)+" está recrutando Arruaceiro de nível "+@nivelmin+" ou maior para o clã "+strcharinfo(2)+".",bc_all,0xFFFF00;
+							if(getgroupid() < 5){
+								set #espera, gettimetick(2) + @delaynvip;
+							}
+							else{
+								set #espera, gettimetick(2) + @delayvip;
+							}
+							close;
+							end;
+			L_Exit:
+				next;
+				mes .nome$;
+				mes "Tudo bem! Volte quando precisar dos meus serviços.";
+				close;
+		}
+	}
+	case 3:
+		next;
+		mes .nome$;
+		mes "Digite o ID do item. Caso você";
+		mes "deseje cancelar, digite 0.";
+		input @itemid;
+		if(@itemid == 0){
+			next;
+			mes .nome$;
+			mes "Anúncio cancelado.";
+			close;
+		}
+		else{
+			if(getitemname(@itemid) == "null"){
+				next;
+				mes .nome$;
+				mes "ID Inválido.";
+				close;
+			}
+			else{
+				set @anItmName$, getitemname(@itemid);
+				close2;
+				announce "Precisa-se de "+@anItmName$+", tratar com o jogador "+strcharinfo(0)+".",bc_all,0xFFFF00;
+				if(getgroupid() < 5){
+					set #espera, gettimetick(2) + @delaynvip;
+				}
+				else{
+					set #espera, gettimetick(2) + @delayvip;
+				}
+				end;
+			}
+		}
+	case 4:
+		next;
+		mes .nome$;
+		mes "Tudo bem! Volte quando precisar dos meus serviços.";
+		close;
+	}
+
+OnInit:
+
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 73;	
+		setunittitle getnpcid(0), "[Rune-Midgard]";
+
+		while(1) {
+		showscript "[ Procurador Global ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+function	script	anuncio_recparty	{
+	announce "O jogador "+strcharinfo(0)+" de nível "+BaseLevel+" está recrutando "+@Classe$+" para o grupo "+strcharinfo(1)+".",bc_all,0xFFFF00;
+	if(getgroupid() < 5){
+		set #espera, gettimetick(2) + @delaynvip;
+	}
+	else{
+		set #espera, gettimetick(2) + @delayvip;
+	}
+	close;
+}
+function	script	anuncio_recguild	{
+	announce "O jogador "+strcharinfo(0)+" está recrutando "+@Classe$+" de nível "+@nivelmin+" ou maior para o clã "+strcharinfo(2)+".",bc_all,0xFFFF00;
+	if(getgroupid() < 5){
+		set #espera, gettimetick(2) + @delaynvip;
+	}
+	else{
+		set #espera, gettimetick(2) + @delayvip;
+	}
+	close;
+}
+function	script	time	{
+	set .@Time_Left, getarg(0) - gettimetick(2);
+	set .@Dias, .@Time_Left / 86400;
+	set .@Time_Left, .@Time_Left - (.@Dias * 86400);
+	set .@Horas, .@Time_Left / 3600;
+	set .@Time_Left, .@Time_Left - (.@Horas * 3600);
+	set .@Minutos, .@Time_Left / 60;
+	set .@Time_Left, .@Time_Left - (.@Minutos * 60);
+	set .@Time$, "";
+	if( .@Dias > 1 )
+		set .@Time$, .@Time$ + .@Dias + " dias, ";
+	else if( .@Dias > 0 )
+		set .@Time$, .@Time$ + .@Dias + " dia, ";
+	if( .@Horas > 1 )
+		set .@Time$, .@Time$ + .@Horas + " horas, ";
+	else if( .@Horas > 0 )
+		set .@Time$, .@Time$ + .@Horas + " hora, ";
+	if( .@Minutos > 1 )
+		set .@Time$, .@Time$ + .@Minutos + " minutos, ";
+	else if( .@Minutos > 0 )
+		set .@Time$, .@Time$ + .@Minutos + " minuto, ";
+	if( .@Time_Left > 1 || .@Time_Left == 0 )
+		set .@Time$, .@Time$ + .@Time_Left + " segundos.";
+	else if( .@Time_Left == 1 )
+		set .@Time$, .@Time$ + .@Time_Left + " segundo.";
+	
+	return .@Time$;
+}

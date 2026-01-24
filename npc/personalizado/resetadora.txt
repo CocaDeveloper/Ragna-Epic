@@ -1,0 +1,129 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                       RESETADORA
+// ===================== Descrição: =============================
+prontera,173,182,9	script	Reset Miyuki	124,{
+
+if (BaseLevel > 70) {
+	.@ResetStat = 1000000;	// Zeny para resetar atributos
+	.@ResetSkill = 1000000;	// Zeny para resetar habilidades
+	.@ResetBoth = 2000000;	// Zeny para resetar ambos juntos
+}
+else{
+.@ResetStat  = 0;	// Zeny para resetar atributos
+.@ResetSkill = 0;	// Zeny para resetar habilidades
+.@ResetBoth  = 0;	// Zeny para resetar ambos juntos
+//por favor, use esses para resetar o iniciante, se poss vel
+//.@ResetLowbieStat = 0; //Zeny para resetar atributos - iniciante
+//.@ResetLowbieSkill = 0; //Zeny para resetar habilidades - iniciante
+}
+//se (eu n o souber como obter o n vel do jogador aqui, quero dar o reset gr tis para qualquer um abaixo de 80)
+		if (#language == 0) {
+mes "^339966[Resetadora]^000000";
+mes "Eu sou a Garota do Reset.";
+mes "Resetar Atributos: ^ff0000"  + callfunc("F_InsertComma", .@ResetStat)  + "z^000000";
+mes "Resetar Habilidades: ^ff0000" + callfunc("F_InsertComma", .@ResetSkill) + "z^000000";
+mes "Resetar Ambos: ^ff0000"   + callfunc("F_InsertComma", .@ResetBoth)  + "z^000000";
+mes "Por favor, selecione o servico que você deseja:";
+next;
+switch(select("^FF3355Resetar Habilidades:Resetar Atributos:Resetar Ambos^000000:Cancelar")) {
+	case 1:
+		mes "^339966[Resetadora]^000000";
+		if (Zeny < .@ResetSkill) {
+			mes "Desculpe, você nao tem Zeny suficiente.";
+			close;
+		}
+		Zeny -= .@ResetSkill;
+		sc_end SC_ALL;
+		resetskill;
+		mes "Aqui está!";
+		close;
+	case 2:
+		mes "^339966[Resetadora]^000000";
+		if (Zeny < .@ResetStat) {
+			mes "Desculpe, você nao tem Zeny suficiente.";
+			close;
+		}
+		Zeny -= .@ResetStat;
+		resetstatus;
+		mes "Aqui está!";
+		close;
+	case 3:
+		mes "^339966[Resetadora]^000000";
+		if (Zeny < .@ResetBoth) {
+			mes "Desculpe, você nao tem Zeny suficiente.";
+			close;
+		}
+		Zeny -= .@ResetBoth;
+		sc_end SC_ALL;
+		resetskill;
+		resetstatus;
+		mes "Aqui está!";
+		close;
+	case 4:
+		close;
+	}
+		} else {
+mes "[Reset Girl]";
+mes "I am the Reset Girl.";
+mes "Reset Attributes: "  + callfunc("F_InsertComma", .@ResetStat)  + "z";
+mes "Reset Skills: " + callfunc("F_InsertComma", .@ResetSkill) + "z";
+mes "Reset Both: "   + callfunc("F_InsertComma", .@ResetBoth)  + "z";
+mes "Please select the service you desire:";
+next;
+switch(select("^FF3355Reset Skills:Reset Attributes:Reset Both^000000:Cancel")) {
+	case 1:
+		mes "[Reset Girl]";
+		if (Zeny < .@ResetSkill) {
+			mes "Sorry, you don't have enough Zeny.";
+			close;
+		}
+		Zeny -= .@ResetSkill;
+		sc_end SC_ALL;
+		resetskill;
+		mes "Here you go!";
+		close;
+	case 2:
+		mes "[Reset Girl]";
+		if (Zeny < .@ResetStat) {
+			mes "Sorry, you don't have enough Zeny.";
+			close;
+		}
+		Zeny -= .@ResetStat;
+		resetstatus;
+		mes "Here you go!";
+		close;
+	case 3:
+		mes "[Reset Girl]";
+		if (Zeny < .@ResetBoth) {
+			mes "Sorry, you don't have enough Zeny.";
+			close;
+		}
+		Zeny -= .@ResetBoth;
+		sc_end SC_ALL;
+		resetskill;
+		resetstatus;
+		mes "Here you go!";
+		close;
+	case 4:
+		close;
+		}
+	}
+OnInit:
+
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 67;	
+	setunittitle getnpcid(0), "[Resetadora]";
+
+while(1) {
+		showscript "[ Resetadora ]", getnpcid(0);
+		sleep 100;
+	}
+    end;
+}

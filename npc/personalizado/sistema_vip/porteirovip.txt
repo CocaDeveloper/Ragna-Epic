@@ -1,0 +1,121 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  NPC - Porteiro VIP
+//===============================================================
+// Versão: 1.2 - Acesso para GM (Loja e WoE removidos)
+//
+// Alteração v1.1:
+// - Adicionado acesso para GMs de nível 99.
+// - GMs recebem os mesmos benefícios de um Super VIP.
+//
+// Alteração v1.2:
+// - Removidas opções de Loja VIP e Teleporte para WoE.
+//===============================================================
+
+prontera,148,184,5	script	Porteiro VIP	10529,{
+	
+	// --- ALTERAÇÃO 1: Verificação de Acesso para VIP ou GM ---
+	// Agora, se o VIP expirou E o jogador não é GM 99, o acesso é negado.
+	if (#VIP_TIME < gettimetick(2) && getgmlevel() < 99) {
+		mes "^339966[Porteiro VIP]^000000";
+		mes "Saudações, ^FFA500"+strcharinfo(0)+"^000000!";
+		mes "Infelizmente, este é um serviço para Membros VIP.";
+		mes "Adquira um ^ff0000Ticket VIP^000000 em nossa loja para desfrutar de benefícios exclusivos!";
+		close;
+	}
+	
+// --- Diálogo Principal (Sem alterações) ---
+	mes "^339966[Porteiro VIP]^000000";
+	mes (gettime(3)>=6&&gettime(3)<=12?"Bom dia":(gettime(3)>=13&&gettime(3)<=18?"Boa tarde":"Boa noite"))+", ^ffa500"+strcharinfo(0)+"^000000.";
+	mes " ";
+	mes "Seja bem-vindo ao serviço VIP.";
+	next;
+	
+	mes "^339966[Porteiro VIP]^000000";
+	mes "Como posso ajudá-lo hoje?";
+	switch(select("^339966[>]^000000 Entrar na Sala VIP:^339966[>]^000000 Armazém VIP:^339966[>]^000000 Informações:^ff0000[>] Sair^000000")) {
+    case 1: // Entrar na Sala VIP
+        next;
+        mes "^339966[Porteiro VIP]^000000";
+        mes "Tem certeza que deseja acessar a Sala VIP?";
+        if(select("^339966[>]^000000 Sim:^ff0000[>] Não^000000") == 1) {
+			next;
+			
+            // Entrar na Sala VIP
+			mes "^339966[Porteiro VIP]^000000";
+			mes "Estou abrindo os portões da área exclusiva para você. Tenha uma ótima estadia!";
+			warp "1@herbs", 286, 51;
+			close;
+			
+            // warp "mapa_vip",x,y; // Descomente e configure o mapa/coordenadas
+        } else {
+			next;
+            mes "^339966[Porteiro VIP]^000000";
+            mes "Tudo bem! Volte quando quiser acessar a Sala VIP.";
+            close;
+        }
+        break;
+    
+		case 2: // Armazém VIP
+			next;
+			mes "^339966[Porteiro VIP]^000000";
+			mes "Armazém aberto.";
+			openstorage;
+			close;
+			
+		case 3: // Informações VIP
+			next;
+			mes "^339966[Porteiro VIP]^000000";
+			mes "Aqui estão os detalhes da sua assinatura:";
+			mes " ";
+			if (getgmlevel() >= 99) {
+				mes "• Nível de Acesso: ^FF0000[Administrador]^000000";
+				mes "• Tempo Restante: ^FF0000Permanente^000000.";
+			} else {
+				.@dias = (#VIP_TIME - gettimetick(2)) / (24*60*60*1000);
+				.@horas = ((#VIP_TIME - gettimetick(2)) % (24*60*60*1000)) / (60*60*1000);
+				.@nivel$ = (#VIP_LEVEL == 2) ? "^00B2EE[Super VIP]^000000" : "^FFA500[VIP]^000000";
+				mes "• Nível de Acesso: "+.@nivel$;
+				mes "• Tempo Restante: ^00FF00"+.@dias+" dia(s) e "+.@horas+" hora(s)^000000.";
+			}
+			mes " ";
+			mes "Aproveite todos os benefícios!";
+			close;
+			
+		case 4: // Sair
+			next;
+			mes "^339966[Porteiro VIP]^000000";
+			mes "Volte quando quiser usar os meus serviços.";
+			close;
+	}
+	end;
+	
+OnInit:
+
+setunitdata getnpcid(0), UNPC_GROUP_ID, 46;	
+setunittitle getnpcid(0), "[Sala VIP]";
+
+	while(1) {
+		showscript "[ Porteiro VIP ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+//============================================================
+// Mapflags Arena 1x1 (NOVO - Substitui arena_x1)
+//============================================================
+1@herbs	mapflag	nobranch
+1@herbs	mapflag	nomemo
+1@herbs	mapflag	noreturn
+1@herbs	mapflag	noteleport
+1@herbs	mapflag	nowarp
+1@herbs	mapflag	nowarpto
+1@herbs	mapflag	nosave

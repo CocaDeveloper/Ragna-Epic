@@ -1,0 +1,20 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+
+// Mapflags para PvP/WoE ativarem o OnPCLoadMapEvent
+
+guild_vs2	mapflag	loadevent
+arena_x1-1	mapflag	loadevent
+arena_pvp	mapflag	loadevent
+arena_gvg	mapflag	loadevent
+sec_pri	mapflag	loadevent
+pay_gld	mapflag	loadevent
+pvp_y_1-2	mapflag	loadevent
+pvp_y_1-3	mapflag	loadevent

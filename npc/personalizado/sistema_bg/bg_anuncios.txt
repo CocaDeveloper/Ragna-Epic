@@ -1,0 +1,242 @@
+//===== Script Personalizado =================================
+//= Sistema de Anúncios do Battleground
+//===== Descrição: ===========================================
+//= Anúncios periódicos convidando jogadores para o BG
+//= Avisos de Happy Hour
+//============================================================
+
+-	script	BG_Announcer	-1,{
+	end;
+
+OnInit:
+	initnpctimer;
+	end;
+
+OnTimer900000:
+	set .@hour, gettime(3);
+	
+	if (.@hour == 19 && gettime(2) >= 45) {
+		announce "[ Battleground ] Happy Hour começará em breve! Prepare-se para recompensas dobradas!", bc_all, 0xFF0000;
+		announce "[ Battleground ] Use @joinbg para participar das batalhas 3v3!", bc_all, 0x00FF00;
+	}
+	else if (.@hour == 20) {
+		announce "[ Battleground ] HAPPY HOUR ATIVO! Recompensas dobradas até às 21:00!", bc_all, 0xFF0000;
+		announce "[ Battleground ] Use @joinbg para participar e ganhar 25 emblemas por vitória!", bc_all, 0xFFFF00;
+	}
+	else {
+		announce "[ Battleground ] Batalhas 3v3 disponíveis! Use @joinbg para participar!", bc_all, 0x00FF00;
+		announce "[ Battleground ] Recompensas: Emblemas de Valor, Guerra e Bravura!", bc_all, 0x00FFFF;
+	}
+	
+	initnpctimer;
+	end;
+
+OnHappyHourStart:
+	announce "+--------------------------------------+", bc_all, 0xFF0000;
+	announce "|   HAPPY HOUR DO BATTLEGROUND!       |", bc_all, 0xFF0000;
+	announce "|   Recompensas DOBRADAS até 21:00!   |", bc_all, 0xFF0000;
+	announce "|   Vitória: 25 emblemas de cada!     |", bc_all, 0xFFFF00;
+	announce "|   Derrota: 12 emblemas de cada!     |", bc_all, 0xFFFF00;
+	announce "|   Use @joinbg para participar!      |", bc_all, 0x00FF00;
+	announce "+--------------------------------------+", bc_all, 0xFF0000;
+	end;
+
+OnHappyHourEnd:
+	announce "[ Battleground ] Happy Hour encerrado! Obrigado a todos que participaram!", bc_all, 0x00FF00;
+	announce "[ Battleground ] Batalhas continuam disponíveis com recompensas normais.", bc_all, 0x00FFFF;
+	end;
+}
+
+-	script	BG_HappyHourTimer	-1,{
+	end;
+
+OnInit:
+	initnpctimer;
+	end;
+
+OnTimer300000:
+	set .@hour, gettime(3);
+	set .@minute, gettime(2);
+	
+	if (.@hour == 19 && .@minute == 30) {
+		announce "[ Battleground ] Happy Hour em 30 minutos! Recompensas serão DOBRADAS!", bc_all, 0xFF0000;
+	}
+	else if (.@hour == 19 && .@minute == 45) {
+		announce "[ Battleground ] Happy Hour em 15 minutos! Prepare-se!", bc_all, 0xFF0000;
+	}
+	else if (.@hour == 19 && .@minute == 55) {
+		announce "[ Battleground ] Happy Hour em 5 minutos! Últimos preparativos!", bc_all, 0xFF0000;
+	}
+	else if (.@hour == 20 && .@minute == 0) {
+		donpcevent "BG_Announcer::OnHappyHourStart";
+	}
+	else if (.@hour == 20 && .@minute == 30) {
+		announce "[ Battleground ] Happy Hour: 30 minutos restantes de recompensas dobradas!", bc_all, 0xFFFF00;
+	}
+	else if (.@hour == 20 && .@minute == 45) {
+		announce "[ Battleground ] Happy Hour: 15 minutos restantes! Última chance!", bc_all, 0xFFFF00;
+	}
+	else if (.@hour == 20 && .@minute == 55) {
+		announce "[ Battleground ] Happy Hour: Últimos 5 minutos de recompensas dobradas!", bc_all, 0xFFFF00;
+	}
+	else if (.@hour == 21 && .@minute == 0) {
+		donpcevent "BG_Announcer::OnHappyHourEnd";
+	}
+	
+	initnpctimer;
+	end;
+}
+
+prontera,155,185,5	script	Oficial de Batalha	4_M_KY_KIYOM,{
+L_Menu:
+	mes "[ Oficial de Batalha ]";
+	mes "Bem-vindo ao sistema de";
+	mes "^FF0000Battleground 3v3^000000!";
+	next;
+	
+	switch(select("Como funciona?:Recompensas:Happy Hour:Verificar Cooldown:Fechar")) {
+	case 1:
+		mes "[ Oficial de Batalha ]";
+		mes "O Battleground é um sistema de";
+		mes "combate PvP onde 2 times de 3";
+		mes "jogadores lutam entre si!";
+		next;
+		mes "[ Oficial de Batalha ]";
+		mes "^0000FFComo Participar:^000000";
+		mes "1. Use o comando ^FF0000@joinbg^000000";
+		mes "2. Aguarde até formar 6 jogadores";
+		mes "3. Você será teleportado para arena";
+		mes "4. Após 30 segundos, a batalha inicia!";
+		next;
+		mes "[ Oficial de Batalha ]";
+		mes "^0000FFCondições de Vitória:^000000";
+		mes "- Elimine todos os adversários, OU";
+		mes "- Tenha mais jogadores vivos após 5 minutos";
+		next;
+		mes "[ Oficial de Batalha ]";
+		mes "^FF0000Importante:^000000";
+		mes "- Cooldown de 2 minutos entre batalhas";
+		mes "- Ao morrer, aguarde na zona segura";
+		mes "- Não ataque membros do seu time!";
+		goto L_Menu;
+		
+	case 2:
+		mes "[ Oficial de Batalha ]";
+		mes "^0000FFRecompensas Normais:^000000";
+		mes " ";
+		mes "^00FF00Vitória:^000000";
+		mes "- 10x Emblema de Valor";
+		mes "- 10x Emblema de Guerra";
+		mes "- 10x Emblema de Bravura";
+		next;
+		mes "[ Oficial de Batalha ]";
+		mes "^FF0000Derrota:^000000";
+		mes "- 3x Emblema de Valor";
+		mes "- 3x Emblema de Guerra";
+		mes "- 3x Emblema de Bravura";
+		next;
+		mes "[ Oficial de Batalha ]";
+		mes "^FFFFFFEmpate:^000000";
+		mes "- 3x Emblema de Valor";
+		mes "- 3x Emblema de Guerra";
+		mes "- 3x Emblema de Bravura";
+		goto L_Menu;
+		
+	case 3:
+		mes "[ Oficial de Batalha ]";
+		mes "^FF0000HAPPY HOUR^000000";
+		mes " ";
+		mes "Todos os dias das ^00FF0020:00 às 21:00^000000";
+		mes "as recompensas são ^FF0000DOBRADAS^000000!";
+		next;
+		mes "[ Oficial de Batalha ]";
+		mes "^0000FFRecompensas no Happy Hour:^000000";
+		mes " ";
+		mes "^00FF00Vitória:^000000";
+		mes "- 25x Emblema de Valor";
+		mes "- 25x Emblema de Guerra";
+		mes "- 25x Emblema de Bravura";
+		next;
+		mes "[ Oficial de Batalha ]";
+		mes "^FF0000Derrota:^000000";
+		mes "- 12x Emblema de Valor";
+		mes "- 12x Emblema de Guerra";
+		mes "- 12x Emblema de Bravura";
+		next;
+		
+		set .@hour, gettime(3);
+		if (.@hour == 20) {
+			mes "[ Oficial de Batalha ]";
+			mes "^00FF00Happy Hour está ATIVO agora!^000000";
+			mes "Aproveite para ganhar mais recompensas!";
+		}
+		else if (.@hour == 19) {
+			set .@minutos, 60 - gettime(2);
+			mes "[ Oficial de Batalha ]";
+			mes "Happy Hour começa em ^FF0000" + .@minutos + " minutos^000000!";
+		}
+		else {
+			mes "[ Oficial de Batalha ]";
+			mes "Próximo Happy Hour: ^FF000020:00^000000";
+		}
+		goto L_Menu;
+		
+	case 4:
+		if (checkquest(9000, PLAYTIME) == 0 || checkquest(9000, PLAYTIME) == 1) {
+			mes "[ Oficial de Batalha ]";
+			mes "Você ainda está em cooldown!";
+			mes "Aguarde ^FF00002 minutos^000000 após sua";
+			mes "última participação para jogar novamente.";
+		}
+		else {
+			mes "[ Oficial de Batalha ]";
+			mes "^00FF00Você pode participar agora!^000000";
+			mes "Use o comando ^FF0000@joinbg^000000";
+		}
+		goto L_Menu;
+		
+	case 5:
+		mes "[ Oficial de Batalha ]";
+		mes "Boa sorte nas batalhas!";
+		close;
+	}
+}
+
+prontera,150,185,5	script	Placar de Batalhas	2_BULLETIN_BOARD,{
+	mes "^FF0000+----------------------------+^000000";
+	mes "^FF0000|  BATTLEGROUND 3v3 - INFO  |^000000";
+	mes "^FF0000+----------------------------+^000000";
+	mes " ";
+	
+	if ($@BG_Status == 0) {
+		mes "^00FF00Status: Aguardando Jogadores^000000";
+		mes "Time Vermelho: ^FF0000" + $@BG_RedCount + "/3^000000";
+		mes "Time Azul: ^0000FF" + $@BG_BlueCount + "/3^000000";
+	}
+	else if ($@BG_Status == 1) {
+		mes "^FFFF00Status: Preparando Batalha^000000";
+		mes "Times formados! Iniciando em breve...";
+	}
+	else if ($@BG_Status == 2) {
+		mes "^FF0000Status: Batalha em Andamento^000000";
+		mes "Aguarde o término para se inscrever!";
+	}
+	
+	mes " ";
+	mes "^0000FF--------------------------^000000";
+	mes " ";
+	
+	set .@hour, gettime(3);
+	if (.@hour == 20) {
+		mes "^FF0000* HAPPY HOUR ATIVO *^000000";
+		mes "^FFFFFFRecompensas DOBRADAS!^000000";
+	}
+	else {
+		mes "Próximo Happy Hour:";
+		mes "^FF000020:00 - 21:00^000000";
+	}
+	
+	mes " ";
+	mes "^00FF00Use @joinbg para participar!^000000";
+	close;
+}

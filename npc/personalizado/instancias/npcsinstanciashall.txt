@@ -1,0 +1,159 @@
+// NPCs para todas as instâncias listadas, distribuídos em duas fileiras no mapa hero_ent2
+
+// Fileira A: 83/y (de 152 a 100)
+hero_ent2,83,152,3	script	Vila Poring	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Vila Poring.";
+	close;
+}
+hero_ent2,83,150,3	script	Batalha dos Orcs	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Batalha dos Orcs.";
+	close;
+}
+hero_ent2,83,148,3	script	Ninho de Nidhogg	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Ninho de Nidhogg.";
+	close;
+}
+hero_ent2,83,146,3	script	Torneio de Magia	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Torneio de Magia.";
+	close;
+}
+hero_ent2,83,144,3	script	Memórias de Sarah	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Memórias de Sarah.";
+	close;
+}
+hero_ent2,83,142,3	script	Labirinto da Neblina	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Labirinto da Neblina.";
+	close;
+}
+hero_ent2,83,140,3	script	Base Militar	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Base Militar.";
+	close;
+}
+hero_ent2,83,138,3	script	Laboratório Werner	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Laboratório Werner.";
+	close;
+}
+hero_ent2,83,136,3	script	Hospital Abandonado	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Hospital Abandonado.";
+	close;
+}
+hero_ent2,83,134,3	script	Palácio das Mágoas	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Palácio das Mágoas.";
+	close;
+}
+hero_ent2,83,132,3	script	Pesadelo Musical	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Pesadelo Musical.";
+	close;
+}
+hero_ent2,83,130,3	script	Invasão ao Aeroplano	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Invasão ao Aeroplano.";
+	close;
+}
+hero_ent2,83,128,3	script	Charleston em Crise	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Charleston em Crise.";
+	close;
+}
+hero_ent2,83,126,3	script	Maldição de Glast Heim	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Maldição de Glast Heim.";
+	close;
+}
+hero_ent2,83,124,3	script	Fall of Glast Heim (Normal)	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Fall of Glast Heim (Normal).";
+	close;
+}
+hero_ent2,83,122,3	script	Hey! Sweety!	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Hey! Sweety!";
+	close;
+}
+hero_ent2,83,120,3	script	Water Garden	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Water Garden.";
+	close;
+}
+hero_ent2,83,118,3	script	Lost in Time	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Lost in Time.";
+	close;
+}
+hero_ent2,83,116,3	script	Hidden Flower Garden	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Hidden Flower Garden.";
+	close;
+}
+
+// Fileira B: 96/y (de 152 a 100)
+
+hero_ent2,96,152,3	script	Fábrica do Terror	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Fábrica do Terror.";
+	close;
+}
+hero_ent2,96,150,3	script	Covil de Vermes	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Covil de Vermes.";
+	close;
+}
+hero_ent2,96,148,3	script	Lago do Bakonawa	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Lago do Bakonawa.";
+	close;
+}
+hero_ent2,96,146,3	script	Sarah vs Fenrir	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Sarah vs Fenrir.";
+	close;
+}
+hero_ent2,96,144,3	script	Sussurro Sombrio	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Sussurro Sombrio.";
+	close;
+}
+hero_ent2,96,142,3	script	Sala Final	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Sala Final.";
+	close;
+}
+hero_ent2,96,140,3	script	Ilha Bios	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Ilha Bios.";
+	close;
+}
+hero_ent2,96,138,3	script	Caverna de Mors	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Caverna de Mors.";
+	close;
+}
+
+hero_ent2,96,136,3	script	Templo do Demônio Rei	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Templo do Demônio Rei.";
+	close;
+}
+hero_ent2,96,134,3	script	Sanctuary Purification	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Sanctuary Purification.";
+	close;
+}
+hero_ent2,96,132,3	script	Villa Of Deception	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Villa Of Deception.";
+	close;
+}
+hero_ent2,96,130,3	script	EDDA Bioresearch Lab	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: EDDA Bioresearch Laboratory.";
+	close;
+}
+hero_ent2,96,128,3	script	Fall of GH (Hard)	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Fall of Glast Heim (Hard).";
+	close;
+}
+hero_ent2,96,126,3	script	Iwin Patrol	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Iwin Patrol.";
+	close;
+}
+hero_ent2,96,124,3	script	Airship Sabotage	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Airship Sabotage.";
+	close;
+}
+hero_ent2,96,122,3	script	Geffen Night Arena	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Geffen Night Arena.";
+	close;
+}
+hero_ent2,96,120,3	script	Tomb of Remorse	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Tomb of Remorse.";
+	close;
+}
+hero_ent2,96,118,3	script	Constellation Tower	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Constellation Tower.";
+	close;
+}
+hero_ent2,96,116,3	script	Simulation Battle	1_M_MERCHANT,{
+	mes "Sou o NPC de entrada da instância: Simulation Battle.";
+	close;
+}

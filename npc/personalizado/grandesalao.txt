@@ -1,0 +1,20 @@
+prontera,148,186,5	script	Grande Salão#1	651,{
+
+	OnTouch:
+		mes "^339966[Guardião do Portal]^000000";
+		mes "O Portal do 2º Herói não é um lugar comum...";
+		mes "É onde os corajosos se reúnem para desafiar o impossível.";
+		mes " ";
+		mes "Deseja mesmo atravessar os portões e seguir para Herosria?";
+		next;
+		if(select("^3CB371[>]^000000 Sim, estou pronto!:^ff0000[>]^000000 Não, ainda não.") == 1) {
+			close2;
+			specialeffect2 1062;
+			sleep2 1000;
+			warp "hero_ent2", 90, 81;
+			end;
+		}
+		mes "^339966[Guardião do Portal]^000000";
+		mes "Volte quando seu coração estiver decidido.";
+		close;
+}

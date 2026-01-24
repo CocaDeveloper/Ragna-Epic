@@ -1,0 +1,74 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  NPC - Monstro do Dia
+//===============================================================
+
+que_temsky,91,147,5	script	Senhor do Tempo	916,{
+	if (getgmlevel() < 99) {
+		mes "^FF0000[ACESSO NEGADO]^000000";
+		mes "Apenas administradores podem controlar o tempo.";
+		close;
+	}
+	mes "^339966[Senhor do Tempo]^000000";
+	mes "Deseja alterar o tempo em Rune-Midgard?";
+	next;
+	switch(select("^339966[»]^000000 Forçar Amanhecer (05h00):^339966[»]^000000 Forçar Anoitecer (18h00):^339966[»]^000000 Ver Hora Atual:^ff0000[»] Sair^000000")) {
+		case 1:
+			atcommand "@day";
+			announce "Bom dia à todos!", bc_all | bc_yellow;
+			mes "^339966[Senhor do Tempo]^000000";
+			mes "Amanhecer forçado com sucesso!";
+			close;
+		case 2:
+			atcommand "@night";
+			announce "Boa noite à todos!", bc_all | bc_yellow;
+			mes "^339966[Senhor do Tempo]^000000";
+			mes "Anoitecer forçado com sucesso!";
+			close;
+		case 3:
+			mes "^339966[Senhor do Tempo]^000000";
+			mes "Hora atual do servidor: ^ff0000" + gettime(3) + ":" + ((gettime(2) < 10) ? "0" : "") + gettime(2) + "^000000";
+			mes "Status do controle automático: ^00ff00Ativo^000000";
+			close;
+		case 4:
+			mes "^339966[Senhor do Tempo]^000000";
+			mes "Até logo.";
+			close;
+	}
+	end;
+}
+
+-	script	timer	-1,{
+end;
+
+OnInit:
+if(gettime(3) > 5 && gettime(3) < 18) {
+goto DIA;
+} else {
+goto NOITE;
+}
+
+NOITE:
+night;
+announce "Anoiteceu em Rune-Midgard. Boa noite à todos!",0;
+end;
+
+DIA:
+day;
+announce "Amanheceu em Rune-Midgard. Bom dia à todos!",0;
+end;
+
+OnHour18:
+goto NOITE;
+
+OnHour05:
+goto DIA;
+
+}

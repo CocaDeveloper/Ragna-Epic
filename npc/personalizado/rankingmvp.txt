@@ -1,0 +1,230 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  PLACA RANKING MVP
+//===============================================================
+
+prontera,180,218,3	script	Ranking MvP	857,{
+
+	set .np$,"^339966[Ranking MvP]^000000";
+	
+	mes .np$;
+	mes "Bem-vindo ao ^FF6347Ranking MvP^000000 em tempo real!";
+	mes "Aqui você pode acompanhar os maiores caçadores de MvPs.";
+	next;
+	
+	switch(select("^3CB371[»]^000000 Ver Top 10 MvP:^FFA500[»]^000000 Minha Posição:^FF6347[»]^000000 MvPs Mais Mortos:^00B2EE[»]^000000 Estatísticas Gerais:^ff0000[»]^000000 Sair")) {
+	
+		case 1: // Top 10 MvP
+			next;
+			mes .np$;
+			mes "^FF6347------- TOP 10 RANKING MVP -------^000000";
+			mes " ";
+			
+			query_sql "SELECT `char_name`, `total_mvp`, `pontos_mvp` FROM `ranking_mvp` ORDER BY `pontos_mvp` DESC LIMIT 10", .@nome$, .@total_mvp, .@pontos;
+			
+			if(getarraysize(.@nome$) == 0) {
+				mes "^FF6347Nenhum caçador rankeado ainda.^000000";
+				mes "Seja o primeiro a derrotar um MvP!";
+			} else {
+				mes "^228B22Pos. - Nome - MvPs - Pontos^000000";
+				mes "^777777---------------------------^000000";
+				
+				for(.@i = 0; .@i < getarraysize(.@nome$) && .@i < 10; .@i++) {
+					set .@pos$, (.@i+1);
+					if(.@i == 0) set .@pos$, "^FFD700"+(.@i+1)+"º^000000"; // Ouro para 1º
+					else if(.@i == 1) set .@pos$, "^C0C0C0"+(.@i+1)+"º^000000"; // Prata para 2º  
+					else if(.@i == 2) set .@pos$, "^CD7F32"+(.@i+1)+"º^000000"; // Bronze para 3º
+					else set .@pos$, "^777777"+(.@i+1)+"º^000000";
+					
+					mes .@pos$+" - ^FF8C00"+.@nome$[.@i]+"^000000 - ^228B22"+.@total_mvp[.@i]+"^000000 - ^FF6347"+.@pontos[.@i]+"^000000";
+				}
+			}
+			close;
+			
+		case 2: // Minha Posição
+			next;
+			mes .np$;
+			mes "^FF6347-------- SUA POSIÇÃO --------^000000";
+			mes " ";
+			
+			query_sql "SELECT `char_id`, `char_name`, `total_mvp`, `pontos_mvp` FROM `ranking_mvp` ORDER BY `pontos_mvp` DESC", .@char_id, .@nome$, .@total_mvp, .@pontos;
+			.@num = inarray(.@char_id, getcharid(0));
+			
+			if(.@num < 0) {
+				mes "^FF6347Você ainda não está rankeado.^000000";
+				mes "Derrote seu primeiro MvP para aparecer no ranking!";
+				mes " ";
+				mes "^777777Dica: MvPs mais fortes rendem mais pontos.^000000";
+			} else {
+				mes "^FFA500Caçador:^000000 " + strcharinfo(0);
+				mes "^228B22Posição:^000000 " + (.@num+1) + "º lugar";
+				mes "^228B22MvPs Derrotados:^000000 " + .@total_mvp[.@num];
+				mes "^FF6347Pontos MvP:^000000 " + .@pontos[.@num];
+				mes " ";
+				
+				// Mostrar diferença para o próximo colocado
+				if(.@num > 0) {
+					.@diff = .@pontos[.@num-1] - .@pontos[.@num];
+					mes "^777777Para alcançar o " + .@num + "º lugar: ^FF6347" + .@diff + " pontos^000000";
+				} else {
+					mes "^FFD700Parabéns! Você é o maior caçador de MvPs!^000000";
+				}
+				
+				// Mostrar último MvP morto
+				query_sql "SELECT `mvp_name`, `data_kill` FROM `ranking_mvp_logs` WHERE `char_id` = '"+getcharid(0)+"' ORDER BY `id` DESC LIMIT 1", .@ultimo_mvp$, .@data$;
+				if(getarraysize(.@ultimo_mvp$) > 0) {
+					mes "^00B2EEÚltimo MvP:^000000 " + .@ultimo_mvp$[0];
+				}
+			}
+			close;
+			
+		case 3: // MvPs Mais Mortos
+			next;
+			mes .np$;
+			mes "^FF6347---- MVPS MAIS DERROTADOS ----^000000";
+			mes " ";
+			
+			query_sql "SELECT `mvp_name`, COUNT(*) as total FROM `ranking_mvp_logs` GROUP BY `mvp_name` ORDER BY total DESC LIMIT 10", .@mvp_nome$, .@mvp_count;
+			
+			if(getarraysize(.@mvp_nome$) == 0) {
+				mes "^FF6347Nenhum MvP foi derrotado ainda.^000000";
+			} else {
+				mes "^228B22Pos. - MvP - Vezes Morto^000000";
+				mes "^777777----------------------^000000";
+				
+				for(.@i = 0; .@i < getarraysize(.@mvp_nome$) && .@i < 10; .@i++) {
+					mes (.@i+1)+"º - ^FF6347"+.@mvp_nome$[.@i]+"^000000 - ^228B22"+.@mvp_count[.@i]+"x^000000";
+				}
+			}
+			close;
+			
+		case 4: // Estatísticas Gerais
+			next;
+			mes .np$;
+			mes "^FF6347------ ESTATÍSTICAS GERAIS ------^000000";
+			
+			query_sql "SELECT COUNT(*) FROM `ranking_mvp`", .@total_players;
+			query_sql "SELECT SUM(`total_mvp`) FROM `ranking_mvp`", .@total_mvps;
+			query_sql "SELECT AVG(`pontos_mvp`) FROM `ranking_mvp`", .@avg_points;
+			query_sql "SELECT COUNT(DISTINCT `mvp_name`) FROM `ranking_mvp_logs`", .@diferentes_mvps;
+			
+			mes " ";
+			mes "^228B22Caçadores Rankeados:^000000 " + .@total_players[0];
+			mes "^228B22Total de MvPs Mortos:^000000 " + .@total_mvps[0];
+			mes "^FF6347Média de Pontos:^000000 " + (.@avg_points[0]/1);
+			mes "^00B2EETipos de MvPs Mortos:^000000 " + .@diferentes_mvps[0];
+			
+			// Mostrar o líder atual
+			query_sql "SELECT `char_name`, `pontos_mvp` FROM `ranking_mvp` ORDER BY `pontos_mvp` DESC LIMIT 1", .@lider$, .@pontos_lider;
+			if(getarraysize(.@lider$) > 0) {
+				mes " ";
+				mes "^FFD700Maior Caçador:^000000 ^FF8C00" + .@lider$[0] + "^000000";
+				mes "^FFD700Pontos do Líder:^000000 ^FF6347" + .@pontos_lider[0] + "^000000";
+			}
+			close;
+			
+		case 5: // Sair
+			mes .np$;
+			mes "Volte sempre para acompanhar os rankings!";
+			mes "Boa caçada aos MvPs!";
+			close;
+	}
+
+OnInit:
+
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 56;	
+	setunittitle getnpcid(0), "[Rune-Midgard]";
+	end;
+}
+
+//============================================================
+// SISTEMA DE CONTAGEM MVP
+//============================================================
+
+-	script	Sistema_MVP	-1,{
+
+OnNPCKillEvent:
+	// Verifica se o monstro morto é um MvP
+	if(!getmonsterinfo(killedrid, MOB_MVPEXP)) end;
+	
+	set .@mvp_name$, getmonsterinfo(killedrid, MOB_NAME);
+	set .@mvp_id, killedrid;
+	
+	// Sistema de pontos baseado no nível/dificuldade do MvP
+	set .@pontos, getmonsterinfo(killedrid, MOB_LV);
+	
+	// Bonus para MvPs específicos (ajuste conforme necessário)
+	switch(.@mvp_id) {
+		case 1038: set .@pontos, .@pontos + 50; break; // Osiris
+		case 1039: set .@pontos, .@pontos + 50; break; // Baphomet
+		case 1046: set .@pontos, .@pontos + 30; break; // Doppelgangger
+		case 1059: set .@pontos, .@pontos + 40; break; // Mistress
+		case 1086: set .@pontos, .@pontos + 45; break; // Golden Thief Bug
+		case 1087: set .@pontos, .@pontos + 35; break; // Orc Hero
+		case 1112: set .@pontos, .@pontos + 40; break; // Drake
+		case 1115: set .@pontos, .@pontos + 45; break; // Eddga
+		case 1150: set .@pontos, .@pontos + 60; break; // Moonlight Flower
+		case 1159: set .@pontos, .@pontos + 55; break; // Phreeoni
+		case 1190: set .@pontos, .@pontos + 65; break; // Orc Lord
+		case 1251: set .@pontos, .@pontos + 70; break; // Knight of Windstorm
+		case 1252: set .@pontos, .@pontos + 75; break; // Garm
+		case 1272: set .@pontos, .@pontos + 80; break; // Dark Lord
+		case 1312: set .@pontos, .@pontos + 100; break; // Turtle General
+		case 1418: set .@pontos, .@pontos + 90; break; // Evil Snake Lord
+		case 1492: set .@pontos, .@pontos + 120; break; // Incantation Samurai
+		case 1511: set .@pontos, .@pontos + 110; break; // Amon Ra
+		default: break;
+	}
+	
+	// Atualiza ranking do jogador
+	query_sql "INSERT INTO `ranking_mvp` (`char_id`, `char_name`, `total_mvp`, `pontos_mvp`) VALUES ('"+getcharid(0)+"', '"+strcharinfo(0)+"', 1, "+.@pontos+") ON DUPLICATE KEY UPDATE `total_mvp` = `total_mvp` + 1, `pontos_mvp` = `pontos_mvp` + "+.@pontos+"";
+	
+	// Log do kill
+	set .@data$, gettimestr("%d/%m/%Y %H:%M:%S", 21);
+	query_sql "INSERT INTO `ranking_mvp_logs` (`char_id`, `char_name`, `mvp_id`, `mvp_name`, `pontos_ganhos`, `data_kill`) VALUES ('"+getcharid(0)+"', '"+strcharinfo(0)+"', '"+.@mvp_id+"', '"+.@mvp_name$+"', '"+.@pontos+"', '"+.@data$+"')";
+	
+	// Anúncio
+	//announce "[MvP] "+strcharinfo(0)+" derrotou "+.@mvp_name$+" e ganhou "+.@pontos+" pontos MvP!", bc_all, 0xFF6347;
+	
+	// Mensagem para o jogador
+	dispbottom "[ Ranking ] Você derrotou "+.@mvp_name$+" e ganhou "+.@pontos+" pontos MvP!";
+	
+	// Efeito especial
+	specialeffect2 EF_MVP;
+	
+	end;
+}
+
+//============================================================
+// TABELAS SQL NECESSÁRIAS
+//============================================================
+
+/*
+-- Executar no MySQL/MariaDB para criar as tabelas:
+
+CREATE TABLE IF NOT EXISTS `ranking_mvp` (
+  `char_id` int(11) NOT NULL,
+  `char_name` varchar(30) NOT NULL,
+  `total_mvp` int(11) NOT NULL DEFAULT '0',
+  `pontos_mvp` int(11) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`char_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS `ranking_mvp_logs` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `char_id` int(11) NOT NULL,
+  `char_name` varchar(30) NOT NULL,
+  `mvp_id` int(11) NOT NULL,
+  `mvp_name` varchar(50) NOT NULL,
+  `pontos_ganhos` int(11) NOT NULL,
+  `data_kill` varchar(30) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+*/

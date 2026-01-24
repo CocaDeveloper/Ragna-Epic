@@ -1,0 +1,83 @@
+1@herbs,302,115,5	script	Loja das Instâncias#VIP1	899,{
+	mes "[Loja de Instância]";
+	mes "Esta funcionalidade está em desenvolvimento.";
+	mes "Volte mais tarde!";
+	close;
+}
+
+1@herbs,304,121,5	script	Torre sem Fim#VIP1	10547,{
+	mes "[Torre sem Fim]";
+	mes "Esta funcionalidade está em desenvolvimento.";
+	mes "Volte mais tarde!";
+	close;
+}
+
+1@herbs,308,121,5	script	Torre do Pesadelo#VIP1	10547,{
+	mes "[Torre do Pesadelo]";
+	mes "Esta funcionalidade está em desenvolvimento.";
+	mes "Volte mais tarde!";
+	close;
+}
+
+1@herbs,312,121,5	script	Maldição de GlastHeim#VIP1	10547,{
+	mes "[Antiga GlastHeim]";
+	mes "Esta funcionalidade está em desenvolvimento.";
+	mes "Volte mais tarde!";
+	close;
+}
+
+1@herbs,316,121,5	script	Espaço Infinito#VIP1	10547,{
+	mes "[Espaço Infinito]";
+	mes "Esta funcionalidade está em desenvolvimento.";
+	mes "Volte mais tarde!";
+	close;
+}
+
+1@herbs,323,116,5	script	Memória de Thanatos#VIP1	10547,{
+	mes "[Memorial dos Orcs]";
+	mes "Esta funcionalidade está em desenvolvimento.";
+	mes "Volte mais tarde!";
+	close;
+}
+
+1@herbs,323,112,5	script	Tormenta do Deus-Sol#VIP1	10547,{
+	mes "[Fábrica do Terror]";
+	mes "Esta funcionalidade está em desenvolvimento.";
+	mes "Volte mais tarde!";
+	close;
+}
+
+1@herbs,318,108,5	script	Cheffênia#VIP1	10547,{
+	mes "[Área em Desenvolvimento]";
+	mes "Este conteúdo ainda será implementado.";
+	mes "Fique atento às atualizações!";
+	close;
+}
+
+1@herbs,313,108,5	script	Minas de Moria#VIP1	10547,{
+	mes "[Área em Desenvolvimento]";
+	mes "Este conteúdo ainda será implementado.";
+	mes "Fique atento às atualizações!";
+	close;
+}
+
+1@herbs,310,115,5	script	Submundo#VIP1	10547,{
+	mes "[Área em Desenvolvimento]";
+	mes "Este conteúdo ainda será implementado.";
+	mes "Fique atento às atualizações!";
+	close;
+}
+
+1@herbs,310,111,5	script	Laboratório de Bio 4#VIP1	10547,{
+	mes "[Área em Desenvolvimento]";
+	mes "Este conteúdo ainda será implementado.";
+	mes "Fique atento às atualizações!";
+	close;
+}
+
+1@herbs,323,104,5	script	Combate de Feiticeiros#VIP1	10547,{
+	mes "[Área em Desenvolvimento]";
+	mes "Este conteúdo ainda será implementado.";
+	mes "Fique atento às atualizações!";
+	close;
+}

@@ -1,0 +1,738 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                   EVENTO DEVIL SQUARE
+// ===================== Descrição: =============================
+
+/* Tabela SQL - Adicione em seu PhpmyAdmin
+
+CREATE TABLE IF NOT EXISTS `devilsquare` (
+  `id_usuario` int(11) NOT NULL,
+  `nome` varchar(255) NOT NULL,
+  `id_acc` int(11) NOT NULL,
+  `pontos` int(11) NOT NULL,
+  PRIMARY KEY  (`id_usuario`)
+) ENGINE=MyISAM;
+
+*/
+
+1@herbs,298,41,5	script	Devil Square	1566,{
+
+	set .@GMLevel,80;	// Nível GM necessário para acessar o painel admin
+	set .@n$,"^FF1493[Devil Square]^000000";
+
+	// Painel Administrativo
+	if (getgmlevel()>=.@GMLevel) {
+		mes .@n$;
+		mes "Painel Administrativo";
+		mes "Status: " + ($status ? "^00FF00ATIVO^000000" : "^FF0000INATIVO^000000");
+		next;
+		switch(select("^339966[»]^000000 Iniciar Evento:^339966[»]^000000 Parar Evento:^339966[»]^000000 Configurações:^339966[»]^000000 Menu Jogador")) {
+		case 1:
+			mes .@n$;
+			if ($aberto || $status) {
+				mes "O evento já está ativo!";
+				close;
+			}
+			mes "Deseja iniciar a Devil Square manualmente?";
+			if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+			
+			donpcevent "DS3::OnAdminStart";
+			next;
+			mes .@n$;
+			mes "Devil Square foi iniciada manualmente!";
+			close;
+		case 2:
+			mes .@n$;
+			if (!$aberto && !$status) {
+				mes "O evento não está ativo!";
+				close;
+			}
+			mes "Deseja parar o evento?";
+			mes "Isso encerrará tudo imediatamente.";
+			if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+			
+			donpcevent "DS3::OnAdminStop";
+			next;
+			mes .@n$;
+			mes "Evento parado com sucesso!";
+			close;
+		case 3:
+			mes .@n$;
+			mes "^FF0000Configurações Atuais:^000000";
+			mes "Item reward: ^0000FF"+getitemname($@id)+"^000000";
+			mes "Reward por kill: ^00FF00"+$@p[0]+" a "+$@p[getarraysize($@p)-1]+"^000000";
+			mes "Reward por baú: ^00FF00"+$@b[0]+" a "+$@b[getarraysize($@b)-1]+"^000000";
+			mes "Monstros restantes: ^FF0000"+$mobs+"^000000";
+			close;
+		case 4:
+			// Continua para o menu normal do jogador
+			break;
+		}
+	}
+
+	// Menu normal para jogadores
+	mes .@n$;
+	mes (gettime(3)>= 6&&gettime(3)<= 12?"Bom-dia":(gettime(3)>=13&&gettime(3)<=18?"Boa-tarde":"Boa-noite"))+", ^ffa500"+strcharinfo(0)+"^000000!";
+	mes "Você possui ^ff0000"+countitem($@id)+"^000000x ^0000FF"+getitemname($@id)+"^000000.";
+	mes "Você possui ^ff0000"+pontosevento+"^000000 pontos de evento.";
+	mes " ";
+	mes "^ff0000O que deseja fazer?^000000";
+		switch(select("^339966[»]^000000 Entrar no evento:^339966[»]^000000 Ver horários:^339966[»]^000000 Informações:^ff0000[»] Sair^000000")) {
+		case 01:
+		if($aberto == 0){
+		next; 
+		mes .@n$;
+		mes "^ff0000A Devil Square está fechada no momento. Por favor, volte mais tarde!^000000";
+		close;
+		}
+		percentheal 100,100;
+		warp "ordeal_1-1",189,189;
+		announce "[Devil Square]: O jogador "+strcharinfo(0)+" entrou na Devil Square!",bc_all;
+		close;
+
+		case 02:
+		next;
+		mes .@n$;
+		mes "O evento acontece:";
+		mes "• ^ffa500A cada 2 horas nos minutos :33^000000";
+		mes " ";
+		mes "^0000FFPróximos horários hoje:^000000";
+		mes "^00FF0001:33, 03:33, 05:33, 07:33^000000";
+		mes "^00FF0009:33, 11:33, 13:33, 15:33^000000";  
+		mes "^00FF0017:33, 19:33, 21:33, 23:33^000000";
+		close;
+
+		case 03:
+		next;
+		mes .@n$;
+		mes "A Devil Square é um evento";
+		mes "automático com ^FF000010 rodadas^000000 onde";
+		mes "surgem vários monstros progressivamente.";
+		next;
+		mes .@n$;
+		mes "^FF0000Rodadas 1-8:^000000 Monstros normais (40-160)";
+		mes "^FF0000Rodadas 9-10:^000000 Apenas MVPs (60-80)";
+		mes "^FF0000Rodada Final:^000000 10 Caixas do Tesouro";
+		next;
+		mes .@n$;
+		mes "A cada monstro que você mata";
+		mes "você recebe ^FF0000"+getitemname($@id)+"^000000";
+		mes "a quantidade é aleatória.";
+		next;
+		mes .@n$;
+		mes "Somente os ^00FF0010 jogadores^000000 que";
+		mes "mais matarem monstros irão";
+		mes "chegar à rodada final das";
+		mes "Caixas do Tesouro.";
+		next;
+		mes .@n$;
+		mes "Os demais serão teletransportados";
+		mes "para prontera. Ao quebrar uma";
+		mes "caixa, você será retirado do evento.";
+		close;
+
+		case 04:
+		close;
+	}
+		OnInit:
+		// Configurações 
+		set $@id,1240002; // Id do item que será recebido ao matar os monstros e as caixas do tesouro. Padrão: [1240002 = Moeda Devil Square].
+		setarray $@p[0],1,2,3; // Quantidade de itens que serão sorteados ao matar os monstros. Padrão: [Entre 1, 2 e 3].
+		setarray $@b[0],20,30,40,50,60; // Quantidade de itens que serão sorteados ao destruir as Caixas do Tesouro.
+		
+		// ADICIONE ESTAS LINHAS PARA RESETAR AS VARIÁVEIS APÓS @reloadscript
+		set $status, 0;
+		set $aberto, 0;
+		set $rodada_atual, 0;
+		set $mobs, 0;
+		
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 1009;	
+		setunittitle getnpcid(0), "[Rune-Midgard]";
+
+		while(1) {
+		showscript "[ Devil Square ]", getnpcid(0);
+		sleep 100;
+		}
+		end;
+}
+
+ordeal_1-1,182,183,5	script	DS2	-1,{
+
+	OnTimer30000:
+	if($status == 0) end;
+	if (getmapusers("ordeal_1-1") == 0){ 
+		Announce "[Devil Square]: Todos os jogadores foram eliminados! O evento terminou!!",bc_all | bc_yellow; 
+		set $status,0; 
+		set $rodada_atual,0;
+		set $aberto,0;
+		killmonsterall "ordeal_1-1"; 
+		disablenpc "DS4";
+		query_sql "DELETE FROM `devilsquare`";
+		end; 
+	}
+	initnpctimer;
+	end;
+
+}
+
+// Timer de 30 minutos para limite do evento
+ordeal_1-1,182,184,5	script	DS_TimeLimit	-1,{
+
+	OnTimer1500000: // 25 minutos (1500000ms)
+	if($status == 0) end;
+	mapannounce "ordeal_1-1", "[Devil Square]: ATENÇÃO! Restam apenas 5 minutos para o evento ser encerrado por tempo limite!", bc_yellow;
+	end;
+
+	OnTimer1680000: // 28 minutos (1680000ms)  
+	if($status == 0) end;
+	mapannounce "ordeal_1-1", "[Devil Square]: ATENÇÃO! Restam apenas 2 minutos para o evento ser encerrado por tempo limite!", bc_yellow;
+	end;
+
+	OnTimer1800000: // 30 minutos (1800000ms)
+	if($status == 0) end;
+	mapannounce "ordeal_1-1", "[Devil Square]: O evento foi encerrado por tempo limite! Não houve vencedores!", bc_yellow;
+	set $status, 0;
+	set $rodada_atual, 0;
+	set $aberto, 0;
+	killmonsterall "ordeal_1-1";
+	disablenpc "DS4";
+	mapwarp "ordeal_1-1","prontera",156,177;
+	query_sql "DELETE FROM `devilsquare`";
+	stopnpctimer;
+	end;
+
+}
+
+// Timer para as Caixas do Tesouro (15 minutos)
+ordeal_1-1,182,185,5	script	DS_BoxTimer	-1,{
+
+	OnTimer600000: // 10 minutos (600000ms)
+	if($status == 0 || $rodada_atual < 10) end;
+	mapannounce "ordeal_1-1", "[Devil Square]: ATENÇÃO! As Caixas do Tesouro desaparecerão em 5 minutos!", bc_yellow;
+	end;
+
+	OnTimer780000: // 13 minutos (780000ms)
+	if($status == 0 || $rodada_atual < 10) end;
+	mapannounce "ordeal_1-1", "[Devil Square]: ATENÇÃO! As Caixas do Tesouro desaparecerão em 2 minutos!", bc_yellow;
+	end;
+
+	OnTimer900000: // 15 minutos (900000ms)
+	if($status == 0 || $rodada_atual < 10) end;
+	mapannounce "ordeal_1-1", "[Devil Square]: As Caixas do Tesouro desapareceram! O evento foi encerrado.", bc_yellow;
+	set $status, 0;
+	set $rodada_atual, 0;
+	set $aberto, 0;
+	killmonsterall "ordeal_1-1";
+	disablenpc "DS4";
+	mapwarp "ordeal_1-1","prontera",155,191;
+	query_sql "DELETE FROM `devilsquare`";
+	stopnpctimer;
+	end;
+
+}
+
+ordeal_1-1,182,183,5	script	DS3	-1,{
+
+		OnMinute40:
+		// Evento acontece apenas em horas ímpares (1:40, 3:40, 5:40, 7:40, 9:40, etc.)
+		if (gettime(3) % 2 == 0) end; // Se hora for par, não executa
+		OnAdminStart:
+		if ($aberto || $status) end; // Evita iniciar se já estiver ativo
+		Announce "[Devil Square]: A Devil Square está prestes a começar! Para participar, use @eventos e fale com o NPC de entrada... Vocês têm 5 minutos!",bc_all | bc_yellow;
+		initnpctimer; 
+		killmonsterall "ordeal_1-1"; 
+		set $aberto,1; 
+		disablenpc "DS4"; 
+		set $status,1; 
+		set $rodada_atual,0;
+		query_sql "DELETE FROM `devilsquare`"; 
+		end;
+
+	OnAdminStop:
+		set $aberto, 0;
+		set $status, 0;
+		set $rodada_atual, 0;
+		killmonsterall "ordeal_1-1";
+		disablenpc "DS4";
+		mapwarp "ordeal_1-1","prontera",156,177;
+		announce "[Devil Square]: Um ADM parou o evento. Não houve vencedores! Até a próxima!!", bc_all | bc_yellow;
+		query_sql "DELETE FROM `devilsquare`";
+		// Para os timers quando ADM para o evento
+		stopnpctimer "DS_TimeLimit";
+		stopnpctimer "DS_BoxTimer";
+		end;
+
+OnTimer60000:
+Announce "[Devil Square]: A entrada para a Devil Square fechará em 4 minutos!", bc_all | bc_yellow; 
+end;
+
+OnTimer120000:
+Announce "[Devil Square]: A entrada para a Devil Square fechará em 3 minutos!", bc_all | bc_yellow; 
+end;
+
+OnTimer180000:
+Announce "[Devil Square]: A entrada para a Devil Square fechará em 2 minutos!", bc_all | bc_yellow; 
+end;
+
+OnTimer240000:
+Announce "[Devil Square]: A entrada para a Devil Square fechará em 1 minuto!", bc_all | bc_yellow; 
+end;
+
+OnTimer300000:
+// Verificação única antes de fechar as inscrições
+if (getmapusers("ordeal_1-1") == 0) {
+	Announce "[Devil Square]: A Devil Square foi cancelada por falta de jogadores... Até a próxima!", bc_all | bc_yellow;
+	set $aberto, 0;
+	set $status, 0;
+	set $rodada_atual, 0;
+	killmonsterall "ordeal_1-1";
+	disablenpc "DS4";
+	query_sql "DELETE FROM `devilsquare`";
+	end;
+}
+set $aberto,0;
+Announce "[Devil Square]: A entrada para a Devil Square foi fechada. O evento começou!!", bc_all | bc_yellow; 
+initnpctimer "DS2";
+// Inicia o timer de 30 minutos para limite do evento
+initnpctimer "DS_TimeLimit";
+sleep 10000;
+mapannounce "ordeal_1-1", "[Devil Square]: Sejam bem-vindos à Devil Square!", bc_yellow;
+sleep 5000;
+mapannounce "ordeal_1-1", "[Devil Square]: ATENÇÃO: Somente os 10 melhores jogadores poderão receber a premiação final! Corra para não ficar de fora!!", bc_yellow;
+sleep 5000;
+mapannounce "ordeal_1-1", "[Devil Square]: O evento começará em 30 segundos! Preparem-se!!", bc_yellow;
+sleep 30000;
+set $rodada_atual,1;
+mapannounce "ordeal_1-1", "[Devil Square]: A Devil Square começou! Serão 10 rodadas de monstros! Boa sorte!", bc_yellow;
+goto Ondsround1;
+
+// ========== RODADA 1 - 40 MONSTROS ==========
+Ondsround1:
+set $mobs,40;
+mapannounce "ordeal_1-1", "[Devil Square]: A 1º rodada da Devil Square começou!", bc_yellow;
+// Garantindo que monstros não teleportem
+setmapflag "ordeal_1-1",mf_monster_noteleport;
+
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Orc Zumbi",1153,8,"DS3::Ondsdead1";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Orc Esqueleto",1152,10,"DS3::Ondsdead1";
+areamonster "ordeal_1-1",205,205,219,219,"[DS] Familiar",1005,6,"DS3::Ondsdead1";
+areamonster "ordeal_1-1",212,215,222,220,"[DS] Drainliar",1111,4,"DS3::Ondsdead1";
+areamonster "ordeal_1-1",229,233,183,182,"[DS] Chon Chon de Aço",1042,4,"DS3::Ondsdead1";
+areamonster "ordeal_1-1",230,246,246,244,"[DS] Zenorc",1177,4,"DS3::Ondsdead1";
+areamonster "ordeal_1-1",241,252,205,205,"[DS] Sorrateiro",1037,4,"DS3::Ondsdead1";
+end;
+
+Ondsdead1:
+if ($status == 0) end;
+if (!playerattached()) end; 
+set $mobs,$mobs-1;
+set @premio,rand(getarraysize($@p));
+getitem $@id,$@p[@premio];
+callfunc "Checador",1;
+if($mobs == 20){ mapannounce "ordeal_1-1","[Devil Square]: Restam 20 monstros para a 2° rodada!", bc_yellow; }
+if($mobs == 5){ mapannounce "ordeal_1-1","[Devil Square]: Restam 5 monstros para a 2° rodada!", bc_yellow; }
+if($mobs == 0){ 
+	set $rodada_atual,2;
+	mapannounce "ordeal_1-1", "[Devil Square]: A 2º rodada da Devil Square começou!", bc_yellow; 
+	goto Ondsround2; 
+}
+end;
+
+// ========== RODADA 2 - 50 MONSTROS ==========
+Ondsround2:
+set $mobs,50;
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Esqueleto Soldado",1028,10,"DS3::Ondsdead2";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Orc Arqueiro",1189,8,"DS3::Ondsdead2";
+areamonster "ordeal_1-1",205,205,219,219,"[DS] Arenoso",1165,8,"DS3::Ondsdead2";
+areamonster "ordeal_1-1",212,215,222,220,"[DS] Esqueleto Arqueiro",1016,8,"DS3::Ondsdead2";
+areamonster "ordeal_1-1",229,233,183,182,"[DS] Minorus",1149,8,"DS3::Ondsdead2";
+areamonster "ordeal_1-1",230,246,246,244,"[DS] Réquiem",1164,8,"DS3::Ondsdead2";
+end;
+
+Ondsdead2:
+if ($status == 0) end;
+if (!playerattached()) end; 
+set $mobs,$mobs-1;
+set @premio,rand(getarraysize($@p));
+getitem $@id,$@p[@premio];
+callfunc "Checador",1;
+if($mobs == 25){ mapannounce "ordeal_1-1","[Devil Square]: Restam 25 monstros para 3° rodada!", bc_yellow; }
+if($mobs == 5){ mapannounce "ordeal_1-1","[Devil Square]: Restam 5 monstros para a 3° rodada!", bc_yellow; }
+if($mobs == 0){ 
+	set $rodada_atual,3;
+	mapannounce "ordeal_1-1", "[Devil Square]: A 3º rodada da Devil Square começou!", bc_yellow;  
+	goto Ondsround3; 
+}
+end;
+
+// ========== RODADA 3 - 60 MONSTROS ==========
+Ondsround3:
+set $mobs,60;
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Diabinho",1292,10,"DS3::Ondsdead3";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Leib Olmai",1306,10,"DS3::Ondsdead3";
+areamonster "ordeal_1-1",205,205,219,219,"[DS] Gullinbursti",1311,10,"DS3::Ondsdead3";
+areamonster "ordeal_1-1",212,215,222,220,"[DS] Serial Killer",1507,8,"DS3::Ondsdead3";
+areamonster "ordeal_1-1",229,233,183,182,"[DS] Esqueleto General",1290,8,"DS3::Ondsdead3";
+areamonster "ordeal_1-1",230,246,246,244,"[DS] Gato de Nove Caudas",1307,7,"DS3::Ondsdead3";
+areamonster "ordeal_1-1",241,252,205,205,"[DS] Senhor dos Orcs",1190,4,"DS3::Ondsdead3";
+areamonster "ordeal_1-1",251,235,222,220,"[DS] Orc Héroi",1087,3,"DS3::Ondsdead3";
+end;
+
+Ondsdead3:
+if ($status == 0) end;
+if (!playerattached()) end; 
+set $mobs,$mobs-1;
+set @premio,rand(getarraysize($@p));
+getitem $@id,$@p[@premio];
+callfunc "Checador",1;
+if($mobs == 30){ mapannounce "ordeal_1-1","[Devil Square]: Restam 30 monstros para a 4° rodada!", bc_yellow; }
+if($mobs == 5){ mapannounce "ordeal_1-1","[Devil Square]: Restam 5 monstros para a 4° rodada!", bc_yellow; }
+if($mobs == 0){ 
+	set $rodada_atual,4;
+	mapannounce "ordeal_1-1", "[Devil Square]: A 4º rodada da Devil Square começou!", bc_yellow;  
+	goto Ondsround4; 
+}
+end;
+
+// ========== RODADA 4 - 70 MONSTROS ==========
+Ondsround4:
+set $mobs,70;
+areamonster "ordeal_1-1",190,189,190,189,"[DS] Seyren Windsor",1634,5,"DS3::Ondsdead4";
+areamonster "ordeal_1-1",207,207,207,207,"[DS] Eremes Guile",1635,12,"DS3::Ondsdead4";
+areamonster "ordeal_1-1",217,217,217,217,"[DS] Howard Alt-Eisen",1636,15,"DS3::Ondsdead4";
+areamonster "ordeal_1-1",227,226,227,226,"[DS] Margaretha Sorin",1637,12,"DS3::Ondsdead4";
+areamonster "ordeal_1-1",241,241,241,241,"[DS] Kathryne Keyron",1639,8,"DS3::Ondsdead4";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Atroce",1785,5,"DS3::Ondsdead4";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Dragão Mutante",1262,5,"DS3::Ondsdead4";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Angeling",1096,5,"DS3::Ondsdead4";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Deviling",1582,3,"DS3::Ondsdead4";
+end;
+
+Ondsdead4:
+if ($status == 0) end;
+if (!playerattached()) end; 
+set $mobs,$mobs-1;
+set @premio,rand(getarraysize($@p));
+getitem $@id,$@p[@premio];
+callfunc "Checador",1;
+if($mobs == 35){ mapannounce "ordeal_1-1","[Devil Square]: Restam 35 monstros para a 5° rodada!", bc_yellow; }
+if($mobs == 5){ mapannounce "ordeal_1-1","[Devil Square]: Restam 5 monstros para a 5° rodada!", bc_yellow; }
+if($mobs == 0){ 
+	set $rodada_atual,5;
+	mapannounce "ordeal_1-1", "[Devil Square]: A 5º rodada da Devil Square começou!", bc_yellow;  
+	goto Ondsround5; 
+}
+end;
+
+// ========== RODADA 5 - 80 MONSTROS ==========
+Ondsround5:
+set $mobs,80;
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Grand Orc",1213,15,"DS3::Ondsdead5";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Lider Kobold",1296,12,"DS3::Ondsdead5";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Andarilho",1208,15,"DS3::Ondsdead5";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Agressor",1315,15,"DS3::Ondsdead5";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Alarme",1193,12,"DS3::Ondsdead5";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Relógio",1269,11,"DS3::Ondsdead5";
+end;
+
+Ondsdead5:
+if ($status == 0) end;
+if (!playerattached()) end; 
+set $mobs,$mobs-1;
+set @premio,rand(getarraysize($@p));
+getitem $@id,$@p[@premio];
+callfunc "Checador",1;
+if($mobs == 40){ mapannounce "ordeal_1-1","[Devil Square]: Restam 40 monstros para a 6° rodada!", bc_yellow; }
+if($mobs == 5){ mapannounce "ordeal_1-1","[Devil Square]: Restam 5 monstros para a 6° rodada!", bc_yellow; }
+if($mobs == 0){ 
+	set $rodada_atual,6;
+	mapannounce "ordeal_1-1", "[Devil Square]: A 6º rodada da Devil Square começou!", bc_yellow;  
+	goto Ondsround6; 
+}
+end;
+
+// ========== RODADA 6 - 100 MONSTROS ==========
+Ondsround6:
+set $mobs,100;
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Apocalipse",1365,8,"DS3::Ondsdead6";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Injustiçado",1257,15,"DS3::Ondsdead6";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Raydric",1163,12,"DS3::Ondsdead6";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Holden",1628,6,"DS3::Ondsdead6";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Orc Herói",1087,2,"DS3::Ondsdead6";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Bathory",1102,10,"DS3::Ondsdead6";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Fantasma",1185,15,"DS3::Ondsdead6";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Ghostring",1120,5,"DS3::Ondsdead6";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Coringa",1131,12,"DS3::Ondsdead6";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Alarme",1193,15,"DS3::Ondsdead6";
+end;
+
+Ondsdead6:
+if ($status == 0) end;
+if (!playerattached()) end; 
+set $mobs,$mobs-1;
+set @premio,rand(getarraysize($@p));
+getitem $@id,$@p[@premio];
+callfunc "Checador",1;
+if($mobs == 50){ mapannounce "ordeal_1-1","[Devil Square]: Restam 50 monstros para a 7° rodada!", bc_yellow; }
+if($mobs == 5){ mapannounce "ordeal_1-1","[Devil Square]: Restam 5 monstros para a 7° rodada!", bc_yellow; }
+if($mobs == 0){ 
+	set $rodada_atual,7;
+	mapannounce "ordeal_1-1", "[Devil Square]: A 7º rodada da Devil Square começou!", bc_yellow;  
+	goto Ondsround7; 
+}
+end;
+
+// ========== RODADA 7 - 130 MONSTROS ==========
+Ondsround7:
+set $mobs,130;
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Anolian",1206,15,"DS3::Ondsdead7";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Crocodilo",1271,15,"DS3::Ondsdead7";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Soldadinho de Chumbo",1248,12,"DS3::Ondsdead7";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Executioner",1205,10,"DS3::Ondsdead7";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Soldado",1316,15,"DS3::Ondsdead7";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Rideword",1195,12,"DS3::Ondsdead7";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Pessegueira Encantada",1410,8,"DS3::Ondsdead7";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Duque Coruja",1320,10,"DS3::Ondsdead7";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Gerente",1270,8,"DS3::Ondsdead7";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Múmia Anciã",1297,10,"DS3::Ondsdead7";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Andarilho",1208,15,"DS3::Ondsdead7";
+end;
+
+Ondsdead7:
+if ($status == 0) end;
+if (!playerattached()) end; 
+set $mobs,$mobs-1;
+set @premio,rand(getarraysize($@p));
+getitem $@id,$@p[@premio];
+callfunc "Checador",1;
+if($mobs == 65){ mapannounce "ordeal_1-1","[Devil Square]: Restam 65 monstros para a 8° rodada!", bc_yellow; }
+if($mobs == 15){ mapannounce "ordeal_1-1","[Devil Square]: Restam 15 monstros para a 8° rodada!", bc_yellow; }
+if($mobs == 5){ mapannounce "ordeal_1-1","[Devil Square]: Restam 5 monstros para a 8° rodada!", bc_yellow; }
+if($mobs == 0){ 
+	set $rodada_atual,8;
+	mapannounce "ordeal_1-1", "[Devil Square]: A 8º rodada da Devil Square começou!", bc_yellow;  
+	goto Ondsround8; 
+}
+end;
+
+// ========== RODADA 8 - 160 MONSTROS ==========
+Ondsround8:
+set $mobs,160;
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Apocalipse",1365,15,"DS3::Ondsdead8";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Senhor dos Mortos",1373,8,"DS3::Ondsdead8";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Dragão Mutante",1262,5,"DS3::Ondsdead8";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Druida Maligno",1117,12,"DS3::Ondsdead8";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Alma Penada",1192,15,"DS3::Ondsdead8";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Mímico Antigo",1699,8,"DS3::Ondsdead8";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Quimera",1283,5,"DS3::Ondsdead8";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Pesadelo Sombrio",1379,8,"DS3::Ondsdead8";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Agressor",1315,20,"DS3::Ondsdead8";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Soldado",1316,20,"DS3::Ondsdead8";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Alarme",1193,20,"DS3::Ondsdead8";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Relógio",1269,15,"DS3::Ondsdead8";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Gerente",1270,9,"DS3::Ondsdead8";
+end;
+
+Ondsdead8:
+if ($status == 0) end;
+if (!playerattached()) end; 
+set $mobs,$mobs-1;
+set @premio,rand(getarraysize($@p));
+getitem $@id,$@p[@premio];
+callfunc "Checador",1;
+if($mobs == 80){ mapannounce "ordeal_1-1","[Devil Square]: Restam 80 monstros para a 9° rodada!", bc_yellow; }
+if($mobs == 15){ mapannounce "ordeal_1-1","[Devil Square]: Restam 15 monstros para a 9° rodada!", bc_yellow; }
+if($mobs == 5){ mapannounce "ordeal_1-1","[Devil Square]: Restam 5 monstros para a 9° rodada!", bc_yellow; }
+if($mobs == 0){ 
+	set $rodada_atual,9;
+	mapannounce "ordeal_1-1", "[Devil Square]: A PENÚLTIMA RODADA da Devil Square começou!", bc_yellow;   
+	goto Ondsround9; 
+}
+end;
+
+// ========== RODADA 9 - 50 MVPs ==========
+Ondsround9:
+set $mobs,60;
+// Garantindo que MVPs não teleportem
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Amon-Rá",1511,4,"DS3::Ondsdead9";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Doppelganger",1046,4,"DS3::Ondsdead9";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Senhor das Trevas",1272,3,"DS3::Ondsdead9";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Faraó",1157,4,"DS3::Ondsdead9";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Bafomé",1039,6,"DS3::Ondsdead9";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Ifrit",1832,2,"DS3::Ondsdead9";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Senhor dos Orcs",1190,3,"DS3::Ondsdead9";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Orc Herói",1087,4,"DS3::Ondsdead9";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Osiris",1038,5,"DS3::Ondsdead9";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Drake",1112,4,"DS3::Ondsdead9";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Abelha Rainha",1059,6,"DS3::Ondsdead9";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Flor do Luar",1150,6,"DS3::Ondsdead9";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Eddga",1115,5,"DS3::Ondsdead9";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Maya",1147,4,"DS3::Ondsdead9";
+end;
+
+Ondsdead9:
+if ($status == 0) end;
+if (!playerattached()) end; 
+set $mobs,$mobs-1;
+set @premio,rand(getarraysize($@p));
+getitem $@id,$@p[@premio]+2; // Bonus por matar MVP
+callfunc "Checador",1;
+if($mobs == 30){ mapannounce "ordeal_1-1","[Devil Square]: Restam 30 MVPs para a 10° rodada!", bc_yellow; }
+if($mobs == 15){ mapannounce "ordeal_1-1","[Devil Square]: Restam 15 MVPs para a 10° rodada!", bc_yellow; }
+if($mobs == 5){ mapannounce "ordeal_1-1","[Devil Square]: Restam 5 MVPs para a 10° rodada!", bc_yellow; }
+if($mobs == 0){ 
+	set $rodada_atual,10;
+	mapannounce "ordeal_1-1", "[Devil Square]: A ÚLTIMA RODADA da Devil Square começou!", bc_yellow;  
+	goto Ondsround10; 
+}
+end;
+
+// ========== RODADA 10 - 80 MVPs (FINAL) ==========
+Ondsround10:
+set $mobs,80;
+// Última rodada com os MVPs mais poderosos
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Valquíria Randgris",1751,5,"DS3::Ondsdead10";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Thanatos",1708,3,"DS3::Ondsdead10";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Detale",1719,5,"DS3::Ondsdead10";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Kiel D-01",1734,5,"DS3::Ondsdead10";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Lady Tanee",1688,6,"DS3::Ondsdead10";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] General Tartaruga",1312,6,"DS3::Ondsdead10";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Ifrit",1832,4,"DS3::Ondsdead10";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Storm Knight",1251,6,"DS3::Ondsdead10";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Hatii",1252,6,"DS3::Ondsdead10";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] RSX 0806",1623,5,"DS3::Ondsdead10";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Bafomé",1039,6,"DS3::Ondsdead10";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Senhor dos Orcs",1190,3,"DS3::Ondsdead10";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Orc Herói",1087,4,"DS3::Ondsdead10";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Assassino Eremes",1647,1,"DS3::Ondsdead10";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Lord Seyren",1646,1,"DS3::Ondsdead10";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Mestre-Ferreiro",1648,1,"DS3::Ondsdead10";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Sumo Margaretha",1649,1,"DS3::Ondsdead10";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Arquimaga Kathryne",1651,1,"DS3::Ondsdead10";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Atiradora de Elite Cecil",1650,1,"DS3::Ondsdead10";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Atroce",1785,6,"DS3::Ondsdead10";
+areamonster "ordeal_1-1",183,182,246,244,"[DS] Vesper",1685,4,"DS3::Ondsdead10";
+end;
+
+Ondsdead10:
+if ($status == 0) end;
+if (!playerattached()) end; 
+set $mobs,$mobs-1;
+set @premio,rand(getarraysize($@p));
+getitem $@id,$@p[@premio]+3; // Bonus maior por matar MVP final
+callfunc "Checador",1;
+if($mobs == 40){ mapannounce "ordeal_1-1","[Devil Square]: Restam 40 MVPs para as Caixas do Tesouro surgirem!", bc_yellow; }
+if($mobs == 15){ mapannounce "ordeal_1-1","[Devil Square]: Restam 15 MVPs para as Caixas do Tesouro surgirem!", bc_yellow; }
+if($mobs == 5){ mapannounce "ordeal_1-1","[Devil Square]: Restam 5 MVPs para as Caixas do Tesouro surgirem!", bc_yellow; }
+if($mobs == 0){ 
+	mapannounce "ordeal_1-1", "[Devil Square]: PARABÉNS À TODOS OS JOGADORES!! 10 Caixas do Tesouro surgiram... Corra para destruí-las!!", bc_yellow;  
+	goto Ondsbox; 
+}
+end;
+
+Ondsbox:
+enablenpc "DS4";
+// Inicia o timer de 15 minutos para as caixas
+initnpctimer "DS_BoxTimer";
+sleep2 3000;
+set $mobs,10;
+// Espalhando 10 caixas pelo mapa
+monster "ordeal_1-1",245,245,"Caixa do Tesouro",1334,1,"DS3::Ondsboxdead";
+monster "ordeal_1-1",54,54,"Caixa do Tesouro",1334,1,"DS3::Ondsboxdead";
+monster "ordeal_1-1",149,26,"Caixa do Tesouro",1334,1,"DS3::Ondsboxdead";
+monster "ordeal_1-1",245,52,"Caixa do Tesouro",1334,1,"DS3::Ondsboxdead";
+monster "ordeal_1-1",273,150,"Caixa do Tesouro",1334,1,"DS3::Ondsboxdead";
+monster "ordeal_1-1",150,273,"Caixa do Tesouro",1334,1,"DS3::Ondsboxdead";
+monster "ordeal_1-1",54,245,"Caixa do Tesouro",1334,1,"DS3::Ondsboxdead";
+monster "ordeal_1-1",27,150,"Caixa do Tesouro",1334,1,"DS3::Ondsboxdead";
+monster "ordeal_1-1",146,149,"Caixa do Tesouro",1334,1,"DS3::Ondsboxdead";
+monster "ordeal_1-1",153,149,"Caixa do Tesouro",1334,1,"DS3::Ondsboxdead";
+end;
+
+Ondsboxdead:
+if ($status == 0) end;
+if (!playerattached()) end; 
+set $mobs,$mobs-1;
+Announce "[Devil Square]: O jogador [ "+ strcharinfo(0)+" ] abriu uma das Caixas do Tesouro!", bc_all | bc_yellow;
+set @premio,rand(getarraysize($@b));
+getitem $@id,$@b[@premio];
+set Zeny,Zeny+25000000; 
+set pontosevento,pontosevento+5;
+
+// Expulsar o jogador que quebrou o baú
+warp "prontera",155,191;
+dispbottom "Parabéns! Você quebrou uma Caixa do Tesouro e recebeu "+$@b[@premio]+" "+getitemname($@id)+"!";
+
+if($mobs == 0){ 
+	Announce "[Devil Square]: A última Caixa do Tesouro foi destruída!", bc_all | bc_yellow;
+	Announce "[Devil Square]: Obrigado a todos que participaram.", bc_all | bc_yellow; 
+	set $status,0; 
+	set $rodada_atual,0;
+	set $aberto,0;
+	disablenpc "DS4";
+	mapwarp "ordeal_1-1","prontera",155,191;
+	query_sql "DELETE FROM `devilsquare`";
+	// Para os timers quando o evento termina naturalmente
+	stopnpctimer "DS_TimeLimit";
+	stopnpctimer "DS_BoxTimer";
+}
+end;
+}
+
+function	script	Checador	{
+
+if(getarg(0) == 1){
+set @nome$,"";
+
+query_sql "SELECT `nome` FROM `devilsquare` WHERE `id_usuario`="+getcharid(0)+"",@nome$;
+
+	if (@nome$ == ""){
+	query_sql "INSERT INTO `devilsquare` (`id_usuario`,`nome`,`id_acc`,`pontos`) VALUES ("+getcharid(0)+",'"+strcharinfo(0)+"','"+getcharid(3)+"',1)";	
+	return;
+	}
+	query_sql "UPDATE `devilsquare` SET `pontos` = `pontos` +1 WHERE `id_usuario`="+getcharid(0)+"";
+	return;
+	}
+}
+
+ordeal_1-1,210,211,1	script	DS4	-1,5000,5000,{
+
+OnTouch:
+
+query_sql "SELECT nome,pontos FROM devilsquare ORDER BY pontos DESC LIMIT 10",@nome$,@pontos;
+
+	for(set @i,0; @i < 10; set @i,@i+1)
+	if(@nome$[@i] == strcharinfo(0)){
+	mapwarp "ordeal_1-1","ordeal_1-1",150,150;
+	pcblockmove getcharid(3),1;
+	sleep2 500;
+	Announce "[Devil Square]: Parabéns "+strcharinfo(0)+", você está entre os 10 jogadores que mais mataram monstros! Corra para destruir as Caixas do Tesouro!!",bc_self;
+	pcblockmove getcharid(3),0;
+	end;
+	}
+	warp "prontera",156,177;
+	dispbottom "A Devil Square chegou ao fim para você! Você não está entre os 10 jogadores que mais mataram monstros... Até a próxima!!";
+	end;
+}
+	
+	
+// MapFlags ~
+ordeal_1-1	mapflag	nowarp
+ordeal_1-1	mapflag	nowarpto
+ordeal_1-1	mapflag	noteleport
+ordeal_1-1	mapflag	nosave	SavePoint
+ordeal_1-1	mapflag	nomemo
+ordeal_1-1	mapflag	nobranch
+ordeal_1-1	mapflag	nopenalty
+ordeal_1-1	mapflag	pvp	off
+ordeal_1-1	mapflag	gvg	off
+
+// NPC duplicado em outros locais (opcional)
+new_evt,182,162,2	duplicate(Devil Square)	Devil Square#new	1566

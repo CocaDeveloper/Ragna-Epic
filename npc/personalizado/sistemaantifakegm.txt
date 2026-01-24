@@ -1,0 +1,41 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//               Script Anti-Fake GM
+//===============================================================
+
+-	script	NomesGM	-1,{
+     
+	OnPCLoginEvent:
+	// Se for GM real (level 50+), não faz nada
+	if(getgroupid() >= 50 ) end;
+	
+	// Pegar nome do personagem
+	set .SeuNome$,strcharinfo(0);
+	
+	// Array com nomes proibidos para players normais
+	setarray .NomesGM$[0],"GM","Admin","Staff","Administrador","Suporte","ADM","STAFF";
+	
+	// Verificar se o nome contém alguma palavra proibida
+	for( set .x, 0; .x < getarraysize(.NomesGM$); set .x, .x +1)
+	if(compare(.SeuNome$,.NomesGM$[.x])) {
+		mes "^339966[Segurança ShiRO]^000000";
+		mes "^FF0000== SISTEMA DE SEGURANÇA ==^000000";
+		mes "Você está tentando se passar por um membro da ^ff0000STAFF^000000?";
+		mes " ";
+		mes "^ff0000Você foi automaticamente expulso do servidor!^000000";
+		sleep2 2000;
+		atcommand "@kick "+strcharinfo(0);
+		end;
+	}
+	
+	// Se passou na verificação, curar o player
+	percentheal 100,100;
+	end;
+}

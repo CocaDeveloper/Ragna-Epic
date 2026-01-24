@@ -1,0 +1,409 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                    MESTRE DAS CLASSES
+// ===================== Descrição: =============================
+
+prontera,151,194,5	script	Mestre das Classes	624,{
+	function Get_Job_Equip;
+	
+	// Verifica se o Player possui o nível necessário.
+	function	Require_Level	{
+		if (BaseLevel < getarg(0) || JobLevel < getarg(1)) {
+			.@blvl = getarg(0) - BaseLevel;
+			.@jlvl = getarg(1) - JobLevel;
+			
+			mes "Requisito de nível:";
+			mes ((getarg(0)>1)? 
+				"^bb0000"+getarg(0)+"^000000 (^bb0000Base^000000) / ":"")+"^00bb00"+
+				getarg(1)+"^000000 (^00bb00Classe^000000)";
+			mes "Você precisa de " +
+				((.@blvl > 0) ? "^bb0000"+.@blvl+"^000000 níveis base " + 
+					((.@jlvl > 0) ? "e " : "") : "") +
+				((.@jlvl > 0) ? "^00bb00"+.@jlvl+"^000000 níveis de classe " : "") +
+				"para continuar.";
+			close;
+		}
+		return;
+	}
+	
+	// Verifica se o jogador pode mudar para a terceira classe.
+	function	Can_Change_Third	{
+		if( !.ThirdClass )
+			return false; // Terceira classe desativada
+		if( !(eaclass()&EAJL_2) )
+			return false; // Não é segunda classe
+		if( eaclass()&EAJL_THIRD )
+			return false; // Já é terceira classe
+		if( roclass(eaclass()|EAJL_THIRD) < 0 )
+			return false; // Classe não possui terceira versão
+		if( (eaclass()&EAJ_UPPERMASK) == EAJ_SUPER_NOVICE )
+			return false; // Super Aprendiz Expandido tem caso próprio
+		return true;
+	}
+	
+	function	Can_Rebirth	{
+		if( !.RebirthClass )
+			return false; // Renascimento desativado
+		if( !(eaclass()&EAJL_2) )
+			return false; // Não é segunda classe
+		if( eaclass()&(EAJL_UPPER|EAJL_THIRD) )
+			return false; // Já renasceu ou é terceira classe
+		if( roclass(eaclass()|EAJL_UPPER) < 0 )
+			return false; // Classe não possui versão transcendida
+		return true;
+	}
+	
+	// Verifica se é primeira classe
+	function	Is_First_Cls	{
+		return (getarg(0) <= EAJ_TAEKWON);
+	}
+	
+	function	Check_Riding	{
+		if (checkfalcon() || checkcart() || checkriding() || ismounting()) {
+			mes "Por favor remova o seu " +
+				((checkfalcon()) ? "falcão" : "") +
+				((checkcart()) ? "carrinho" : "") +
+				((checkriding()) ? "Peco" : "") +
+				((ismounting()) ? "montaria" : "") +
+				" antes de prosseguir.";
+			close;
+		}
+		return;
+	}
+	
+	function	Check_SkillPoints	{
+		if (.SkillPointCheck && SkillPoint) {
+			mes "Use todos os seus pontos de habilidade antes de prosseguir.";
+			close;
+		}
+		return;
+	}
+	
+	// Adiciona opções de classe ao array
+	function	Job_Options	{
+		.@argcount = getargcount();
+		.@arr_size = getarraysize(getarg(0));
+		for( .@i = 1; .@i < .@argcount; .@i++) {
+			setarray getelementofarray(getarg(0), .@arr_size++),getarg(.@i);
+		}
+	}
+	
+	// Início do NPC
+	mes .NPCName$;
+	Check_Riding();
+	Check_SkillPoints();
+
+	// Inicialização
+	.@eac = eaclass();
+	.@third_possible = Can_Change_Third();
+	.@rebirth_possible = Can_Rebirth();
+	.@first_eac = .@eac&EAJ_BASEMASK;
+	.@second_eac = .@eac&EAJ_UPPERMASK;
+		
+	// Verificação de opções de renascimento
+	if( .@rebirth_possible ) {
+		Require_Level(.Req_Rebirth[0], .Req_Rebirth[1]);
+		Job_Options(.@job_opt, Job_Novice_High);
+	}
+	
+	// Terceira classe
+	if( .@third_possible ) {
+		Require_Level(.Req_Third[0], .Req_Third[1]);
+		Job_Options(.@job_opt, roclass(.@eac|EAJL_THIRD));
+	}
+	 
+	// Super Aprendiz Expandido
+	if (.SecondExpanded && 
+	   (.@eac&EAJ_UPPERMASK) == EAJ_SUPER_NOVICE && 
+	   !(eaclass()&EAJL_THIRD) ) {
+		Require_Level(.Req_Exp_SNOVI[0], .Req_Exp_SNOVI[1]);
+		Job_Options(.@job_opt,roclass(.@eac|EAJL_THIRD));
+	}
+	
+	// Classes expandidas (Ninja/Pistoleiro)
+	if (.SecondExpanded && 
+		((.@eac&(~EAJL_BABY)) == EAJ_NINJA || 		
+		(.@eac&(~EAJL_BABY)) == EAJ_GUNSLINGER)) {
+		Require_Level(.Req_Exp_NJ_GS[0], .Req_Exp_NJ_GS[1]);
+		Job_Options(.@job_opt, roclass(.@eac|EAJL_2_1));
+	}
+	
+	// Primeira mudança de classe (Aprendiz)
+	if (.@first_eac == EAJ_NOVICE && .@second_eac != EAJ_SUPER_NOVICE) {
+		Require_Level(.Req_First[0], .Req_First[1]);
+		switch(Class) {
+			case Job_Novice:
+				// Primeira mudança de classe
+				Job_Options(.@job_opt,Job_Swordman,
+					Job_Mage, Job_Archer, Job_Acolyte, Job_Merchant, Job_Thief,
+					Job_Super_Novice, Job_Taekwon, Job_Gunslinger, Job_Ninja);
+				break;
+			case Job_Novice_High:
+				// Mudança após renascimento
+				if( .LastJob && lastJob )
+					Job_Options(.@job_opt,
+						roclass((eaclass(lastJob)&EAJ_BASEMASK)|EAJL_UPPER));
+				else
+					Job_Options(.@job_opt, 
+						Job_Swordman_High, Job_Mage_High, Job_Archer_High,
+						Job_Acolyte_High, Job_Merchant_High, Job_Thief_High);
+				break;
+			default:
+				mes "Ocorreu um erro.";
+				close;
+		}
+	} else if( Is_First_Cls(.@eac) || 
+			   Is_First_Cls(.@eac&(~EAJL_UPPER)) ) {
+		// Primeira classe (não aprendiz) -> Segunda classe
+		.@class1 = roclass(.@eac|EAJL_2_1); // 2-1
+		.@class2 = roclass(.@eac|EAJL_2_2); // 2-2
+		
+		if(.LastJob && lastJob && (.@eac&EAJL_UPPER)) {
+			// Classe linear para renascidos
+			Require_Level(.Req_Second[0], .Req_Second[1]);
+			Job_Options(.@job_opt, lastJob + Job_Novice_High);
+		} else {
+			// Jogador pode escolher
+			if( .@class1 > 0 ) {
+				Require_Level(.Req_Second[0], .Req_Second[1]);
+				Job_Options(.@job_opt, .@class1);
+			}
+			if( .@class2 > 0 ) {
+				Require_Level(.Req_Second[0], .Req_Second[1]);
+				Job_Options(.@job_opt, .@class2);
+			}
+		}
+	}
+	
+	// Exibir menu
+	function Job_Menu;
+	Job_Menu(.@job_opt);
+	close;
+
+	// Menu de seleção de classes
+	function	Job_Menu	{
+		function Confirm_Change;
+		while(true) {
+			.@opt_cnt =  getarraysize(getarg(0));
+			if( .@opt_cnt <= 0 ) {
+				mes "Não há mais classes disponíveis.";
+				close;
+			}
+
+			.@selected = 0;
+			if (.@opt_cnt > 1) {
+				mes "Selecione uma classe.";
+				.@menu$ = "";
+				for (.@i = 0; .@i < .@opt_cnt; .@i++) {
+					if( getelementofarray(getarg(0), .@i) == Job_Novice_High)
+						.@jobname$ = "^0055FFRenascimento^000000";
+					else
+						.@jobname$ = jobname(getelementofarray(getarg(0), .@i));
+					.@menu$ = .@menu$ + "[^339900»^000000] " + .@jobname$ + ":";
+				}
+				.@menu$ = .@menu$+"[^990000«^000000] ^777777Cancelar^000000";
+				.@selected = select(.@menu$) - 1;
+				if( .@selected < 0 || .@selected >= .@opt_cnt )
+					close;
+				next;
+				mes .NPCName$;
+			}
+			
+			.@class = getelementofarray(getarg(0), .@selected);
+			if (.@class == Job_Super_Novice && BaseLevel < .SNovice) {
+				mes "Um nível base de " + .SNovice +
+					" é necessário para se transformar em " + jobname(.@class) + ".";
+				return;
+			}
+			
+			// Confirmar mudança
+			Confirm_Change(.@class, .@opt_cnt > 1);
+			next;
+			mes .NPCName$;
+		}
+		return;
+	}
+
+	// Executar mudança de classe
+	function	Job_Change	{
+		.@previous_class = Class;
+		.@to_cls = getarg(0);
+		next;
+		mes .NPCName$;
+		mes "Você agora é " + callfunc("F_InsertArticle", jobname(.@to_cls)) + "!";
+		
+		if (.@to_cls == Job_Novice_High && .LastJob)
+			lastJob = Class;
+		jobchange .@to_cls;
+		if (.@to_cls == Job_Novice_High)
+			resetlvl(1);
+			
+		specialeffect2 EF_ANGEL2;
+		specialeffect2 EF_ELECTRIC;
+		
+		if (.@previous_class != Class) {
+			if (.Platinum)
+				callfunc "F_GetPlatinumSkills";
+			if (.GetJobEquip)
+				Get_Job_Equip();
+		}
+		close;
+	}
+
+	function	Confirm_Change	{
+		.@class = getarg(0, -1);
+		.@back = getarg(1, false);
+		if( .@class < 0 || eaclass(.@class) == -1 ) {
+			mes "Erro de classe desconhecida.";
+			close;
+		}
+		
+		mes "Você quer se transformar em ^0055FF"+jobname(.@class)+"^000000?";
+		.@job_option$ = " [^339900»^000000] Mudar para ^0055FF"+jobname(.@class)+"^000000";
+		if( .@class == Job_Novice_High)
+			.@job_option$ = " [^339900»^000000] ^0055FFRenascer^000000";
+		
+		if (select(.@job_option$+": [^FF9933«^000000] ^777777" + 
+				((.@back) ?"Voltar" : "Cancelar") + "^000000") == 1) {
+			Job_Change(.@class);
+		}
+		if (!.@back)
+			close;
+		return;
+	}
+	
+	// Equipamentos por classe
+	function	Get_Job_Equip	{
+		.@eac = eaclass();
+		if( .@eac&EAJL_THIRD ) {
+			// Terceiras classes
+			getitem 2795,1;	// Anel Maçã Verde
+			switch(BaseJob) {
+				case Job_Knight:
+					getitem 5746,1;	break;	// Poder das Runas [1]
+				case Job_Wizard:
+					getitem 5753,1;	break;	// Mistério da Magia [1]
+				case Job_Hunter:
+					getitem 5748,1;	break;	// Visão do Sentinela [1]
+				case Job_Priest:
+					getitem 5747,1;	break;	// Desejo dos Deuses [1]
+				case Job_Blacksmith:
+					getitem 5749,1;	break;	// Talento do Mecânico [1]
+				case Job_Assassin:
+					getitem 5755,1;	break;	// Som do Silêncio [1]
+				case Job_Crusader:
+					getitem 5757,1;	break;	// Ordem do Guardião [1]
+				case Job_Sage:
+					getitem 5756,1;	break;	// Sussurro dos Elementos [1]
+				case Job_Bard:
+					getitem 5751,1;	break;	// Inspiração do Artista [1]
+				case Job_Dancer:
+					getitem 5758,1;	break;	// Súplica do Cisne [1]
+				case Job_Monk:
+					getitem 5754,1;	break;	// Disciplina do Espírito [1]
+				case Job_Alchemist:
+					getitem 5752,1;	break;	// Toque de Midas [1]
+				case Job_Rogue:
+					getitem 5750,1; 		// Artifício das Sombras [1]
+					getitem 6121,1;		// Pincel de Maquiagem
+					getitem 6122,1;	break;	// Pincel de Grafite
+			}
+		} else if (.@eac&EAJL_2) {
+			// Segundas classes
+			switch(BaseJob) {
+				case Job_Knight:
+					getitem 1163,1;	break;	// Montante [0]
+				case Job_Priest:
+					getitem 1522,1;	break;	// Bastão Atordoante [0]
+				case Job_Wizard:
+					getitem 1617,1;	break;	// Bastão do Sobrevivente [1]
+				case Job_Blacksmith:
+					getitem 1360,1;	break;	// Machado de Duas Mãos [1]
+				case Job_Hunter:
+					getitem 1718,1;	break;	// Arco de Caça [0]
+				case Job_Assassin:
+					getitem 1254,1;	break;	// Jamadhar [0]
+				case Job_Crusader:
+					getitem 1410,1;	break;	// Lança [0]
+				case Job_Monk:
+					getitem 1807,1;	break;	// Punho [0]
+				case Job_Sage:
+					getitem 1550,1;	break;	// Livro [3]
+				case Job_Rogue:
+					getitem 1222,1;	break;	// Damascus [1]
+				case Job_Alchemist:
+					getitem 1126,1;	break;	// Sabre [2]
+				case Job_Bard:
+					getitem 1907,1;	break;	// Violão [0]
+				case Job_Dancer:
+					getitem 1960,1;	break;	// Chicote [1]
+				case Job_Super_Novice:
+					getitem 1208,1;	break;	// Main Gauche [4]
+				case Job_Star_Gladiator:
+					getitem 1550,1;	break;	// Livro [3]
+				case Job_Soul_Linker:
+					getitem 1617,1;	break;	// Bastão do Sobrevivente [0]
+			}
+		} else {
+			// Primeiras classes
+			switch(BaseClass) {
+				case Job_Swordman:
+					getitem 1108,1;	break;	// Lâmina [4]
+				case Job_Mage:
+					getitem 1602,1;	break;	// Bastão [4]
+				case Job_Archer:
+					getitem 1705,1;	break;	// Arco Composto [4]
+				case Job_Acolyte:
+					getitem 1505,1;	break;	// Maça [4]
+				case Job_Merchant:
+					getitem 1302,1;	break;	// Machado [4]
+				case Job_Thief:
+					getitem 1208,1;	break;	// Main Gauche [4]
+				case Job_Gunslinger:
+					getitem 13101,1; break;	// Pistola de Seis Tiros [2]
+				case Job_Ninja:
+					getitem 13010,1; break;	// Asura [2]
+			}
+		}
+		return;
+	}
+	
+OnInit:
+
+while(1) {
+		showscript "[ Mestre das Classes ]", getnpcid(0);
+		sleep 100;
+	}
+
+	// Configurações
+	.NPCName$ = "^339966[Mestre das Classes]^000000";
+	
+	// Opções habilitadas
+	.ThirdClass = false;			// Terceiras classes
+	.RebirthClass = true;			// Classes de renascimento
+	.SecondExpanded = false;		// Classes expandidas (Super Aprendiz, Kagerou/Oboro, Rebelião)
+	.LastJob = true;				// Mudanças lineares de classe
+	.SkillPointCheck = true;		// Forçar uso de todos os skill points
+	.Platinum = true;				// Habilidades platinum automáticas
+	.GetJobEquip = true;			// Equipamentos da classe na mudança
+
+	// Requisitos de nível
+	setarray .Req_First[0],1,10; 		// Base, Classe para 1ª classe
+	setarray .Req_Second[0],1,40; 		// Base, Classe para 2ª classe
+	setarray .Req_Rebirth[0],99,50;		// Base, Classe para renascimento
+	setarray .Req_Third[0],99,50;		// Base, Classe para 3ª classe
+	setarray .Req_Exp_NJ_GS[0],99,70; 	// Base, Classe para Ninja/Pistoleiro expandido
+	setarray .Req_Exp_SNOVI[0],99,99; 	// Base, Classe para Super Aprendiz expandido
+	.SNovice = 10;						// Nível base mínimo para Super Aprendiz
+	
+    setunittitle (getnpcid(0), "");
+    end;
+	
+}

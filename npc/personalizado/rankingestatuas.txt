@@ -1,0 +1,242 @@
+//=========================== rAthena Script =====================================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================================
+//	    RANKING DE ESTÁTUAS - VERSÃO COM VISUAL EM BALÃO (PVP, MVP E GVG)
+//===============================================================================
+
+-	script	pvp_ranking_statue_data	-1,{
+
+OnInit:
+// Configurações
+	.showstatue = 3; // número de estátuas. Este número deve corresponder ao número de npc duplicados no final do script
+	.fix_custom_sprite = true; // Se no teu servidor tiver sprite animada, ativa isso aqui
+	.update_interval = 30; // Intervalo de atualização em segundos
+	
+	// CONFIGURAÇÃO DO VISUAL CUSTOMIZADO
+	.force_costume = true; // Ativa visual forçado
+	.costume_viewid = 1738; // ViewID do item 31488 (Costume MVP)
+	.costume_slot = 1; // 1=HEADTOP, 2=HEADMID, 3=HEADLOW - Escolha qual slot usar
+//===========================================================================================================================
+	sleep 1;
+	initnpctimer;
+	end;
+
+OnTimer30000: // Atualiza as estátuas a cada 30 segundos
+	.@query$ = "SELECT `char`.`char_id`, `char`.`name`, `char`.`guild_id`, `char`.`class`, "
+			 + "`char`.`sex`, `char`.`hair`, `char`.`hair_color`, `char`.`clothes_color`, "
+			 + "`char`.`body`, `char`.`head_top`, `char`.`head_mid`, `char`.`head_bottom`, `char`.`robe`, "
+			 + "`ranking_pvp`.`Matou`, `ranking_pvp`.`Morreu`, `ranking_pvp`.`Total` "
+			 + "FROM `char` "
+			 + "INNER JOIN `ranking_pvp` ON `char`.`char_id` = `ranking_pvp`.`char_id` "
+			 + "ORDER BY `ranking_pvp`.`Total` DESC, `ranking_pvp`.`Matou` DESC "
+			 + "LIMIT " + .showstatue;
+	
+	.@nb = query_sql(.@query$, .@cid, .@name$, .@guild_id, .@class, .@sex$, .@hair, .@hair_color, 
+					 .@clothes_color, .@body, .@head_top, .@head_mid, .@head_bottom, .@robe, 
+					 .@kills, .@dies, .@total);
+	
+	// Limpa sprites customizados se necessário
+	if (.fix_custom_sprite) {
+		for (.@i = 0; .@i < .@nb; ++.@i) {
+			setunitdata .statue[.@i +1], UNPC_HEADTOP, 0;
+			setunitdata .statue[.@i +1], UNPC_HEADMIDDLE, 0;
+			setunitdata .statue[.@i +1], UNPC_HEADBOTTOM, 0;
+			setunitdata .statue[.@i +1], UNPC_ROBE, 0;
+		}
+	}
+	
+	// Atualiza dados das estátuas
+	for (.@i = 0; .@i < .@nb; ++.@i) {
+		setunitdata .statue[.@i +1], UNPC_CLASS, .@class[.@i];
+		setunitdata .statue[.@i +1], UNPC_SEX, (.@sex$[.@i] == "F")? SEX_FEMALE:SEX_MALE;
+		setunitdata .statue[.@i +1], UNPC_HAIRSTYLE, .@hair[.@i];
+		setunitdata .statue[.@i +1], UNPC_HAIRCOLOR, .@hair_color[.@i];
+		setunitdata .statue[.@i +1], UNPC_CLOTHCOLOR, .@clothes_color[.@i];
+		setunitdata .statue[.@i +1], UNPC_BODY2, .@body[.@i];
+		setunitdata .statue[.@i +1], UNPC_HEADTOP, .@head_top[.@i];
+		setunitdata .statue[.@i +1], UNPC_HEADMIDDLE, .@head_mid[.@i];
+		setunitdata .statue[.@i +1], UNPC_HEADBOTTOM, .@head_bottom[.@i];
+		setunitdata .statue[.@i +1], UNPC_ROBE, .@robe[.@i];
+		
+		// VISUAL CUSTOMIZADO FORÇADO - Usando HEADTOP em vez de costume
+		// Como costume não é suportado, vamos aplicar o visual no slot normal
+		if (.force_costume && .costume_viewid > 0) {
+			// Salva o item original se existir
+			.statue_original_top[.@i +1] = .@head_top[.@i];
+			// Aplica o visual customizado no topo
+			setunitdata .statue[.@i +1], UNPC_HEADTOP, .costume_viewid;
+		}
+		
+		setnpcdisplay "pvp_ladder_statue#"+(.@i +1), .@name$[.@i];
+		.statue_name$[.@i +1] = .@name$[.@i];
+		.statue_guild$[.@i +1] = getguildname(.@guild_id[.@i]);
+		.statue_kills[.@i +1] = .@kills[.@i];
+		.statue_dies[.@i +1] = .@dies[.@i];
+		.statue_total[.@i +1] = .@total[.@i];
+		
+	}
+	
+	// Esconde estátuas não utilizadas
+	for (.@i = .@nb; .@i < .showstatue; ++.@i) {
+		setunitdata .statue[.@i +1], UNPC_CLASS, HIDDEN_WARP_NPC;
+		.statue_name$[.@i +1] = "";
+	}
+	
+	initnpctimer;
+	end;
+}
+
+-	script	pvp_ladder_statue	-1,{
+	.@id = getelementofarray(getvariableofnpc(.npcgid, "pvp_ranking_statue_data"), getnpcid(0));
+	.@name$ = getelementofarray(getvariableofnpc(.statue_name$, "pvp_ranking_statue_data"), .@id);
+	
+	// Verifica se a estátua tem dados
+	if (.@name$ == "") {
+		mes "^FF0000Esta posição ainda não foi conquistada!";
+		close;
+	}
+	
+	mes "^996600+----------------------------+";
+	mes "^996600¦    ^FFFF00TOP PVP - "+ .@id +"º LUGAR^996600    ¦";
+	mes "^996600+----------------------------+";
+	mes " ";
+	mes "^006699Jogador: ^FFFFFF"+ .@name$;
+	
+	.@guildname$ = getelementofarray(getvariableofnpc(.statue_guild$, "pvp_ranking_statue_data"), .@id);
+	mes "^00AAAAGuild: ^FFFFFF"+((.@guildname$ == "" || .@guildname$ == "null")? "^777777Nenhuma": .@guildname$);
+	mes " ";
+	mes "^00FF00????????????????";
+	mes "^00AA00Matou: ^FFFFFF["+ getelementofarray(getvariableofnpc(.statue_kills, "pvp_ranking_statue_data"), .@id) +"]";
+	mes "^FF6600Morreu: ^FFFFFF["+ getelementofarray(getvariableofnpc(.statue_dies, "pvp_ranking_statue_data"), .@id) +"]";
+	mes "^FFD700Total de Pontos: ^FFFFFF["+ getelementofarray(getvariableofnpc(.statue_total, "pvp_ranking_statue_data"), .@id) +"]";
+	mes "^00FF00????????????????";
+	close;
+
+OnInit:
+	.@id = strnpcinfo(2);
+	set getvariableofnpc(.statue[.@id], "pvp_ranking_statue_data"), getnpcid(0);
+	set getvariableofnpc(.npcgid[getnpcid(0)], "pvp_ranking_statue_data"), .@id;
+	end;
+}
+
+// ============ ESTÁTUAS - Ajuste as coordenadas para seu mapa ============
+prontera,180,222,3	duplicate(pvp_ladder_statue)	pvp_ladder_statue#1	1_F_MARIA
+prontera,182,220,3	duplicate(pvp_ladder_statue)	pvp_ladder_statue#2	1_F_MARIA
+prontera,184,218,3	duplicate(pvp_ladder_statue)	pvp_ladder_statue#3	1_F_MARIA
+
+//==================================================================================
+//						SCRIPT ORIGINAL
+//==================================================================================
+//
+//	-	script	pvp_ranking_statue_data	-1,{
+//	
+//	OnInit:
+//	// Configurações
+//		.showstatue = 3; // número de estátuas. Este número deve corresponder ao número de npc duplicados no final do script
+//		.fix_custom_sprite = true; // Se no teu servidor tiver sprite animada, ativa isso aqui
+//		.update_interval = 30; // Intervalo de atualização em segundos
+//	//===========================================================================================================================
+//		sleep 1;
+//		initnpctimer;
+//		end;
+//	
+//	OnTimer30000: // Atualiza as estátuas a cada 30 segundos
+//		.@query$ = "SELECT `char`.`char_id`, `char`.`name`, `char`.`guild_id`, `char`.`class`, "
+//				 + "`char`.`sex`, `char`.`hair`, `char`.`hair_color`, `char`.`clothes_color`, "
+//				 + "`char`.`body`, `char`.`head_top`, `char`.`head_mid`, `char`.`head_bottom`, `char`.`robe`, "
+//				 + "`ranking_pvp`.`Matou`, `ranking_pvp`.`Morreu`, `ranking_pvp`.`Total` "
+//				 + "FROM `char` "
+//				 + "INNER JOIN `ranking_pvp` ON `char`.`char_id` = `ranking_pvp`.`char_id` "
+//				 + "ORDER BY `ranking_pvp`.`Total` DESC, `ranking_pvp`.`Matou` DESC "
+//				 + "LIMIT " + .showstatue;
+//		
+//		.@nb = query_sql(.@query$, .@cid, .@name$, .@guild_id, .@class, .@sex$, .@hair, .@hair_color, 
+//						 .@clothes_color, .@body, .@head_top, .@head_mid, .@head_bottom, .@robe, 
+//						 .@kills, .@dies, .@total);
+//		
+//		// Limpa sprites customizados se necessário
+//		if (.fix_custom_sprite) {
+//			for (.@i = 0; .@i < .@nb; ++.@i) {
+//				setunitdata .statue[.@i +1], UNPC_HEADTOP, 0;
+//				setunitdata .statue[.@i +1], UNPC_HEADMIDDLE, 0;
+//				setunitdata .statue[.@i +1], UNPC_HEADBOTTOM, 0;
+//				setunitdata .statue[.@i +1], UNPC_ROBE, 0;
+//			}
+//		}
+//		
+//		// Atualiza dados das estátuas
+//		for (.@i = 0; .@i < .@nb; ++.@i) {
+//			setunitdata .statue[.@i +1], UNPC_CLASS, .@class[.@i];
+//			setunitdata .statue[.@i +1], UNPC_SEX, (.@sex$[.@i] == "F")? SEX_FEMALE:SEX_MALE;
+//			setunitdata .statue[.@i +1], UNPC_HAIRSTYLE, .@hair[.@i];
+//			setunitdata .statue[.@i +1], UNPC_HAIRCOLOR, .@hair_color[.@i];
+//			setunitdata .statue[.@i +1], UNPC_CLOTHCOLOR, .@clothes_color[.@i];
+//			setunitdata .statue[.@i +1], UNPC_BODY2, .@body[.@i];
+//			setunitdata .statue[.@i +1], UNPC_HEADTOP, .@head_top[.@i];
+//			setunitdata .statue[.@i +1], UNPC_HEADMIDDLE, .@head_mid[.@i];
+//			setunitdata .statue[.@i +1], UNPC_HEADBOTTOM, .@head_bottom[.@i];
+//			setunitdata .statue[.@i +1], UNPC_ROBE, .@robe[.@i];
+//			
+//			setnpcdisplay "pvp_ladder_statue#"+(.@i +1), .@name$[.@i];
+//			.statue_name$[.@i +1] = .@name$[.@i];
+//			.statue_guild$[.@i +1] = getguildname(.@guild_id[.@i]);
+//			.statue_kills[.@i +1] = .@kills[.@i];
+//			.statue_dies[.@i +1] = .@dies[.@i];
+//			.statue_total[.@i +1] = .@total[.@i];
+//			
+//		}
+//		
+//		// Esconde estátuas não utilizadas
+//		for (.@i = .@nb; .@i < .showstatue; ++.@i) {
+//			setunitdata .statue[.@i +1], UNPC_CLASS, HIDDEN_WARP_NPC;
+//			.statue_name$[.@i +1] = "";
+//		}
+//		
+//		initnpctimer;
+//		end;
+//	}
+//	
+//	
+//	-	script	pvp_ladder_statue	-1,{
+//		.@id = getelementofarray(getvariableofnpc(.npcgid, "pvp_ranking_statue_data"), getnpcid(0));
+//		.@name$ = getelementofarray(getvariableofnpc(.statue_name$, "pvp_ranking_statue_data"), .@id);
+//		
+//		// Verifica se a estátua tem dados
+//		if (.@name$ == "") {
+//			mes "^FF0000Esta posição ainda não foi conquistada!";
+//			close;
+//		}
+//		
+//		mes "^996600+----------------------------+";
+//		mes "^996600¦    ^FFFF00TOP PVP - "+ .@id +"º LUGAR^996600    ¦";
+//		mes "^996600+----------------------------+";
+//		mes " ";
+//		mes "^006699Jogador: ^FFFFFF"+ .@name$;
+//		
+//		.@guildname$ = getelementofarray(getvariableofnpc(.statue_guild$, "pvp_ranking_statue_data"), .@id);
+//		mes "^00AAAAGuild: ^FFFFFF"+((.@guildname$ == "" || .@guildname$ == "null")? "^777777Nenhuma": .@guildname$);
+//		mes " ";
+//		mes "^00FF00????????????????????????????";
+//		mes "^00AA00Matou: ^FFFFFF["+ getelementofarray(getvariableofnpc(.statue_kills, "pvp_ranking_statue_data"), .@id) +"]";
+//		mes "^FF6600Morreu: ^FFFFFF["+ getelementofarray(getvariableofnpc(.statue_dies, "pvp_ranking_statue_data"), .@id) +"]";
+//		mes "^FFD700Total de Pontos: ^FFFFFF["+ getelementofarray(getvariableofnpc(.statue_total, "pvp_ranking_statue_data"), .@id) +"]";
+//		mes "^00FF00????????????????????????????";
+//		close;
+//	
+//	OnInit:
+//		.@id = strnpcinfo(2);
+//		set getvariableofnpc(.statue[.@id], "pvp_ranking_statue_data"), getnpcid(0);
+//		set getvariableofnpc(.npcgid[getnpcid(0)], "pvp_ranking_statue_data"), .@id;
+//		end;
+//	}
+//	
+//	// ============ ESTÁTUAS - Ajuste as coordenadas para seu mapa ============
+//	prontera,179,223,3	duplicate(pvp_ladder_statue)	pvp_ladder_statue#1	1_F_MARIA
+//	prontera,181,221,3	duplicate(pvp_ladder_statue)	pvp_ladder_statue#2	1_F_MARIA
+//	prontera,183,219,3	duplicate(pvp_ladder_statue)	pvp_ladder_statue#3	1_F_MARIA

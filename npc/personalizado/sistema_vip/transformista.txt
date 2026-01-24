@@ -1,0 +1,175 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  NPC - Removedora VIP
+//===============================================================
+// Versão: 1.1 - Acesso para GM
+//
+// Alteração v1.1:
+// - Adicionado acesso para GMs de nível 99.
+// - GMs recebem os mesmos benefícios de um Super VIP.
+//===============================================================
+
+//===== Script de Conversão de Equipamentos Visuais =====
+//= NPC Conversor de Equipamentos para Costume
+//= Converte equipamentos de cabeça em equipamentos visuais
+//= Remove efeitos, slots e cartas dos equipamentos originais
+//============================================
+
+1@herbs,300,92,3	script	Cientista Maluco	4_M_SAGE_A,{
+	
+	mes "[Conversor Visual]";
+	mes "Olá, aventureiro!";
+	mes "Posso transformar seus equipamentos de cabeça em equipamentos puramente visuais.";
+	next;
+	
+	mes "[Conversor Visual]";
+	mes "^FF0000ATENÇÃO:^000000";
+	mes "• O equipamento perderá todos os efeitos";
+	mes "• Todos os slots serão removidos";
+	mes "• Equipamentos com cartas NÃO podem ser convertidos";
+	mes "• A conversão é irreversível";
+	next;
+	
+	switch(select("Converter Equipamento:Sobre o Serviço:Cancelar")) {
+	case 1:
+		break;
+	case 2:
+		mes "[Conversor Visual]";
+		mes "Este serviço converte equipamentos de cabeça em equipamentos visuais.";
+		mes "Você manterá a aparência, mas perderá todos os efeitos do equipamento.";
+		close;
+	case 3:
+		mes "[Conversor Visual]";
+		mes "Até logo!";
+		close;
+	}
+	
+	mes "[Conversor Visual]";
+	mes "Selecione o tipo de equipamento que deseja converter:";
+	next;
+	
+	switch(select("Equipamento Superior:Equipamento Médio:Equipamento Inferior:Cancelar")) {
+	case 1:
+		set .@slot, EQI_HEAD_TOP;
+		set .@slot_name$, "Superior";
+		break;
+	case 2:
+		set .@slot, EQI_HEAD_MID;
+		set .@slot_name$, "Médio";
+		break;
+	case 3:
+		set .@slot, EQI_HEAD_LOW;
+		set .@slot_name$, "Inferior";
+		break;
+	case 4:
+		mes "[Conversor Visual]";
+		mes "Operação cancelada.";
+		close;
+	}
+	
+	// Verifica se há equipamento no slot
+	if(!getequipid(.@slot)) {
+		mes "[Conversor Visual]";
+		mes "Você não está usando nenhum equipamento " + .@slot_name$ + ".";
+		close;
+	}
+	
+	// Obtém informações do equipamento
+	set .@item_id, getequipid(.@slot);
+	set .@refine, getequiprefinerycnt(.@slot);
+	set .@item_name$, getitemname(.@item_id);
+	
+	// Verifica se o equipamento possui cartas
+	for(set .@i, 0; .@i < 4; set .@i, .@i + 1) {
+		if(getequipcardid(.@slot, .@i) > 0) {
+			mes "[Conversor Visual]";
+			mes "O equipamento ^FF0000" + .@item_name$ + "^000000 possui cartas equipadas.";
+			mes "Não posso converter equipamentos com cartas.";
+			mes "Remova as cartas primeiro.";
+			close;
+		}
+	}
+	
+	mes "[Conversor Visual]";
+	mes "Equipamento selecionado: ^0000FF" + .@item_name$ + "^000000";
+	if(.@refine > 0) {
+		mes "Refinamento: +" + .@refine;
+	}
+	mes "Deseja realmente converter este equipamento?";
+	next;
+	
+	if(select("Sim, converter:Não, cancelar") == 2) {
+		mes "[Conversor Visual]";
+		mes "Operação cancelada.";
+		close;
+	}
+	
+	// Verifica se existe versão costume do item
+	set .@costume_id, .@item_id + 50000; // Padrão rAthena para costume items
+	
+	// Lista de conversões customizadas (adicione mais conforme necessário)
+	switch(.@item_id) {
+		// Exemplo: se o item não segue o padrão +50000
+		case 5001: // Headband
+			set .@costume_id, 55001;
+			break;
+		case 5002: // Ribbon
+			set .@costume_id, 55002;
+			break;
+		// Adicione mais conversões específicas aqui
+	}
+	
+	// Verifica se o item costume existe no banco de dados
+	if(!getitemname(.@costume_id)) {
+		mes "[Conversor Visual]";
+		mes "Desculpe, não existe uma versão visual deste equipamento.";
+		close;
+	}
+	
+	// Remove o equipamento original
+	unequip .@slot;
+	
+	// Deleta o item original do inventário
+	delitem .@item_id, 1;
+	
+	// Entrega o equipamento visual
+	getitem .@costume_id, 1;
+	
+	mes "[Conversor Visual]";
+	mes "Conversão realizada com sucesso!";
+	mes "Você recebeu: ^0000FF" + getitemname(.@costume_id) + "^000000";
+	mes "Lembre-se: este equipamento é apenas visual.";
+	
+	// Log da conversão
+	logmes "Converteu " + .@item_name$ + " (ID:" + .@item_id + ") para costume (ID:" + .@costume_id + ")";
+	
+	close;
+	
+OnInit:
+
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 80;	
+		setunittitle getnpcid(0), "[Transformista]";
+
+		while(1) {
+		showscript "[ Transformista ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+//===== Configurações Adicionais =====
+// Para adicionar novos mapeamentos de conversão, edite o switch acima
+// Formato: case ITEM_ID_ORIGINAL: set .@costume_id, ITEM_ID_COSTUME; break;
+
+//===== Notas de Instalação =====
+// 1. Certifique-se de que os itens costume existem no seu item_db
+// 2. Ajuste as coordenadas do NPC conforme necessário
+// 3. Personalize a sprite do NPC alterando o ID "4_M_SAGE_A"
+// 4. Adicione mais conversões específicas no switch conforme necessário

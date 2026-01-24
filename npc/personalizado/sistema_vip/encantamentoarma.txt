@@ -1,0 +1,561 @@
+//===== rAthena Script ======================================= 
+//= Encantador de Armas
+//===== Por: ================================================== 
+//= Baseado no script original de SoulDestroyer
+//===== Versão: ============================================== 
+//= 1.1
+//===== Compatível Com: ====================================== 
+//= rAthena Project
+//===== Descrição: =========================================== 
+//= Encanta armas usando tickets (ID: 7185)
+//= Jogadores: Encantamento aleatório
+//= GMs 60+: Encantamento por menu
+//============================================================ 
+
+1@herbs,271,88,5	script	Encantador de Armas	502,{
+	disable_items;
+	set .@gm_level, getgmlevel();
+set .npc$, "^339966[Cabo Mota]^000000";
+	
+	mes "" + .npc$ + "";
+	mes "Olá, ^FFA500"+strcharinfo(0)+"^000000!";
+	mes "Eu sou o Cabo Mota, especialista em armas!";
+	next;
+	
+	mes "" + .npc$ + "";
+	mes "Com um ^FF0000Ticket de Encantamento de Arma^000000, eu posso adicionar poderes";
+	mes "especiais ao seu armamento.";
+	mes " ";
+	mes "^ff0000Deseja adicionar o encantamento?^000000";
+	next;
+	
+	if(.@gm_level >= 60) {
+		mes "" + .npc$ + "";
+		mes "^0055FF[Modo Administrador Ativo]^000000";
+		mes "Como ^ff0000administrador^000000, você pode escolher o encantamento específico ou deixar aleatório.";
+		next;
+	} else {
+		mes "" + .npc$ + "";
+		mes "^FF0000Atenção:^000000 O encantamento será ^0055FFaleatório^000000.";
+		mes "Se sua arma já possuir encantamento, ele será substituído pelo novo!";
+		next;
+	}
+	
+	// Verificar se tem arma equipada
+	if(!getequipisequiped(EQI_HAND_R)) {
+		mes "" + .npc$ + "";
+		mes "Você precisa estar com uma arma";
+		mes "equipada para que eu possa encantá-la!";
+		close;
+	}
+	
+	// Verificar se tem ticket (GMs não precisam)
+	if(.@gm_level < 60 && countitem(7185) < 1) {
+		mes "" + .npc$ + "";
+		mes "Você precisa de um ^FF0000Ticket de Encantamento de Arma^000000 para que eu possa realizar o serviço.";
+		mes " ";
+		mes "Volte quando conseguir um!";
+		close;
+	}
+	
+	mes "" + .npc$ + "";
+	mes "^ff0000Perfeito!^000000";
+	mes "Sua arma equipada é: ^0055FF" + getequipname(EQI_HAND_R) + "^000000.";
+	next;
+	
+	// Menu diferente para GMs
+	if(.@gm_level >= 60) {
+		mes "" + .npc$ + "";
+		mes "^0055FF[Modo Administrador]^000000";
+		mes " ";
+		mes "^ff0000Como deseja proceder?^000000";
+		switch(select("^339966[»]^000000 Encantamento Aleatório:^339966[»]^000000 Escolher Encantamento:^ff0000[»] Cancelar^000000")) {
+			case 1:
+				set .@random_mode, 1;
+				break;
+			case 2:
+				set .@admin_menu, 1;
+				break;
+			case 3:
+				next;
+				mes "" + .npc$ + "";
+				mes "Tudo bem. Volte sempre que precisar!";
+				close;
+		}
+	} else {
+		mes "" + .npc$ + "";
+		mes "^ff0000Você deseja prosseguir com o encantamento?^000000";
+		if(select("^339966[»]^000000 Sim, encantar!:^ff0000[»] Cancelar^000000") == 2) {
+			close;
+		}
+		set .@random_mode, 1;
+	}
+	
+	// Menu administrativo completo
+	if(.@admin_menu) {
+		next;
+		mes "" + .npc$ + "";
+		mes "^0055FF[Modo Administrador]^000000";
+		mes " ";
+		mes "^ff0000Que tipo de encantamento deseja aplicar?^000000";
+		
+		switch(select("^339966[»]^000000 Atributos Básicos:^339966[»]^000000 Ataque & Crítico:^339966[»]^000000 Defesa & HP/SP:^339966[»]^000000 Habilidades Especiais:^339966[»]^000000 Encantos OGH:^ff0000[»] Cancelar^000000")) {
+			case 1: // Atributos Básicos
+				next;
+				mes "" + .npc$ + "";
+				mes " ";
+				mes "^ff0000Escolha o atributo que deseja aumentar:^000000";
+				switch(select("^339966[»]^000000 Força (STR):^339966[»]^000000 Inteligência (INT):^339966[»]^000000 Destreza (DEX):^339966[»]^000000 Agilidade (AGI):^339966[»]^000000 Vitalidade (VIT):^339966[»]^000000 Sorte (LUK):^ff0000[»] Voltar^000000")) {
+					case 1: // STR
+						switch(select("- STR+1:- STR+2:- STR+3:- STR+4:- STR+5:- STR+6:- STR+7:- STR+8:- STR+9:- STR+10:^ff0000Voltar^000000")) {
+							case 1: set .@enchant_id,4700; break;
+							case 2: set .@enchant_id,4701; break;
+							case 3: set .@enchant_id,4702; break;
+							case 4: set .@enchant_id,4703; break;
+							case 5: set .@enchant_id,4704; break;
+							case 6: set .@enchant_id,4705; break;
+							case 7: set .@enchant_id,4706; break;
+							case 8: set .@enchant_id,4707; break;
+							case 9: set .@enchant_id,4708; break;
+							case 10: set .@enchant_id,4709; break;
+							default: close;
+						}
+						break;
+					case 2: // INT
+						switch(select("- INT+1:- INT+2:- INT+3:- INT+4:- INT+5:- INT+6:- INT+7:- INT+8:- INT+9:- INT+10:^ff0000Voltar^000000")) {
+							case 1: set .@enchant_id,4710; break;
+							case 2: set .@enchant_id,4711; break;
+							case 3: set .@enchant_id,4712; break;
+							case 4: set .@enchant_id,4713; break;
+							case 5: set .@enchant_id,4714; break;
+							case 6: set .@enchant_id,4715; break;
+							case 7: set .@enchant_id,4716; break;
+							case 8: set .@enchant_id,4717; break;
+							case 9: set .@enchant_id,4718; break;
+							case 10: set .@enchant_id,4719; break;
+							default: close;
+						}
+						break;
+					case 3: // DEX
+						switch(select("- DEX+1:- DEX+2:- DEX+3:- DEX+4:- DEX+5:- DEX+6:- DEX+7:- DEX+8:- DEX+9:- DEX+10:^ff0000Voltar^000000")) {
+							case 1: set .@enchant_id,60140; break;
+							case 2: set .@enchant_id,60150; break;
+							case 3: set .@enchant_id,4722; break;
+							case 4: set .@enchant_id,4723; break;
+							case 5: set .@enchant_id,4724; break;
+							case 6: set .@enchant_id,4725; break;
+							case 7: set .@enchant_id,4726; break;
+							case 8: set .@enchant_id,4727; break;
+							case 9: set .@enchant_id,4728; break;
+							case 10: set .@enchant_id,4729; break;
+							default: close;
+						}
+						break;
+					case 4: // AGI
+						switch(select("- AGI+1:- AGI+2:- AGI+3:- AGI+4:- AGI+5:- AGI+6:- AGI+7:- AGI+8:- AGI+9:- AGI+10:^ff0000Voltar^000000")) {
+							case 1: set .@enchant_id,4730; break;
+							case 2: set .@enchant_id,4731; break;
+							case 3: set .@enchant_id,4732; break;
+							case 4: set .@enchant_id,4733; break;
+							case 5: set .@enchant_id,4734; break;
+							case 6: set .@enchant_id,4735; break;
+							case 7: set .@enchant_id,4736; break;
+							case 8: set .@enchant_id,4737; break;
+							case 9: set .@enchant_id,4738; break;
+							case 10: set .@enchant_id,4739; break;
+							default: close;
+						}
+						break;
+					case 5: // VIT
+						switch(select("- VIT+1:- VIT+2:- VIT+3:- VIT+4:- VIT+5:- VIT+6:- VIT+7:- VIT+8:- VIT+9:- VIT+10:^ff0000Voltar^000000")) {
+							case 1: set .@enchant_id,4740; break;
+							case 2: set .@enchant_id,4741; break;
+							case 3: set .@enchant_id,4742; break;
+							case 4: set .@enchant_id,4743; break;
+							case 5: set .@enchant_id,4744; break;
+							case 6: set .@enchant_id,4745; break;
+							case 7: set .@enchant_id,4746; break;
+							case 8: set .@enchant_id,4747; break;
+							case 9: set .@enchant_id,4748; break;
+							case 10: set .@enchant_id,4749; break;
+							default: close;
+						}
+						break;
+					case 6: // LUK
+						switch(select("- LUK+1:- LUK+2:- LUK+3:- LUK+4:- LUK+5:- LUK+6:- LUK+7:- LUK+8:- LUK+9:- LUK+10:^ff0000Voltar^000000")) {
+							case 1: set .@enchant_id,4750; break;
+							case 2: set .@enchant_id,4751; break;
+							case 3: set .@enchant_id,4752; break;
+							case 4: set .@enchant_id,4753; break;
+							case 5: set .@enchant_id,4754; break;
+							case 6: set .@enchant_id,4755; break;
+							case 7: set .@enchant_id,4756; break;
+							case 8: set .@enchant_id,4757; break;
+							case 9: set .@enchant_id,4758; break;
+							case 10: set .@enchant_id,4759; break;
+							default: close;
+						}
+						break;
+					default:
+						close;
+				}
+				break;
+				
+			case 2: // Ataque & Crítico
+				next;
+				mes "" + .npc$ + "";
+				mes " ";
+				mes "^ff0000Escolha o tipo de poder ofensivo:^000000";
+				switch(select("^339966[»]^000000 Ataque (ATK):^339966[»]^000000 Ataque Mágico (MATK):^339966[»]^000000 Crítico:^ff0000[»] Voltar^000000")) {
+					case 1: // ATK
+						switch(select("- ATK+1:- ATK+2:- ATK+3:- ATK+1%:- ATK+4%:- ATK+5%:- ATK+6%:- ATK+7%:^ff0000Voltar^000000")) {
+							case 1: set .@enchant_id,4819; break;
+							case 2: set .@enchant_id,4766; break;
+							case 3: set .@enchant_id,4767; break;
+							case 4: set .@enchant_id,4882; break;
+							case 5: set .@enchant_id,4894; break;
+							case 6: set .@enchant_id,4895; break;
+							case 7: set .@enchant_id,4904; break;
+							case 8: set .@enchant_id,4905; break;
+							default: close;
+						}
+						break;
+					case 2: // MATK
+						switch(select("- MATK+1%:- MATK+2%:- MATK+3%:^ff0000Voltar^000000")) {
+							case 1: set .@enchant_id,4760; break;
+							case 2: set .@enchant_id,4761; break;
+							case 3: set .@enchant_id,4806; break;
+							default: close;
+						}
+						break;
+					case 3: // Crítico
+						switch(select("- Crítico+1:- Crítico+2:- Crítico+4:- Crítico+5:- Crítico+7:^ff0000Voltar^000000")) {
+							case 1: set .@enchant_id,4926; break;
+							case 2: set .@enchant_id,4939; break;
+							case 3: set .@enchant_id,4941; break;
+							case 4: set .@enchant_id,4764; break;
+							case 5: set .@enchant_id,4765; break;
+							default: close;
+						}
+						break;
+					default:
+						close;
+				}
+				break;
+				
+			case 3: // Defesa & HP/SP
+				mes "[Encantador de Armas]";
+				mes "Escolha o tipo de proteção:";
+				switch(select("Defesa (DEF):Defesa Mágica (MDEF):HP/SP:Esquiva:Voltar")) {
+					case 1: // DEF
+						switch(select("DEF+3:DEF+6:DEF+9:DEF+12:DEF+15:DEF+18:DEF+21:Voltar")) {
+							case 1: set .@enchant_id,4791; break;
+							case 2: set .@enchant_id,4792; break;
+							case 3: set .@enchant_id,4793; break;
+							case 4: set .@enchant_id,4794; break;
+							case 5: set .@enchant_id,4893; break;
+							case 6: set .@enchant_id,4902; break;
+							case 7: set .@enchant_id,4903; break;
+							default: close;
+						}
+						break;
+					case 2: // MDEF
+						switch(select("MDEF+1:MDEF+2:MDEF+3:MDEF+4:MDEF+5:MDEF+6:MDEF+8:MDEF+10:Voltar")) {
+							case 1: set .@enchant_id,4890; break;
+							case 2: set .@enchant_id,4786; break;
+							case 3: set .@enchant_id,4891; break;
+							case 4: set .@enchant_id,4787; break;
+							case 5: set .@enchant_id,4892; break;
+							case 6: set .@enchant_id,4788; break;
+							case 7: set .@enchant_id,4789; break;
+							case 8: set .@enchant_id,4790; break;
+							default: close;
+						}
+						break;
+					case 3: // HP/SP
+						switch(select("HP+100:HP+200:HP+300:HP+400:HP+500:SP+25:SP+50:SP+75:SP+100:SP+150:Voltar")) {
+							case 1: set .@enchant_id,4795; break;
+							case 2: set .@enchant_id,4796; break;
+							case 3: set .@enchant_id,4797; break;
+							case 4: set .@enchant_id,4798; break;
+							case 5: set .@enchant_id,4799; break;
+							case 6: set .@enchant_id,4870; break;
+							case 7: set .@enchant_id,4800; break;
+							case 8: set .@enchant_id,4871; break;
+							case 9: set .@enchant_id,4801; break;
+							case 10: set .@enchant_id,4802; break;
+							default: close;
+						}
+						break;
+					case 4: // Esquiva
+						switch(select("Esquiva+1:Esquiva+3:Esquiva+6:Esquiva+12:Voltar")) {
+							case 1: set .@enchant_id,4859; break;
+							case 2: set .@enchant_id,4860; break;
+							case 3: set .@enchant_id,4762; break;
+							case 4: set .@enchant_id,4763; break;
+							default: close;
+						}
+						break;
+					default:
+						close;
+				}
+				break;
+				
+			case 4: // Habilidades Especiais
+				mes "[Encantador de Armas]";
+				mes "Escolha a habilidade especial:";
+				switch(select("Espírito Lutador:Magia:Afiado:Arqueiro Expert:Fatal:Redução Delay:Vel. Ataque:Voltar")) {
+					case 1: // Espírito Lutador
+						switch(select("Esp. Lutador Lv1:Esp. Lutador Lv2:Esp. Lutador Lv3:Esp. Lutador Lv4:Esp. Lutador Lv5:Esp. Lutador Lv6:Esp. Lutador Lv7:Esp. Lutador Lv8:Esp. Lutador Lv9:Esp. Lutador Lv10:Voltar")) {
+							case 1: set .@enchant_id,4811; break;
+							case 2: set .@enchant_id,4810; break;
+							case 3: set .@enchant_id,4809; break;
+							case 4: set .@enchant_id,4808; break;
+							case 5: set .@enchant_id,4820; break;
+							case 6: set .@enchant_id,4821; break;
+							case 7: set .@enchant_id,4822; break;
+							case 8: set .@enchant_id,4823; break;
+							case 9: set .@enchant_id,4824; break;
+							case 10: set .@enchant_id,4825; break;
+							default: close;
+						}
+						break;
+					case 2: // Magia
+						switch(select("Magia Lv1:Magia Lv2:Magia Lv3:Magia Lv4:Magia Lv5:Magia Lv6:Magia Lv7:Magia Lv8:Magia Lv9:Magia Lv10:Voltar")) {
+							case 1: set .@enchant_id,4815; break;
+							case 2: set .@enchant_id,4814; break;
+							case 3: set .@enchant_id,4813; break;
+							case 4: set .@enchant_id,4812; break;
+							case 5: set .@enchant_id,4826; break;
+							case 6: set .@enchant_id,4827; break;
+							case 7: set .@enchant_id,4828; break;
+							case 8: set .@enchant_id,4829; break;
+							case 9: set .@enchant_id,4830; break;
+							case 10: set .@enchant_id,4831; break;
+							default: close;
+						}
+						break;
+					case 3: // Afiado
+						switch(select("Afiado Lv1:Afiado Lv2:Afiado Lv3:Afiado Lv4:Afiado Lv5:Voltar")) {
+							case 1: set .@enchant_id,4818; break;
+							case 2: set .@enchant_id,4817; break;
+							case 3: set .@enchant_id,4816; break;
+							case 4: set .@enchant_id,4843; break;
+							case 5: set .@enchant_id,4844; break;
+							default: close;
+						}
+						break;
+					case 4: // Arqueiro Expert
+						switch(select("Arq. Expert Lv1:Arq. Expert Lv2:Arq. Expert Lv3:Arq. Expert Lv4:Arq. Expert Lv5:Arq. Expert Lv6:Arq. Expert Lv7:Arq. Expert Lv8:Arq. Expert Lv9:Arq. Expert Lv10:Voltar")) {
+							case 1: set .@enchant_id,4832; break;
+							case 2: set .@enchant_id,4833; break;
+							case 3: set .@enchant_id,4834; break;
+							case 4: set .@enchant_id,4835; break;
+							case 5: set .@enchant_id,4836; break;
+							case 6: set .@enchant_id,4837; break;
+							case 7: set .@enchant_id,4838; break;
+							case 8: set .@enchant_id,4839; break;
+							case 9: set .@enchant_id,4840; break;
+							case 10: set .@enchant_id,4841; break;
+							default: close;
+						}
+						break;
+					case 5: // Fatal
+						switch(select("Fatal Lv1:Fatal Lv2:Fatal Lv3:Fatal Lv4:Voltar")) {
+							case 1: set .@enchant_id,4863; break;
+							case 2: set .@enchant_id,4864; break;
+							case 3: set .@enchant_id,4865; break;
+							case 4: set .@enchant_id,4866; break;
+							default: close;
+						}
+						break;
+					case 6: // Redução Delay
+						switch(select("Red. Delay Lv1:Red. Delay Lv2:Red. Delay Lv3:Red. Delay Lv4:Voltar")) {
+							case 1: set .@enchant_id,4869; break;
+							case 2: set .@enchant_id,4872; break;
+							case 3: set .@enchant_id,4873; break;
+							case 4: set .@enchant_id,4881; break;
+							default: close;
+						}
+						break;
+					case 7: // Velocidade de Ataque
+						switch(select("Vel. Ataque Lv1:Vel. Ataque Lv2:Voltar")) {
+							case 1: set .@enchant_id,4807; break;
+							case 2: set .@enchant_id,4842; break;
+							default: close;
+						}
+						break;
+					default:
+						close;
+				}
+				break;
+				
+			case 5: // Encantos OGH
+				mes "[Encantador de Armas]";
+				mes "Escolha um encanto especial de Old Glast Heim:";
+				switch(select("Poder do Urso:Olho de Falcão:Dia de Sorte:Músculo Bobo:Magia Fugitiva:Velocidade da Luz:Voltar")) {
+					case 1: set .@enchant_id,4875; break; // Poder do Urso
+					case 2: set .@enchant_id,4879; break; // Olho de Falcão
+					case 3: set .@enchant_id,4880; break; // Dia de Sorte
+					case 4: set .@enchant_id,4878; break; // Músculo Bobo
+					case 5: set .@enchant_id,4876; break; // Magia Fugitiva
+					case 6: set .@enchant_id,4877; break; // Velocidade da Luz
+					default: close;
+				}
+				break;
+				
+			case 6: // Cancelar
+				mes "[Encantador de Armas]";
+				mes "Volte sempre que precisar!";
+				close;
+		}
+	}
+	
+	// Sistema de encantamento aleatório
+	if(.@random_mode && .@enchant_id == 0) {
+		// Array com todos os encantamentos disponíveis organizados por raridade
+		
+		// Encantamentos comuns (70% chance)
+		setarray .@common_enchants[0], 
+			4700,4701,4702,4703,4704, // STR +1 a +5
+			4710,4711,4712,4713,4714, // INT +1 a +5
+			4720,4721,4722,4723,4724, // DEX +1 a +5
+			4730,4731,4732,4733,4734, // AGI +1 a +5
+			4740,4741,4742,4743,4744, // VIT +1 a +5
+			4750,4751,4752,4753,4754, // LUK +1 a +5
+			4795,4796,4797, // HP +100/200/300
+			4800,4801,4870,4871; // SP +50/100/25/75
+		
+		// Encantamentos raros (25% chance)
+		setarray .@rare_enchants[0],
+			4705,4706,4707,4708,4709, // STR +6 a +10
+			4715,4716,4717,4718,4719, // INT +6 a +10
+			4725,4726,4727,4728,4729, // DEX +6 a +10
+			4735,4736,4737,4738,4739, // AGI +6 a +10
+			4745,4746,4747,4748,4749, // VIT +6 a +10
+			4755,4756,4757,4758,4759, // LUK +6 a +10
+			4798,4799,4802, // HP +400/500, SP +150
+			4760,4761,4806, // MATK +1%/2%/3%
+			4819,4766,4767, // ATK +1/2/3
+			4859,4860,4762,4763, // Esquiva
+			4791,4792,4793,4794; // DEF
+		
+		// Encantamentos épicos (5% chance)
+		setarray .@epic_enchants[0],
+			4882,4894,4895,4904,4905, // ATK %
+			4926,4939,4941,4764,4765, // Crítico
+			4811,4810,4809,4808, // Espírito Lutador 1-4
+			4815,4814,4813,4812, // Magia 1-4
+			4818,4817,4816, // Afiado 1-3
+			4832,4833,4834,4835, // Arqueiro Expert 1-4
+			4863,4864,4865,4866, // Fatal
+			4869,4872,4873,4881, // Redução Delay
+			4807,4842, // Vel Ataque
+			4875,4879,4880,4878,4876,4877; // Encantos OGH
+		
+		set .@rand, rand(1,100);
+		
+		if(.@rand <= 70) {
+			// Encantamento comum
+			set .@enchant_id, .@common_enchants[rand(getarraysize(.@common_enchants))];
+			set .@rarity_msg$, "^00AA00Comum^000000";
+		} else if(.@rand <= 95) {
+			// Encantamento raro
+			set .@enchant_id, .@rare_enchants[rand(getarraysize(.@rare_enchants))];
+			set .@rarity_msg$, "^0055FFRaro^000000";
+		} else {
+			// Encantamento épico
+			set .@enchant_id, .@epic_enchants[rand(getarraysize(.@epic_enchants))];
+			set .@rarity_msg$, "^AA00AAÉpico^000000";
+		}
+		
+		next;
+		mes "[Encantador de Armas]";
+		mes "^FF0000*Energias místicas se concentram*^000000";
+		mes " ";
+		mes "Raridade: " + .@rarity_msg$;
+		mes "Encantamento obtido: ^0055FF" + getitemname(.@enchant_id) + "^000000";
+		next;
+	}
+	
+	// Confirmar encantamento (apenas para GMs no modo manual)
+	if(.@admin_menu) {
+		next;
+		mes "[Encantador de Armas]";
+		mes "^0055FF[Modo GM]^000000";
+		mes "Encantamento escolhido: ^0055FF" + getitemname(.@enchant_id) + "^000000";
+		mes " ";
+		mes "Confirma o encantamento?";
+		if(select("Sim, encantar!:Não, cancelar") == 2) {
+			mes "[Encantador de Armas]";
+			mes "Encantamento cancelado.";
+			close;
+		}
+	}
+	
+	// Processar encantamento
+	set .@weapon_id, getequipid(EQI_HAND_R);
+	set .@refine_level, getequiprefinerycnt(EQI_HAND_R);
+	setarray .@cards[0], getequipcardid(EQI_HAND_R,0), getequipcardid(EQI_HAND_R,1), getequipcardid(EQI_HAND_R,2), getequipcardid(EQI_HAND_R,3);
+	
+	// Verificar se pode encantar (slot disponível ou substituição)
+	if(.@cards[3] != 0) {
+		// Já tem encantamento no último slot, vai substituir
+		set .@cards[3], .@enchant_id;
+		set .@replaced, 1;
+	} else if(.@cards[2] != 0) {
+		// Slot 3 vazio, slot 2 ocupado
+		set .@cards[3], .@enchant_id;
+	} else if(.@cards[1] != 0) {
+		// Slots 3 e 2 vazios, slot 1 ocupado
+		set .@cards[3], .@enchant_id;
+	} else if(.@cards[0] != 0) {
+		// Apenas slot 0 ocupado
+		set .@cards[3], .@enchant_id;
+	} else {
+		// Todos os slots vazios
+		set .@cards[3], .@enchant_id;
+	}
+	
+	// Consumir ticket (apenas para jogadores normais)
+	if(.@gm_level < 60) {
+		delitem 7185, 1;
+	}
+	
+	// Remover arma atual e criar nova com encantamento
+	delequip EQI_HAND_R;
+	getitem2 .@weapon_id, 1, 1, .@refine_level, 0, .@cards[0], .@cards[1], .@cards[2], .@cards[3];
+	
+	// Efeito visual
+	specialeffect2 EF_REPAIRWEAPON;
+	
+	mes "[Encantador de Armas]";
+	if(.@replaced) {
+		mes "Encantamento anterior substituído!";
+	} else {
+		mes "Encantamento aplicado com sucesso!";
+	}
+	
+	if(.@random_mode && .@gm_level < 60) {
+		mes "Você obteve um encantamento " + .@rarity_msg$ + "!";
+	}
+	
+	mes "Sua arma agora possui: ^0055FF" + getitemname(.@enchant_id) + "^000000";
+	
+	if(.@gm_level >= 60 && .@random_mode) {
+		mes "^777777(Encantamento aleatório - Raridade: " + .@rarity_msg$ + ")^000000";
+	}
+	
+	close;
+	
+OnInit:
+
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 77;	
+		setunittitle getnpcid(0), "[Rune-Midgard]";
+
+		while(1) {
+		showscript "[ Encantar Arma ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}

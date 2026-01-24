@@ -1,0 +1,262 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                    EVENTO SORTUDO
+// ===================== Descrição: =============================
+
+1@herbs,313,50,3	script	Evento Sortudo	676,{
+
+	set .@GMLevel,60;	// Nível GM necessário para acessar o painel admin
+	set .@n$,"^FF1493[Evento Sortudo]^000000";
+
+	// Painel Administrativo
+	if (getgmlevel()>=.@GMLevel) {
+		mes .@n$;
+		mes "Painel Administrativo";
+		mes "Status: " + ($portaosortudo ? "^00FF00ATIVO^000000" : "^FF0000INATIVO^000000");
+		next;
+		switch(select("^339966[»]^000000 Iniciar Evento:^339966[»]^000000 Parar Evento:^339966[»]^000000 Menu Jogador")) {
+		case 1:
+			mes .@n$;
+			if ($portaosortudo) {
+				mes "O evento já está ativo!";
+				close;
+			}
+			mes "Deseja iniciar o Evento Sortudo manualmente?";
+			if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+			
+			donpcevent "CoreSortudo::OnAdminStart";
+			next;
+			mes .@n$;
+			mes "Evento Sortudo foi iniciado manualmente!";
+			close;
+		case 2:
+			mes .@n$;
+			if (!$portaosortudo) {
+				mes "O evento não está ativo!";
+				close;
+			}
+			mes "Deseja parar o evento?";
+			mes "Isso fechará a entrada imediatamente.";
+			if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+			
+			donpcevent "CoreSortudo::OnAdminStop";
+			next;
+			mes .@n$;
+			mes "Evento parado com sucesso!";
+			close;
+		case 3:
+			// Continua para o menu normal do jogador
+			break;
+		}
+	}
+
+	// Menu normal para jogadores
+	setarray .@sortudoid[1],607,14232;
+	setarray .@sortudopontos[1],15,4;
+	setarray .@qsortudoid[1],1,1;
+
+	mes .@n$;
+	mes (gettime(3)>= 6&&gettime(3)<= 12?"Bom-dia":(gettime(3)>=13&&gettime(3)<=18?"Boa-tarde":"Boa-noite"))+", ^ffa500"+strcharinfo(0)+"^000000!";
+	mes "Você possui ^ff0000"+pontosevento+"^000000 pontos de evento.";
+	mes " ";
+	mes " ";
+	mes "^ff0000O que deseja fazer?^000000";
+		switch(select("^339966[»]^000000 Ir para o evento:^339966[»]^000000 Ver horários:^ff0000[»] Sair^000000")) {
+		case 01:
+		if($portaosortudo == 0){ 
+		next; 
+		mes .@n$;
+		mes "^ff0000O evento está fechado no momento. Por favor, volte mais tarde!^000000";
+		close;
+		}
+		percentheal 100,100;
+		set @rand_sortudo,rand(1,8);
+			if(@rand_sortudo == 1){ warp "quiz_2-2",354,35; }
+			if(@rand_sortudo == 2){ warp "quiz_2-2",319,35; }
+			if(@rand_sortudo == 3){ warp "quiz_2-2",343,35; }
+			if(@rand_sortudo == 4){ warp "quiz_2-2",330,35; }
+			if(@rand_sortudo == 5){ warp "quiz_2-2",37,52; }
+			if(@rand_sortudo == 6){ warp "quiz_2-2",49,52; }
+			if(@rand_sortudo == 7){ warp "quiz_2-2",61,61; }
+			if(@rand_sortudo == 8){ warp "quiz_2-2",73,61; }
+			announce "[Sortudo]: O jogador "+strcharinfo(0)+" entrou no Evento Sortudo!",bc_all;
+			close;
+
+		case 02:
+		next;
+		mes .@n$;
+		mes "O evento acontece às:";
+		mes "• ^ffa50004H00min^000000";
+		mes "• ^ffa50005H00min^000000";
+		mes "• ^ffa50006H00min^000000";
+		mes "• ^ffa50007H00min^000000";
+		mes "• ^ffa50008H00min^000000";
+		mes "Horário do servidor.";
+		close;
+
+		case 03:
+		close;
+	}
+	
+OnInit:
+
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 1009;	
+		setunittitle getnpcid(0), "[Rune-Midgard]";
+
+		while(1) {
+		showscript "[ Evento Sortudo ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+-	script	CoreSortudo	-1,{
+
+OnInit:
+	set $portaosortudo,0;
+//	disablenpc "Sortudo"; // REMOVIDO - NPC ficará sempre visível
+	end;
+
+// Labels administrativos
+OnAdminStart:
+	if ($portaosortudo) end; // Evita iniciar se já estiver ativo
+	set $portaosortudo, 1;
+//	enablenpc "Sortudo"; // REMOVIDO - NPC já está sempre visível
+	killmonsterall "quiz_2-2";
+	pvpoff "quiz_2-2"; // Garante que PvP está desligado no início
+	announce "[Sortudo]: O Evento Sortudo está prestes a começar! Para participar, digite: @eventos e fale com o npc... Vocês têm 5 minutos!!", bc_all | bc_yellow;
+	goto EventSequence;
+
+OnAdminStop:
+	set $portaosortudo, 0;
+//	disablenpc "Sortudo"; // REMOVIDO - NPC continuará visível
+	pvpoff "quiz_2-2";
+	killmonsterall "quiz_2-2";
+	killmonster "quiz_2-2","Premio::OnPremioMorte";
+	announce "[Sortudo]: Um ADM parou o Evento Sortudo. Até a próxima!!", bc_all | bc_yellow;
+	end;
+
+// Horários automáticos (mantidos como estavam)
+OnClock0005:
+OnClock0405:
+OnClock0605:
+OnClock0805:
+OnClock1005:
+OnClock1205:
+OnClock1405:
+OnClock1605:
+OnClock1805:
+OnClock2005:
+OnClock2205:
+	set $portaosortudo, 1;
+//	enablenpc "Sortudo"; // REMOVIDO - NPC já está sempre visível
+	killmonsterall "quiz_2-2";
+	pvpoff "quiz_2-2"; // Garante que PvP está desligado no início
+	announce "[Sortudo]: O Evento Sortudo está prestes a começar! Para participar, digite: @eventos e fale com o npc... Vocês têm 5 minutos!!", bc_all | bc_yellow;
+
+EventSequence:
+	sleep 60000; // 1 minuto
+	announce "[Sortudo]: A entrada para o Sortudo fechará em 4 minutos!", bc_all | bc_yellow;
+	sleep 60000; // 1 minuto
+	announce "[Sortudo]: A entrada para o Sortudo fechará em 3 minutos!", bc_all | bc_yellow;
+	sleep 60000; // 1 minuto
+	announce "[Sortudo]: A entrada para o Sortudo fechará em 2 minutos!", bc_all | bc_yellow;
+	sleep 60000; // 1 minuto
+	announce "[Sortudo]: A entrada para o Sortudo fechará em 1 minuto!", bc_all | bc_yellow;
+	sleep 60000; // 1 minuto
+	set $portaosortudo, 0;
+//	disablenpc "Sortudo"; // REMOVIDO - NPC continuará visível
+	announce "[Sortudo]: A entrada para o Sortudo foi fechada. Tente novamente na próxima!!", bc_all | bc_yellow;
+	sleep 20000;
+	// Corrigindo o anúncio no mapa - usando mapannounce
+	mapannounce "quiz_2-2", "[Sortudo]: Sejam bem-vindos ao Sortudo!", bc_yellow;
+	sleep 5000;
+	mapannounce "quiz_2-2", "[Sortudo]: O evento começará em breve... Preparem-se!!", bc_yellow;
+	sleep 22000;
+	pvpon "quiz_2-2";
+	mapannounce "quiz_2-2", "[Sortudo]: O evento começou... Boa Sorte!!!", bc_yellow;
+	sleep 120000; // 2 minutos de PvP
+	pvpoff "quiz_2-2";
+	mapannounce "quiz_2-2", "[Sortudo]: O Evento Sortudo terminou!! Os baús aparecerão em breve... Até a próxima!!", bc_yellow;
+	sleep 10000;
+	
+	// Spawna os prêmios (nome alterado)
+	monster "quiz_2-2",354,34,"Prêmio Sortudo",1327,1,"Premio::OnPremioMorte";
+	monster "quiz_2-2",354,57,"Prêmio Sortudo",1327,1,"Premio::OnPremioMorte";
+	monster "quiz_2-2",342,34,"Prêmio Sortudo",1327,1,"Premio::OnPremioMorte";
+	monster "quiz_2-2",342,57,"Prêmio Sortudo",1327,1,"Premio::OnPremioMorte";
+	monster "quiz_2-2",330,34,"Prêmio Sortudo",1327,1,"Premio::OnPremioMorte";
+	monster "quiz_2-2",330,57,"Prêmio Sortudo",1327,1,"Premio::OnPremioMorte";
+	monster "quiz_2-2",318,34,"Prêmio Sortudo",1327,1,"Premio::OnPremioMorte";
+	monster "quiz_2-2",318,57,"Prêmio Sortudo",1327,1,"Premio::OnPremioMorte";
+	monster "quiz_2-2",37,52,"Prêmio Sortudo",1327,1,"Premio::OnPremioMorte";
+	monster "quiz_2-2",37,73,"Prêmio Sortudo",1327,1,"Premio::OnPremioMorte";
+	monster "quiz_2-2",49,52,"Prêmio Sortudo",1327,1,"Premio::OnPremioMorte";
+	monster "quiz_2-2",49,73,"Prêmio Sortudo",1327,1,"Premio::OnPremioMorte";
+	monster "quiz_2-2",61,52,"Prêmio Sortudo",1327,1,"Premio::OnPremioMorte";
+	monster "quiz_2-2",61,73,"Prêmio Sortudo",1327,1,"Premio::OnPremioMorte";
+	monster "quiz_2-2",73,52,"Prêmio Sortudo",1327,1,"Premio::OnPremioMorte";
+	monster "quiz_2-2",73,73,"Prêmio Sortudo",1327,1,"Premio::OnPremioMorte";
+	
+	// Timer para remover os prêmios após 5 minutos (300000ms)
+	sleep 300000;
+	killmonster "quiz_2-2","Premio::OnPremioMorte";
+	mapannounce "quiz_2-2", "[Sortudo]: Os prêmios do evento desapareceram! Tente novamente na próxima.", bc_yellow;
+	end;
+}
+
+-	script	Premio	-1,{
+OnPremioMorte:
+	set @premio_sortudo, rand(1,4);
+	if(@premio_sortudo == 1){ 
+		set Zeny,Zeny+10000000; 
+		set pontosevento,pontosevento+1;
+		warp "prontera",155,191; 
+		announce "[Sortudo]: O jogador "+strcharinfo(0)+" abriu um baú e ganhou 10.000.000 de zenys.", bc_all | bc_yellow;
+		end; 
+	}
+	if(@premio_sortudo == 2){ 
+		getitem 1001007,10; 
+		set pontosevento,pontosevento+1;
+		warp "prontera",155,191; 
+		announce "[Sortudo]: O jogador "+strcharinfo(0)+" abriu um baú e ganhou 10 Moedas de Evento.", bc_all | bc_yellow;
+		end; 
+	}
+	if(@premio_sortudo == 3){ 
+		warp "prontera",155,191; 
+		announce "[Sortudo]: O jogador "+strcharinfo(0)+" abriu um baú e foi chutado para prontera.",0,0xFF0000; 
+		end; 
+	}
+	if(@premio_sortudo == 4){
+		getitem 7621,5; 
+		set pontosevento,pontosevento+1;
+		warp "prontera",155,191; 
+		announce "[Sortudo]: O jogador "+strcharinfo(0)+" abriu um baú e ganhou 5 Amuletos de Ziegfried.", bc_all | bc_yellow;
+		end;
+	}
+	end;
+}
+
+							// Mapflags corrigidos
+quiz_2-2	mapflag	noloot
+quiz_2-2	mapflag	nomemo
+quiz_2-2	mapflag	nowarp
+quiz_2-2	mapflag	nowarpto
+quiz_2-2	mapflag	noicewall
+quiz_2-2	mapflag	nosave	SavePoint
+quiz_2-2	mapflag	noreturn
+quiz_2-2	mapflag	noteleport
+quiz_2-2	mapflag	nobranch
+quiz_2-2	mapflag	nocommand	60
+quiz_2-2	mapflag	pvp_noparty
+quiz_2-2	mapflag	pvp_noguild
+quiz_2-2	mapflag	nopenalty	// Evita perda de EXP ao morrer
+
+new_evt,161,182,5	duplicate(Evento Sortudo)	Evento Sortudo#new	676

@@ -1,0 +1,140 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  NPC - Descanso
+//===============================================================
+//= Desenvolvedor rAthena 2023
+//===== Current Version: =====================================
+//= 1.0
+//===== Description: =========================================
+//= NPC que alterna entre sprites de dormindo/acordado
+//= Fala frases aleatÃ³rias e teleporta para Ã¡rea de descanso
+//=========================================================
+
+prontera,143,176,5	script	Guardião do Descanso	687,{
+	// Ao clicar no NPC - muda sprite imediatamente
+	setnpcdisplay "Guardião do Descanso", 688;
+	
+	mes "^339966[Guardião do Descanso]^000000";
+	mes "Hum... que sono! Quem foi que me acordou?";
+	mes "Ah... é você, ^FFA500"+strcharinfo(0)+"^000000.";
+	next;
+	mes "^339966[Guardião do Descanso]^000000";
+	mes "Eu sou o Guardião desta Área... zZzZzZ...";
+	mes "Você deseja que eu te leve para a ^ff0000Área de Descanso^000000?";
+	next;
+	
+	// Menu de opÃ§Ãµes
+	switch(select("^3CB371[>]^000000 Sim, me leve para lá.:^ff0000[>] Não, obrigado!^000000")) {
+		case 1:
+			mes "^339966[Guardião do Descanso]^000000";
+			mes "Muito bem!... Tenha um bom descanso!";
+			close2;
+			// Teleportar jogador (altere conforme seu mapa de descanso)
+			specialeffect2 1062;
+			sleep2 800;
+			warp "1@pop3", 0, 0; // Substitua pelo seu mapa de descanso
+			// Voltar ao sprite dormindo
+			setnpcdisplay "Guardião do Descanso", 687;
+			end;
+		case 2:
+			mes "^339966[Guardião do Descanso]^000000";
+			mes "Tudo bem... *bocejo*...";
+			mes "Vou voltar a dormir!";
+			mes "zZzZzZ...zZzZzZzZz....";
+			close2;
+			// Voltar ao sprite dormindo
+			sleep2 500;
+			setnpcdisplay "Guardião do Descanso", 687;
+			end;
+	}
+	
+OnDialogClose:
+	// Volta ao sprite dormindo se o diálogo for fechado sem escolher opção
+	sleep2 500;
+	setnpcdisplay "Guardião do Descanso", 687;
+	end;
+	
+OnInit:
+
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 48;	
+	setunittitle getnpcid(0), "[Arena do Sono]";
+	end;
+
+	// Inicia o timer para mensagens aleatórias
+	initnpctimer;
+	end;
+
+OnTimer10000:
+OnTimer20000:
+OnTimer30000:
+OnTimer45000:
+	// Array com mensagens aleatórias
+	setarray .@mensagens$[0],
+		"zZzZzzzz...zZzZzZzZzzz",
+		"Que soninho bom!",
+		"*ronco*",
+		"Hmmm... sonhando com doces...",
+		"zZzZz... não me acordem...",
+		"*suspiro* que paz...",
+		"Dormindo como um anjo...",
+		"zZzZzzzz.... só mais cinco minutinhos...",
+		"Sonhar é tão bom... zZzZz...",
+		"Estou viajando nas nuvens... zZzZz...",
+		"Mais cinco minutinhos, por favor...",
+		"*ronc roncc*...",
+		"Queria um travesseiro mais fofo... zZzZz...",
+		"Deixa eu sonhar mais um pouco...",
+		"Hmmm... um sonho com muitos doces...",
+		"*bocejo*... que preguiça...",
+		"É tão bom descansar assim...",
+		"Estou em paz... zZzZz...",
+		"Não quero acordar tão cedo... zZzZz...",
+		"Hmmm... sonhando com aventuras...",
+		"*ronc*... zZzZz...",
+		"Esse lugar é tão calmo... zZzZz...",
+		"Me acorda só quando tiver comida...",
+		"Zzz... nem percebi você aí...",
+		"Estava sonhando com porings... zZzZz...",
+		"Zzz... sonhando com uma soneca infinita...",
+		"Hmmm... cama, cobertor e travesseiro... zZzZz...",
+		"Espero que o dia passe bem devagar... zZzZz...";
+
+		
+		
+	
+	// Escolhe uma mensagem aleatórias
+	.@rand = rand(getarraysize(.@mensagens$));
+	
+	// Exibe a mensagem acima do NPC
+	npctalk .@mensagens$[.@rand];
+	
+	// Reinicia o timer com intervalo  aleatório entre 15-30 segundos
+	stopnpctimer;
+	sleep rand(10000, 20000);
+	initnpctimer;
+	end;
+}
+
+// FunÃ§Ã£o para resetar o sprite caso necessÃ¡rio
+-	script	ResetSpriteDormindo	-1,{
+OnResetSprite:
+	setnpcdisplay "Guardião do Descanso", 687;
+	//announce "Sprite do NPC resetado para dormindo.", bc_self;
+	end;
+}
+
+// Comando GM para resetar o sprite (opcional)
+-	script	atcommand_resetsprite	-1,{
+OnInit:
+	bindatcmd "resetsprite", "ResetSpriteDormindo::OnResetSprite", 80, 80;
+	end;
+}
+
+//1@herbs,266,41,5	duplicate(Guardião do Descanso)	Guardião do Descanso#2	687

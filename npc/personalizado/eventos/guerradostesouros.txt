@@ -1,0 +1,904 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                 GUERRA DOS TESOUROS COM ARMADILHAS
+// ===================== Descrição: =============================
+// Evento GvG onde parties de 5 membros competem por um Emperium
+// A party vencedora ganha acesso a 5 baús com itens raros
+// + Baús aleatórios spawnam durante a batalha para mais disputa
+// + Sistema de armadilhas para tornar o evento mais competitivo
+// ===================== VERSÃO CORRIGIDA =======================
+// Mapa: arena_wot (Emperium em 50,50)
+//===============================================================
+
+1@herbs,323,38,1	script	#evtwotvip	111,{
+
+OnInit:
+
+		while(1) {
+		showscript "[ Guerra dos Tesouros ]", getnpcid(0);
+		sleep 100;
+	}
+}
+
+new_evt,167,159,5	script	#evtwot	111,{
+
+OnInit:
+
+		while(1) {
+		showscript "[ Guerra dos Tesouros ]", getnpcid(0);
+		sleep 100;
+	}
+}
+
+1@herbs,323,38,3	script	Guerra dos Tesouros	1846,{
+
+	set .@GMLevel,60;	// Nível GM necessário para acessar o painel admin
+	set .@n$,"^FF1493[Guerra dos Tesouros]^000000";
+
+	// Painel Administrativo
+	if (getgmlevel()>=.@GMLevel) {
+		mes .@n$;
+		mes "Painel Administrativo";
+		mes "Status: " + ($guerra_ativa ? "^00FF00ATIVO^000000" : "^FF0000INATIVO^000000");
+		mes "Parties registradas: ^0000FF" + $parties_total + "/" + $max_parties + "^000000";
+		next;
+		switch(select("^339966[»]^000000 Iniciar Evento:^339966[»]^000000 Parar Evento:^339966[»]^000000 Menu Jogador:^339966[»]^000000 Ver Parties:^FF0000[»]^000000 Forçar Batalha")) {
+		case 1:
+			mes .@n$;
+			if ($guerra_ativa) {
+				mes "O evento já está ativo!";
+				close;
+			}
+			mes "Deseja iniciar a Guerra dos Tesouros manualmente?";
+			if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+			
+			donpcevent "CoreGuerra::OnAdminStart";
+			next;
+			mes .@n$;
+			mes "Guerra dos Tesouros foi iniciada manualmente!";
+			close;
+		case 2:
+			mes .@n$;
+			if (!$guerra_ativa) {
+				mes "O evento não está ativo!";
+				close;
+			}
+			mes "Deseja parar o evento?";
+			mes "Isso fechará a entrada imediatamente.";
+			if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+			
+			donpcevent "CoreGuerra::OnAdminStop";
+			next;
+			mes .@n$;
+			mes "Evento parado com sucesso!";
+			close;
+		case 3:
+			// Continua para o menu normal do jogador
+			break;
+		case 4:
+			mes .@n$;
+			mes "Parties Registradas:";
+			for(set .@i, 0; .@i < $parties_total; set .@i, .@i + 1) {
+				mes "• " + getpartyname($parties_registradas[.@i]);
+			}
+			if($parties_total == 0) mes "Nenhuma party registrada.";
+			close;
+		case 5:
+			mes .@n$;
+			mes "Deseja forçar o início da batalha?";
+			mes "^FF0000ATENÇÃO: Isso pulará o tempo de registro!^000000";
+			if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+			
+			if($parties_total == 0) {
+				next;
+				mes .@n$;
+				mes "^FF0000Nenhuma party registrada!^000000";
+				close;
+			}
+			
+			donpcevent "CoreGuerra::OnForceBatalha";
+			next;
+			mes .@n$;
+			mes "Batalha iniciada à força!";
+			close;
+		}
+	}
+
+	// Menu normal para jogadores
+	mes .@n$;
+	mes (gettime(3)>= 6&&gettime(3)<= 12?"Bom-dia":(gettime(3)>=13&&gettime(3)<=18?"Boa-tarde":"Boa-noite"))+", ^ffa500"+strcharinfo(0)+"^000000!";
+	mes "Bem-vindo à Guerra dos Tesouros!";
+	if($guerra_ativa == 1) {
+		mes "^00FF00Status: REGISTRO ABERTO^000000";
+		mes "Parties registradas: ^0000FF" + $parties_total + "/" + $max_parties + "^000000";
+	} else if($guerra_ativa == 2) {
+		mes "^FFFF00Status: BATALHA EM ANDAMENTO^000000";
+	} else {
+		mes "^FF0000Status: FECHADO^000000";
+		mes "Próximo evento: ^0000FF20:00^000000";
+		mes "Você possui ^ff0000"+pontosevento+"^000000 pontos de evento.";
+	}
+	mes "^ff0000O que deseja fazer?^000000";
+	switch(select("^339966[»]^000000 Registrar Party:^339966[»]^000000 Ver Horários:^339966[»]^000000 Ir para Evento:^ff0000[»] Sair^000000")) {
+	case 1:
+		// Registrar Party
+		if($guerra_ativa != 1) {
+			next; 
+			mes .@n$;
+			mes "^ff0000O registro não está aberto no momento!^000000";
+			close;
+		}
+		
+		if(getcharid(1) == 0) {
+			next;
+			mes .@n$;
+			mes "^ff0000Você precisa estar em uma party para participar!^000000";
+			close;
+		}
+		
+		if(getpartyleader(getcharid(1),2) != getcharid(0)) {
+			next;
+			mes .@n$;
+			mes "^ff0000Apenas o líder da party pode registrar o grupo!^000000";
+			close;
+		}
+		
+		set .@party_id, getcharid(1);
+		getpartymember .@party_id, 1;
+		set .@members, $@partymembercount;
+		
+		if(.@members != 1) {
+			next;
+			mes .@n$;
+			mes "^ff0000Sua party deve ter exatamente 5 membros!^000000";
+			mes "Membros atuais: " + .@members + "/5";
+			close;
+		}
+		
+		// Verificar se party já está registrada
+		for(set .@i, 0; .@i < $parties_total; set .@i, .@i + 1) {
+			if($parties_registradas[.@i] == .@party_id) {
+				next;
+				mes .@n$;
+				mes "^ff0000Sua party já está registrada!^000000";
+				close;
+			}
+		}
+		
+		if($parties_total >= $max_parties) {
+			next;
+			mes .@n$;
+			mes "^ff0000Máximo de parties atingido!^000000";
+			mes "(" + $parties_total + "/" + $max_parties + ")";
+			close;
+		}
+		
+		next;
+		mes .@n$;
+		mes "^00FF00Party registrada com sucesso!^000000";
+		mes "Party: ^0000FF" + getpartyname(.@party_id) + "^000000";
+		mes "Parties registradas: " + ($parties_total + 1) + "/" + $max_parties;
+		mes "A batalha começará em breve!";
+		
+		set $parties_registradas[$parties_total], .@party_id;
+		set $parties_total, $parties_total + 1;
+		
+		announce "[Guerra dos Tesouros]: A party '" + getpartyname(.@party_id) + "' se registrou! (" + $parties_total + "/" + $max_parties + ")", bc_all | bc_yellow;
+		close;
+
+	case 2:
+		next;
+		mes .@n$;
+		mes "O evento acontece todos os dias às: ^ff000020H00min.^000000";
+		mes "Horário do servidor.";
+		close;
+
+	case 3:
+		// Ir para o evento
+		if($guerra_ativa == 0) {
+			next; 
+			mes .@n$;
+			mes "^ff0000Não há evento ativo no momento!^000000";
+			close;
+		}
+		if($guerra_ativa == 1) {
+			next; 
+			mes .@n$;
+			mes "^FF0000O evento está em fase de registro.^000000";
+			mes "Aguarde o início da batalha ou registre sua party!";
+			close;
+		}
+		// Verificar se o portal ainda está aberto (antes do Emperium ser quebrado)
+		if($guerra_ativa == 2 && $party_vencedora == 0) {
+			warp $mapa_evento$, 50, 50;
+			close;
+		} else {
+			next; 
+			mes .@n$;
+			mes "^ff0000O portal de entrada está fechado!^000000";
+			close;
+		}
+
+	case 4:
+		close;
+	}
+
+OnInit:
+
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 1009;	
+		setunittitle getnpcid(0), "[Rune-Midgard]";
+	end;
+}
+
+-	script	CoreGuerra	-1,{
+
+OnInit:
+	set $guerra_ativa, 0; // 0=Fechado, 1=Registro, 2=Batalha
+	set $parties_total, 0;
+	set $party_vencedora, 0;
+	set $baus_quebrados, 0;
+	set $spawn_baus_timer, 0;
+	set $emp_id, 0;
+	
+	// Definir configurações globais - MAPA CORRIGIDO
+	set $mapa_evento$, "arena_wot";
+	set $emp_x, 50;
+	set $emp_y, 50;
+	set $max_parties, 10;
+	set $min_parties, 2;
+	
+	// COORDENADAS SEGURAS PARA SPAWN DOS BAÚS ALEATÓRIOS (arena_wot)
+	// Mapa arena_wot tem dimensões aproximadas de 100x100
+	cleararray .spawn_areas_x[0], 0, 50;
+	cleararray .spawn_areas_y[0], 0, 50;
+	
+	// Área 1: Região Norte
+	setarray .spawn_areas_x[0], 30, 35, 40, 45, 50, 55, 60, 65, 70;
+	setarray .spawn_areas_y[0], 70, 70, 70, 70, 70, 70, 70, 70, 70;
+	
+	// Área 2: Região Sul
+	setarray .spawn_areas_x[9], 30, 35, 40, 45, 50, 55, 60, 65, 70;
+	setarray .spawn_areas_y[9], 30, 30, 30, 30, 30, 30, 30, 30, 30;
+	
+	// Área 3: Região Leste
+	setarray .spawn_areas_x[18], 75, 75, 75, 75, 75, 75, 75;
+	setarray .spawn_areas_y[18], 35, 40, 45, 50, 55, 60, 65;
+	
+	// Área 4: Região Oeste
+	setarray .spawn_areas_x[25], 25, 25, 25, 25, 25, 25, 25;
+	setarray .spawn_areas_y[25], 35, 40, 45, 50, 55, 60, 65;
+	
+	// Área 5: Pontos estratégicos adicionais
+	setarray .spawn_areas_x[32], 35, 35, 65, 65, 40, 60, 45, 55;
+	setarray .spawn_areas_y[32], 35, 65, 35, 65, 40, 40, 60, 60;
+	
+	set .total_spawn_points, 40;
+	
+	// Limpar monstros e desativar PvP no início
+	killmonsterall $mapa_evento$;
+	pvpoff $mapa_evento$;
+	
+	end;
+
+// Labels administrativos
+OnAdminStart:
+	if ($guerra_ativa) end;
+	set $guerra_ativa, 1;
+	set $parties_total, 0;
+	set $party_vencedora, 0;
+	set $baus_quebrados, 0;
+	set $spawn_baus_timer, 0;
+	set $emp_id, 0;
+	cleararray $parties_registradas[0], 0, 10;
+	
+	killmonsterall $mapa_evento$;
+	pvpoff $mapa_evento$;
+	
+	announce "[Guerra dos Tesouros]: O registro para a Guerra dos Tesouros está ABERTO! Use @eventos e fale com o NPC para registrar sua party! Vocês têm 5 minutos!!", bc_all | bc_yellow;
+	callsub EventTimer;
+	end;
+
+OnForceBatalha:
+	if($guerra_ativa != 1) end;
+	if($parties_total == 0) end;
+	callsub StartBattle;
+	end;
+
+OnAdminStop:
+	set $guerra_ativa, 0;
+	set $parties_total, 0;
+	set $party_vencedora, 0;
+	set $spawn_baus_timer, 0;
+	set $emp_id, 0;
+	
+	pvpoff $mapa_evento$;
+	killmonsterall $mapa_evento$;
+	mapwarp $mapa_evento$, "prontera", 155, 191;
+	
+	announce "[Guerra dos Tesouros]: Um ADM parou o evento. Não houve vencedores! Até a próxima!!", bc_all | bc_yellow;
+	end;
+
+// Horários automáticos
+OnClock2000:
+	set $guerra_ativa, 1;
+	set $parties_total, 0;
+	set $party_vencedora, 0;
+	set $baus_quebrados, 0;
+	set $spawn_baus_timer, 0;
+	set $emp_id, 0;
+	cleararray $parties_registradas[0], 0, 10;
+	
+	killmonsterall $mapa_evento$;
+	pvpoff $mapa_evento$;
+	
+	announce "[Guerra dos Tesouros]: O registro para a Guerra dos Tesouros está ABERTO! Use @eventos e fale com o NPC para registrar sua party! Vocês têm 5 minutos!!", bc_all | bc_yellow;
+	callsub EventTimer;
+	end;
+
+EventTimer:
+	sleep 60000;
+	if($guerra_ativa != 1) return;
+	announce "[Guerra dos Tesouros]: O registro de partys encerrará em 4 minutos!", bc_all | bc_yellow;
+	sleep 60000;
+	if($guerra_ativa != 1) return;
+	announce "[Guerra dos Tesouros]: O registro de partys encerrará em 3 minutos!", bc_all | bc_yellow;
+	sleep 60000;
+	if($guerra_ativa != 1) return;
+	announce "[Guerra dos Tesouros]: O registro de partys encerrará em 2 minutos!", bc_all | bc_yellow;
+	sleep 60000;
+	if($guerra_ativa != 1) return;
+	announce "[Guerra dos Tesouros]: O registro de partys encerrará em 1 minuto!", bc_all | bc_yellow;
+	sleep 60000;
+	if($guerra_ativa != 1) return;
+	
+	if($parties_total < $min_parties) {
+		set $guerra_ativa, 0;
+		set $emp_id, 0;
+		announce "[Guerra dos Tesouros]: Evento cancelado por falta de participantes! Mínimo: " + $min_parties + " partys.", bc_all | bc_yellow;
+		return;
+	}
+	
+	callsub StartBattle;
+	return;
+
+StartBattle:
+	set $guerra_ativa, 2;
+	announce "[Guerra dos Tesouros]: O registro de partys foi FECHADO! O evento começou!", bc_all | bc_yellow;
+	
+	set .@map$, $mapa_evento$;
+	for(set .@i, 0; .@i < $parties_total; set .@i, .@i + 1) {
+		set .@party_id, $parties_registradas[.@i];
+		getpartymember .@party_id, 1;
+		
+		// Coordenadas ajustadas para arena_wot (área segura 30-70, 30-70)
+		set .@spawn_x, rand(30, 70);
+		set .@spawn_y, rand(30, 70);
+		
+		warpparty .@map$, .@spawn_x, .@spawn_y, .@party_id;
+	}
+	
+	sleep 5000;
+	mapannounce .@map$, "Bem-vindos à Guerra dos Tesouros!", bc_yellow;
+	sleep 5000;
+	mapannounce .@map$, "O evento será um combate GvG entre partys para ver quem vai conquistar o EMPERIUM!", bc_yellow;
+	sleep 5000;
+	mapannounce .@map$, "Baús de Prêmios surgirão aleatóriamente pelo mapa durante todo o evento, corra para eliminá-los!", bc_yellow;
+	sleep 5000;
+	mapannounce .@map$, "ATENÇÃO: Os jogadores que morrerem durante o evento, poderão retornar utilizando o NPC de entrada... até o EMPERIUM ser destruído!", bc_yellow;
+	sleep 5000;
+	mapannounce .@map$, "CUIDADO: O campo de batalha está repleto de armadilhas perigosas!", bc_yellow;
+	sleep 5000;
+	mapannounce .@map$, "O evento começará em instantes! Vocês tem 10 segundos!!", bc_yellow;
+	sleep 10000;
+	
+	mapannounce .@map$, "O EMPERIUM SURGIU!! A BATALHA PELO EMPERIUM COMEÇOU! BOA SORTE À TODOS!!", bc_yellow;
+	
+	pvpon .@map$;
+	
+	// Usando mob customizado 3308 (Emperium customizado)
+	set $emp_id, monster(.@map$, $emp_x, $emp_y, "Guerra dos Tesouros", 3308, 1, "CoreGuerra::OnEmperiumMorte");
+	
+	set $spawn_baus_timer, 1;
+	callsub SpawnBauAleatorio;
+	
+	sleep 1800000;
+	if($guerra_ativa == 2) {
+		mapannounce .@map$, "[Guerra dos Tesouros]: Tempo limite atingido! O evento foi finalizado... Não houve vencedores!", bc_yellow;
+		callsub FinalizarEvento;
+	}
+	return;
+
+SpawnBauAleatorio:
+	while($spawn_baus_timer && $guerra_ativa == 2) {
+		sleep 30000;
+		if($spawn_baus_timer && $guerra_ativa == 2 && $party_vencedora == 0) {
+			set .@random_point, rand(.total_spawn_points);
+			set .@spawn_x, getelementofarray(.spawn_areas_x, .@random_point);
+			set .@spawn_y, getelementofarray(.spawn_areas_y, .@random_point);
+			
+			if(((.@spawn_x >= $emp_x - 10) && (.@spawn_x <= $emp_x + 10)) && 
+			   ((.@spawn_y >= $emp_y - 10) && (.@spawn_y <= $emp_y + 10))) {
+				set .@spawn_x, (.@spawn_x < 50) ? 30 : 70;
+				set .@spawn_y, (.@spawn_y < 50) ? 30 : 70;
+			}
+			
+			monster $mapa_evento$, .@spawn_x, .@spawn_y, "Baú Disputado", 1324, 1, "CoreGuerra::OnBauAleatorioMorte";
+			mapannounce $mapa_evento$, "[Guerra dos Tesouros]: Um Baú Disputado surgiu aleatoriamente no mapa, corra para encontrá-lo!", bc_yellow;
+		}
+	}
+	return;
+
+OnBauAleatorioMorte:
+	set .@killer_aid, killerrid;
+	attachrid(.@killer_aid);
+	set .@player_name$, strcharinfo(0);
+	set .@map$, strcharinfo(3);
+	
+	set .@premio, rand(1, 100);
+	
+	if(.@premio <= 5) {
+		setarray .@items_raros[0], 1001007,	7227, 12210, 7776;
+		set .@idx, rand(getarraysize(.@items_raros));
+		getitem .@items_raros[.@idx], 3;
+		set Zeny, Zeny + 10000000;
+		mapannounce .@map$, "[Guerra dos Tesouros]: O jogador " + .@player_name$ + " pegou um baú disputado RARO!", bc_yellow;
+	} else if(.@premio <= 20) {
+		setarray .@items_bons[0], 1001007, 7619, 6240;
+		set .@idx, rand(getarraysize(.@items_bons));
+		getitem .@items_bons[.@idx], 2;
+		set Zeny, Zeny + 5000000;
+		mapannounce .@map$, "[Guerra dos Tesouros]: O jogador " + .@player_name$ + " pegou um baú disputado BOM!", bc_yellow;
+	} else if(.@premio <= 70){
+		setarray .@items_comuns[0], 1001007, 12221, 14232;
+		set .@idx, rand(getarraysize(.@items_comuns));
+		getitem .@items_comuns[.@idx], 1;
+		set Zeny, Zeny + 2500000;
+		mapannounce .@map$, "[Guerra dos Tesouros]: O jogador " + .@player_name$ + " pegou um baú disputado COMUM!", bc_yellow;
+	}
+	
+	detachrid;
+	end;
+
+OnEmperiumMorte:
+	if($guerra_ativa != 2) end;
+	
+	set .@killer_aid, killerrid;
+	attachrid(.@killer_aid);
+	set .@killer_party, getcharid(1);
+	set .@map$, strcharinfo(3);
+	
+	if(.@killer_party == 0) {
+		mapannounce .@map$, "[Guerra dos Tesouros]: Erro: Killer sem party detectado! O evento foi cancelado!!", bc_yellow;
+		sleep 3000;
+		mapannounce .@map$, "[Guerra dos Tesouros]: Todos os jogadores serão expulsos em 3 segundos...", bc_yellow;
+		sleep 3000;
+		mapwarp .@map$, "prontera", 155, 191;
+		callsub FinalizarEvento;
+		detachrid;
+		end;
+	}
+	
+	set $party_vencedora, .@killer_party;
+	set $baus_quebrados, 0;
+	set $spawn_baus_timer, 0;
+	set $emp_id, 0;
+	
+	pvpoff .@map$;
+	killmonster .@map$, "CoreGuerra::OnBauAleatorioMorte";
+	
+	announce "[Guerra dos Tesouros]: O EMPERIUM FOI QUEBRADO! Party vencedora: " + getpartyname(.@killer_party), bc_all | bc_yellow;
+	announce "[Guerra dos Tesouros]: Parabéns à todos os participantes!", bc_all | bc_yellow;
+	
+	sleep 3000;
+	sleep 3000;
+	
+	getmapunits(BL_PC, .@map$, .@players);
+	for(set .@i, 0; .@i < getarraysize(.@players); set .@i, .@i + 1) {
+		if(attachrid(.@players[.@i])) {
+			set .@current_party, getcharid(1);
+			if(.@current_party != $party_vencedora) {
+				warp "prontera", 155, 191;
+			}
+			detachrid;
+		}
+	}
+	
+	sleep 2000;
+	sleep 5000;
+	
+	warpparty .@map$, $emp_x, $emp_y, $party_vencedora;
+	
+	mapannounce .@map$, "[Guerra dos Tesouros]: 5 Baús da premiação final aparecerão em breve!", bc_yellow;
+	
+	sleep 10000;
+	
+	set .@emp_x, $emp_x;
+	set .@emp_y, $emp_y;
+	monster .@map$, .@emp_x - 2, .@emp_y + 2, "Baú do Tesouro", 1324, 1, "BauTesouro::OnBauMorte";
+	monster .@map$, .@emp_x + 2, .@emp_y + 2, "Baú do Tesouro", 1324, 1, "BauTesouro::OnBauMorte";
+	monster .@map$, .@emp_x, .@emp_y + 3, "Baú do Tesouro", 1324, 1, "BauTesouro::OnBauMorte";
+	monster .@map$, .@emp_x - 2, .@emp_y - 2, "Baú do Tesouro", 1324, 1, "BauTesouro::OnBauMorte";
+	monster .@map$, .@emp_x + 2, .@emp_y - 2, "Baú do Tesouro", 1324, 1, "BauTesouro::OnBauMorte";
+	
+	getpartymember $party_vencedora, 2;
+	for(set .@j, 0; .@j < $@partymembercount; set .@j, .@j + 1) {
+		if(isloggedin($@partymemberaid[.@j], $@partymembercid[.@j])) {
+			attachrid($@partymemberaid[.@j]);
+			set @guerra_bau_usado, 0;
+			detachrid;
+		}
+	}
+	
+	mapannounce .@map$, "[Guerra dos Tesouros]: PARABÉNS: Os Baús finais apareceram... Peguem sua premiação!!", bc_yellow;
+	
+	sleep 600000;
+	if($guerra_ativa == 2) {
+		callsub FinalizarEvento;
+	}
+	end;
+
+FinalizarEvento:
+	set $guerra_ativa, 0;
+	set $party_vencedora, 0;
+	set $baus_quebrados, 0;
+	set $parties_total, 0;
+	set $spawn_baus_timer, 0;
+	set $emp_id, 0;
+	
+	set .@map$, $mapa_evento$;
+	pvpoff .@map$;
+	killmonsterall .@map$;
+	mapwarp .@map$, "prontera", 155, 191;
+	
+	announce "[Guerra dos Tesouros]: A Guerra dos Tesouros terminou! Obrigado à todos pela participação!!", bc_all | bc_yellow;
+	return;
+
+OnPCDieEvent:
+    if(strcharinfo(3) != $mapa_evento$) end;
+    if($guerra_ativa != 2) end;
+
+    sleep2 500;
+    warp "prontera",155,191;
+    mapannounce $mapa_evento$, "[Guerra dos Tesouros]: O jogador " + strcharinfo(0) + " foi eliminado!", bc_yellow;
+end;
+
+}
+
+-	script	BauTesouro	-1,{
+OnBauMorte:
+	set .@killer_aid, killerrid;
+	attachrid(.@killer_aid);
+	set .@killer_party, getcharid(1);
+	set .@map$, strcharinfo(3);
+	set .@player_name$, strcharinfo(0);
+	
+	if(.@killer_party != $party_vencedora) {
+		mapannounce .@map$, "[Guerra dos Tesouros]: " + .@player_name$ + " não pode quebrar este baú!", bc_yellow;
+		monster .@map$, @killedx, @killedy, "Baú do Tesouro", 1324, 1, "BauTesouro::OnBauMorte";
+		detachrid;
+		end;
+	}
+	
+	if(@guerra_bau_usado) {
+		mapannounce .@map$, "[Guerra dos Tesouros]: " + .@player_name$ + " já recebeu sua premiação!", bc_yellow;
+		monster .@map$, @killedx, @killedy, "Baú do Tesouro", 1324, 1, "BauTesouro::OnBauMorte";
+		detachrid;
+		end;
+	}
+	
+	set .@premio, rand(1, 100);
+	set @guerra_bau_usado, 1;
+	set $baus_quebrados, $baus_quebrados + 1;
+	
+	if(.@premio <= 1) {
+		setarray .@items_s[0], 1001007, 7227, 12210, 7776, 12103;
+		set .@idx, rand(getarraysize(.@items_s));
+		getitem .@items_s[.@idx], 2;
+		setarray .@items_s[0], 4047, 4174, 4054, 4241;
+		set .@idx, rand(getarraysize(.@items_s));
+		getitem .@items_s[.@idx], 1;
+		set Zeny, Zeny + 50000000;
+		announce "[Guerra dos Tesouros]: " + .@player_name$ + " abriu um baú e ganhou um item ULTRA RARO + 50M zeny!", bc_all | bc_yellow;
+		set pontosevento,pontosevento+5;
+	} else if(.@premio <= 50) {
+		setarray .@items_a[0],1001007, 7619, 6240, 12103;
+		set .@idx, rand(getarraysize(.@items_a));
+		getitem .@items_a[.@idx], 2;
+		set Zeny, Zeny + 25000000;
+		announce "[Guerra dos Tesouros]: " + .@player_name$ + " abriu um baú e ganhou um item RARO + 25M zeny!", bc_all | bc_yellow;
+		set pontosevento,pontosevento+3;
+	} else {
+		setarray .@items_b[0], 1001007, 12221, 14232, 12103;
+		set .@idx, rand(getarraysize(.@items_b));
+		getitem .@items_b[.@idx], 1;
+		set Zeny, Zeny + 10000000;
+		announce "[Guerra dos Tesouros]: " + .@player_name$ + " abriu um baú e ganhou itens valiosos + 10M zeny!", bc_all | bc_yellow;
+		set pontosevento,pontosevento+2;
+	}
+	
+	mapannounce .@map$, "[Guerra dos Tesouros]: " + .@player_name$ + " pegou seu prêmio! Baús restantes: " + (5 - $baus_quebrados), bc_yellow;
+	
+	addtimer 1000, "BauTesouro::OnTeleportPlayer";
+	
+	if($baus_quebrados >= 5) {
+		addtimer 2000, "BauTesouro::OnEventEnd";
+	}
+	
+	detachrid;
+	end;
+
+OnTeleportPlayer:
+	if(strcharinfo(3) == $mapa_evento$) {
+		warp "prontera", 155, 191;
+	}
+	end;
+
+OnEventEnd:
+	announce "[Guerra dos Tesouros]: A Guerra dos Tesouros foi finalizada! Obrigado à todos pela participação!", bc_all | bc_yellow;
+	
+	sleep 2000;
+	mapwarp $mapa_evento$, "prontera", 155, 191;
+	
+	donpcevent "CoreGuerra::FinalizarEvento";
+	end;
+}
+
+// ===============================================================
+//                    SISTEMA DE ARMADILHAS
+// ===============================================================
+
+// ==================== ARMADILHA DE CONFUSÃO ====================
+-	script	TrapConfusion#guerra_main	-1,{
+OnTouch_:
+	if($guerra_ativa != 2) end;
+	if($party_vencedora != 0) end;
+	
+	set .@player_name$, strcharinfo(0);
+	sc_start SC_CONFUSION, 6000, 0;
+	emotion e_swt, playerattached();
+	
+	if(rand(100) < 20) {
+		mapannounce $mapa_evento$, "[Guerra dos Tesouros]: " + .@player_name$ + " caiu em uma armadilha de confusão!", bc_yellow;
+	}
+	end;
+}
+
+// Armadilhas de Confusão - COORDENADAS AJUSTADAS PARA arena_wot
+
+arena_wot,45,55,0	duplicate(TrapConfusion#guerra_main)	trap_conf#gdt-1	-1,2,2
+arena_wot,55,45,0	duplicate(TrapConfusion#guerra_main)	trap_conf#gdt-2	-1,2,2
+arena_wot,35,65,0	duplicate(TrapConfusion#guerra_main)	trap_conf#gdt-3	-1,2,2
+arena_wot,65,35,0	duplicate(TrapConfusion#guerra_main)	trap_conf#gdt-4	-1,2,2
+
+// ==================== ARMADILHA DE CEGUEIRA ====================
+-	script	TrapBlind#guerra_main	-1,{
+OnTouch_:
+	if($guerra_ativa != 2) end;
+	if($party_vencedora != 0) end;
+	
+	set .@player_name$, strcharinfo(0);
+	sc_start SC_BLIND, 8000, 0;
+	emotion e_omg, playerattached();
+	
+	if(rand(100) < 25) {
+		mapannounce $mapa_evento$, "[Guerra dos Tesouros]: " + .@player_name$ + " foi cegado por uma armadilha!", bc_yellow;
+	}
+	end;
+}
+
+// Armadilhas de Cegueira - COORDENADAS AJUSTADAS
+arena_wot,50,65,0	duplicate(TrapBlind#guerra_main)	trap_blind#gdt-1	-1,1,3
+arena_wot,50,35,0	duplicate(TrapBlind#guerra_main)	trap_blind#gdt-2	-1,1,3
+arena_wot,35,50,0	duplicate(TrapBlind#guerra_main)	trap_blind#gdt-3	-1,3,1
+arena_wot,65,50,0	duplicate(TrapBlind#guerra_main)	trap_blind#gdt-4	-1,3,1
+
+// ==================== ARMADILHA MISTA (PERIGOSA) ====================
+-	script	TrapChaos#guerra_main	-1,{
+OnTouch_:
+	if($guerra_ativa != 2) end;
+	if($party_vencedora != 0) end;
+	
+	set .@player_name$, strcharinfo(0);
+	set .@effect, rand(1,8);
+	
+	switch(.@effect) {
+		case 1:
+			sc_start SC_STONE, 3000, 0;
+			mapannounce $mapa_evento$, "[Guerra dos Tesouros]: " + .@player_name$ + " foi petrificado!", bc_yellow;
+			emotion e_omg, playerattached();
+			break;
+		case 2:
+			sc_start SC_FREEZE, 4000, 0;
+			mapannounce $mapa_evento$, "[Guerra dos Tesouros]: " + .@player_name$ + " foi congelado!", bc_yellow;
+			emotion e_omg, playerattached();
+			break;
+		case 3:
+			sc_start SC_STUN, 3000, 0;
+			emotion e_stun, playerattached();
+			break;
+		case 4:
+			sc_start SC_SLEEP, 4000, 0;
+			emotion e_sleepy, playerattached();
+			break;
+		case 5:
+			sc_start SC_CURSE, 10000, 0;
+			mapannounce $mapa_evento$, "[Guerra dos Tesouros]: " + .@player_name$ + " foi amaldiçoado!", bc_yellow;
+			emotion e_swt2, playerattached();
+			break;
+		case 6:
+			sc_start SC_CONFUSION, 6000, 0;
+			sc_start SC_BLIND, 4000, 0;
+			mapannounce $mapa_evento$, "[Guerra dos Tesouros]: " + .@player_name$ + " caiu em uma armadilha DUPLA!", bc_yellow;
+			emotion e_omg, playerattached();
+			break;
+		case 7:
+			set .@new_x, rand(30, 70);
+			set .@new_y, rand(30, 70);
+			if(((.@new_x >= $emp_x - 15) && (.@new_x <= $emp_x + 15)) && 
+			   ((.@new_y >= $emp_y - 15) && (.@new_y <= $emp_y + 15))) {
+				set .@new_x, (.@new_x < 50) ? 30 : 70;
+				set .@new_y, (.@new_y < 50) ? 30 : 70;
+			}
+			warp $mapa_evento$, .@new_x, .@new_y;
+			mapannounce $mapa_evento$, "[Guerra dos Tesouros]: " + .@player_name$ + " foi teleportado por uma armadilha!", bc_yellow;
+			emotion e_swt, playerattached();
+			break;
+		case 8:
+			percentheal 15, 10;
+			emotion e_ho, playerattached();
+			break;
+	}
+	end;
+}
+
+// Armadilhas Caóticas - COORDENADAS AJUSTADAS
+arena_wot,40,40,0	duplicate(TrapChaos#guerra_main)	trap_chaos#gdt-1	-1,1,1
+arena_wot,60,60,0	duplicate(TrapChaos#guerra_main)	trap_chaos#gdt-2	-1,1,1
+arena_wot,40,60,0	duplicate(TrapChaos#guerra_main)	trap_chaos#gdt-3	-1,1,1
+arena_wot,60,40,0	duplicate(TrapChaos#guerra_main)	trap_chaos#gdt-4	-1,1,1
+
+// ==================== ARMADILHA PRÓXIMA AO EMPERIUM ====================
+-	script	TrapEmperium#guerra_main	-1,{
+OnTouch_:
+	if($guerra_ativa != 2) end;
+	if($party_vencedora != 0) end;
+	
+	set .@player_name$, strcharinfo(0);
+	set .@effect, rand(1,5);
+	
+	switch(.@effect) {
+		case 1:
+		case 2:
+			sc_start SC_STUN, 5000, 0;
+			mapannounce $mapa_evento$, "[Guerra dos Tesouros]: " + .@player_name$ + " foi atordoado perto do EMPERIUM!", bc_yellow;
+			emotion e_stun, playerattached();
+			break;
+		case 3:
+			sc_start SC_CONFUSION, 8000, 0;
+			sc_start SC_BLIND, 6000, 0;
+			mapannounce $mapa_evento$, "[Guerra dos Tesouros]: " + .@player_name$ + " caiu na armadilha IMPERIAL!", bc_yellow;
+			emotion e_omg, playerattached();
+			break;
+		case 4:
+			set .@safe_x, rand(1,2) == 1 ? 30 : 68;
+			set .@safe_y, rand(1,2) == 1 ? 30 : 68;
+			warp $mapa_evento$, .@safe_x, .@safe_y;
+			mapannounce $mapa_evento$, "[Guerra dos Tesouros]: " + .@player_name$ + " foi EXPULSO da área do Emperium!", bc_yellow;
+			emotion e_swt2, playerattached();
+			break;
+		case 5:
+			sc_start SC_INCREASEAGI, 30000, 10;
+			emotion e_ho, playerattached();
+			break;
+	}
+	end;
+}
+
+// Armadilhas ao redor do Emperium - COORDENADAS AJUSTADAS (50,50)
+arena_wot,48,48,0	duplicate(TrapEmperium#guerra_main)	trap_emp#gdt-1	-1,1,1
+arena_wot,52,48,0	duplicate(TrapEmperium#guerra_main)	trap_emp#gdt-2	-1,1,1
+arena_wot,48,52,0	duplicate(TrapEmperium#guerra_main)	trap_emp#gdt-3	-1,1,1
+arena_wot,52,52,0	duplicate(TrapEmperium#guerra_main)	trap_emp#gdt-4	-1,1,1
+arena_wot,46,50,0	duplicate(TrapEmperium#guerra_main)	trap_emp#gdt-5	-1,1,1
+arena_wot,54,50,0	duplicate(TrapEmperium#guerra_main)	trap_emp#gdt-6	-1,1,1
+arena_wot,50,46,0	duplicate(TrapEmperium#guerra_main)	trap_emp#gdt-7	-1,1,1
+arena_wot,50,54,0	duplicate(TrapEmperium#guerra_main)	trap_emp#gdt-8	-1,1,1
+
+// ==================== ARMADILHA DE ÁREA (CORRIGIDA) ====================
+-	script	TrapArea#guerra_main	-1,{
+OnTouch_:
+	if($guerra_ativa != 2) end;
+	if($party_vencedora != 0) end;
+	if(rand(100) < 70) end;
+	
+	set .@player_name$, strcharinfo(0);
+	set .@effect, rand(1,3);
+	
+	// CORREÇÃO: Obter coordenadas do jogador que ativou a armadilha (SEM tipo)
+	getmapxy(.@trigger_map$, .@pos_x, .@pos_y);
+	
+	switch(.@effect) {
+		case 1:
+			// Área de confusão
+			getmapunits(BL_PC, $mapa_evento$, .@players);
+			for(set .@i, 0; .@i < getarraysize(.@players); set .@i, .@i + 1) {
+				if(attachrid(.@players[.@i])) {
+					getmapxy(.@mapname$, .@px, .@py);
+					if(.@mapname$ == $mapa_evento$) {
+						if(((.@px >= .@pos_x - 4) && (.@px <= .@pos_x + 4)) && 
+						   ((.@py >= .@pos_y - 4) && (.@py <= .@pos_y + 4))) {
+							sc_start SC_CONFUSION, 5000, 0;
+							emotion e_swt, playerattached();
+						}
+					}
+					detachrid;
+				}
+			}
+			mapannounce $mapa_evento$, "[Guerra dos Tesouros]: Armadilha de ÁREA ativada por " + .@player_name$ + "!", bc_yellow;
+			break;
+		case 2:
+			// Cegueira em área
+			getmapunits(BL_PC, $mapa_evento$, .@players);
+			for(set .@i, 0; .@i < getarraysize(.@players); set .@i, .@i + 1) {
+				if(attachrid(.@players[.@i])) {
+					getmapxy(.@mapname$, .@px, .@py);
+					if(.@mapname$ == $mapa_evento$) {
+						if(((.@px >= .@pos_x - 3) && (.@px <= .@pos_x + 3)) && 
+						   ((.@py >= .@pos_y - 3) && (.@py <= .@pos_y + 3))) {
+							sc_start SC_BLIND, 4000, 0;
+							emotion e_omg, playerattached();
+						}
+					}
+					detachrid;
+				}
+			}
+			mapannounce $mapa_evento$, "[Guerra dos Tesouros]: Nuvem de cegueira criada por " + .@player_name$ + "!", bc_yellow;
+			break;
+		case 3:
+			// Cura em área
+			getmapunits(BL_PC, $mapa_evento$, .@players);
+			for(set .@i, 0; .@i < getarraysize(.@players); set .@i, .@i + 1) {
+				if(attachrid(.@players[.@i])) {
+					getmapxy(.@mapname$, .@px, .@py);
+					if(.@mapname$ == $mapa_evento$) {
+						if(((.@px >= .@pos_x - 3) && (.@px <= .@pos_x + 3)) && 
+						   ((.@py >= .@pos_y - 3) && (.@py <= .@pos_y + 3))) {
+							percentheal 20, 15;
+							emotion e_ho, playerattached();
+						}
+					}
+					detachrid;
+				}
+			}
+			mapannounce $mapa_evento$, "[Guerra dos Tesouros]: " + .@player_name$ + " ativou uma fonte curativa!", bc_yellow;
+			break;
+	}
+	end;
+}
+
+// Armadilhas de Área - COORDENADAS AJUSTADAS
+arena_wot,35,35,0	duplicate(TrapArea#guerra_main)	trap_area#gdt-1	-1,4,4
+arena_wot,65,65,0	duplicate(TrapArea#guerra_main)	trap_area#gdt-2	-1,4,4
+
+// Mapflags para o mapa do evento - CORRIGIDO PARA arena_wot
+arena_wot	mapflag	noloot
+arena_wot	mapflag	nomemo
+arena_wot	mapflag	nowarp
+arena_wot	mapflag	nowarpto
+arena_wot	mapflag	noicewall
+arena_wot	mapflag	nosave	SavePoint
+arena_wot	mapflag	noreturn
+arena_wot	mapflag	noteleport
+arena_wot	mapflag	nobranch
+arena_wot	mapflag	pvp_noguild
+arena_wot	mapflag	nopenalty
+
+// NPC duplicado em outros locais (opcional)
+new_evt,167,159,5	duplicate(Guerra dos Tesouros)	Guerra dos Tesouros#new	1846

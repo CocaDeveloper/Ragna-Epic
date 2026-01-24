@@ -1,0 +1,84 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  Teste de Dano
+//===============================================================
+
+prontera,137,182,5	script	Campo de Treinamento	406,{
+
+mes "^339966[Teste de Dano]^000000";
+mes "Olá, ^FFA500"+strcharinfo(0)+"^000000! Está pronto para testar seu dano? Escolha a arena para começar.";
+menu "^3CB371[>]^000000 Teste Dano 1",L_Arena1,"^3CB371[>]^000000 Teste Dano 2",L_Arena2,"^3CB371[>]^000000 Teste Emp 1",L_Arena3,"^3CB371[>]^000000 Teste Emp 2",L_Arena4,"^ff0000[>] Não, obrigado!^000000",L_Nao;
+
+L_Arena1:
+mes "^339966[Teste de Dano]^000000";
+mes "Você escolheu a Arena 1. Boa sorte!";
+warp "malangdo",221,263;
+close;
+
+L_Arena2:
+mes "^339966[Teste de Dano]^000000";
+mes "Você escolheu a Arena 2. Boa sorte!";
+warp "malangdo",134,272;
+close;
+
+L_Arena3:
+mes "^339966[Teste Emperium]^000000";
+mes "Você escolheu a Arena 3. Boa sorte!";
+warp "malangdo",284,230;
+close;
+
+L_Arena4:
+mes "^339966[Teste Emperium]^000000";
+mes "Você escolheu a Arena 4. Boa sorte!";
+warp "malangdo",76,235;
+close;
+
+L_Nao:
+mes "^339966[Teste de Dano]^000000";
+mes "Tudo bem, se mudar de ideia, estarei aqui.";
+close;
+
+OnInit:
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 40;	
+	setunittitle getnpcid(0), "[Teste de Dano]";
+
+	while(1) {
+		showscript "[ Teste de Dano ]", getnpcid(0);
+		sleep 100;
+	}
+end;
+}
+
+// teste de dano
+//prontera,140,178,0	warp	prt_to_malangdo	2,2,malangdo,224,269
+malangdo,231,268,0	warp	malangdo_to_prt	2,2,prontera,155,191
+malangdo,135,275,0	warp	malangdo_to_pr	2,2,prontera,155,191
+malangdo,73,239,0	warp	malangdo_to_prr	2,2,prontera,155,191
+malangdo,287,233,0	warp	malangdo_to_prrt	2,2,prontera,155,191
+
+//Empérium de Teste ~*
+malangdo,281,227,0,0	monster	Emperium#Teste1	3308,1,5000
+malangdo,81,229,0,0	monster	Emperium#Teste2	3308,1,5000
+1@herbs,251,95,0,0	monster	Emperium#TesteVIP2	3308,1,5000
+
+1@herbs,251,95,5	script	#TesteEmp3	111,{
+
+OnInit:
+	// Chat em cima do npc
+	while(1) {
+		showscript "[ Teste Emperium ]", getnpcid(0);
+		sleep 100;
+	}
+}
+
+//Teleportadoras
+
+malangdo,276,233,6	duplicate([Teleportadora])	[Teleportadora]#mal2	918
+malangdo,73,229,6	duplicate([Teleportadora])	[Teleportadora]#mal23	918

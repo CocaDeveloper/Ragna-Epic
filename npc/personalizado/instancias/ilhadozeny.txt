@@ -1,0 +1,680 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                      ILHA DO ZENY
+// ===================== Descrição: =============================
+//===== Instância da Ilha do Zeny =====
+//===== Versão: 5.2 - Sistema com Expulsão Automática por Tempo =====
+//===== Descrição: Sistema completo da Instância Ilha do Zeny com expulsão automática quando o tempo expira =====
+
+//=================== rAthena Script ============================
+//                      ILHA DO ZENY
+//===== Versão: 5.4 - Completa e Corrigida =====
+//===============================================================
+
+// ==================== INICIALIZADOR SQL ====================
+-	script	ZenyIsland_SQL_Init	-1,{
+OnInit:
+	// Configurações
+	$@zeny_ticket_id = 50001;
+	$@zeny_duration = 3600; // 1 hora em segundos
+	
+	// Criar tabela com estrutura otimizada
+	.@create_sql$ = "CREATE TABLE IF NOT EXISTS `zeny_island_access` (";
+	.@create_sql$ = .@create_sql$ + "`account_id` INT(11) NOT NULL,";
+	.@create_sql$ = .@create_sql$ + "`last_free_date` DATE DEFAULT NULL,";
+	.@create_sql$ = .@create_sql$ + "`ticket_expire` INT(11) DEFAULT 0,";
+	.@create_sql$ = .@create_sql$ + "PRIMARY KEY (`account_id`)";
+	.@create_sql$ = .@create_sql$ + ") ENGINE=MyISAM DEFAULT CHARSET=utf8";
+	query_sql .@create_sql$;
+	
+	// Limpar registros expirados na inicialização
+	.@cleanup_sql$ = "DELETE FROM zeny_island_access WHERE ticket_expire > 0 AND ticket_expire < " + gettimetick(2);
+	query_sql .@cleanup_sql$;
+	end;
+
+OnCleanup:
+	// Remove registros com tickets expirados há mais de 1 dia
+	.@cleanup_time = gettimetick(2) - 86400;
+	.@cleanup_sql$ = "DELETE FROM zeny_island_access WHERE ticket_expire > 0 AND ticket_expire < " + .@cleanup_time;
+	query_sql .@cleanup_sql$;
+	
+	// Remove registros de entrada gratuita muito antigos (mais de 30 dias)
+	.@old_date$ = gettimestr("%Y-%m-%d", 21 - (30 * 86400));
+	.@cleanup_old$ = "DELETE FROM zeny_island_access WHERE last_free_date < '" + .@old_date$ + "' AND ticket_expire <= 0";
+	query_sql .@cleanup_old$;
+	end;
+}
+
+// ==================== NPC INFORMATIVO ====================
+1@herbs,323,108,5	script	Ilha do Zeny#2	10547,{
+	
+	mes "^339966[Ilha do Zeny]^000000";
+	mes (gettime(3)>= 6&&gettime(3)<= 12?"Bom-dia":(gettime(3)>=13&&gettime(3)<=18?"Boa-tarde":"Boa-noite"))+", ^ffa500"+strcharinfo(0)+"^000000!"; 
+	mes "Bem-vindo ao sistema de informações da ^ff0000Ilha do Zeny!^000000";
+	next;
+	
+	mes "^339966[Ilha do Zeny]^000000";
+	mes "A Ilha do Zeny é uma instância especial repleta de tesouros!";
+	mes "^ff0000Horários de funcionamento:^000000";
+	mes "^339966• 06:00 às 08:00^000000";
+	mes "^339966• 10:00 às 12:00^000000";
+	mes "^339966• 14:00 às 16:00^000000";
+	mes "^339966• 20:00 às 22:00^000000";
+	mes "^339966• 00:00 às 02:00^000000";
+	next;
+	
+	mes "^339966[Ilha do Zeny]^000000";
+	mes "^FF0000Como funciona:^000000";
+	mes "• Uma entrada ^00AA00GRATUITA^000000 por dia";
+	mes "• Ou use ^0066CCTickets de Acesso^000000";
+	mes "• Duração: ^ff00001 hora^000000 de acesso";
+	mes "• Recompensas: ^FFD700Zeny, itens raros e mais!^000000";
+	next;
+	
+	if ($zeny_island_active) {
+		mes "^339966[Ilha do Zeny]^000000";
+		mes "^00FF00STATUS: PORTAL ABERTO!^000000";
+		mes "O portal está ativo!";
+		mes "^FF0000Aproveite enquanto está disponível!^000000";
+	} else {
+		mes "^339966[Ilha do Zeny]^000000";
+		mes "^ff0000STATUS: PORTAL FECHADO^000000";
+		mes "Aguarde o próximo horário de funcionamento.";
+	}
+	close;
+}
+
+// ==================== NPC DE ENTRADA ====================
+prontera,165,168,4	script	Ilha do Zeny	4_TREASURE_BOX,{
+	
+	mes "^339966[Ilha do Zeny]^000000";
+	mes (gettime(3)>= 6&&gettime(3)<= 12?"Bom-dia":(gettime(3)>=13&&gettime(3)<=18?"Boa-tarde":"Boa-noite"))+", ^ffa500"+strcharinfo(0)+"^000000!"; 
+	mes "^FF0000Bem-vindo ao Portal da Ilha do Zeny!^000000";
+	mes "Uma ilha repleta de tesouros escondidos por piratas!";
+	next;
+	
+	// Pega dados do jogador
+	.@account_id = getcharid(3);
+	.@today$ = gettimestr("%Y-%m-%d", 21);
+	.@current_time = gettimetick(2);
+	
+	// Consulta dados do jogador
+	.@query$ = "SELECT last_free_date, ticket_expire FROM zeny_island_access WHERE account_id = " + .@account_id;
+	.@rows = query_sql(.@query$, .@last_free$, .@ticket_expire);
+	
+	// Se não tem registro, criar um novo
+	if (.@rows < 1) {
+		.@insert$ = "INSERT INTO zeny_island_access (account_id, last_free_date, ticket_expire) VALUES (" + .@account_id + ", NULL, 0)";
+		query_sql .@insert$;
+		.@last_free$ = "";
+		.@ticket_expire = 0;
+	}
+	
+	// Verifica se ainda tem acesso por ticket válido
+	if (.@ticket_expire > .@current_time) {
+		.@time_left = (.@ticket_expire - .@current_time) / 60;
+		mes "^339966[Ilha do Zeny]^000000";
+		mes "Você ainda tem acesso válido!";
+		mes "Tempo restante: ^ff0000" + .@time_left + " minutos^000000";
+		next;
+		if (select("^339966[»]^000000 Entrar na ilha:^ff0000[»] Cancelar^000000") == 1) {
+			mes "^339966[Ilha do Zeny]^000000";
+			mes "Boa sorte na caçada aos tesouros!";
+			close2;
+			warp "1@zeny", 107, 30;
+			end;
+		}
+		close;
+	}
+	
+	// Verifica entrada gratuita diária
+	if (compare(.@last_free$, .@today$) != 1) {
+		mes "^339966[Ilha do Zeny]^000000";
+		mes "Você pode entrar gratuitamente hoje!";
+		mes " ";
+		mes "^ff0000Deseja usar sua entrada gratuita diária?^000000";
+		next;
+		switch(select("^339966[»]^000000 Sim:^339966[»]^000000 Não, usar ticket:^ff0000[»] Cancelar^000000")) {
+			case 1:
+				// Concede entrada gratuita
+				.@new_expire = .@current_time + $@zeny_duration;
+				.@update$ = "UPDATE zeny_island_access SET last_free_date = '" + .@today$ + "', ticket_expire = " + .@new_expire + " WHERE account_id = " + .@account_id;
+				query_sql .@update$;
+				
+				// Agendar expulsão automática
+				addtimer $@zeny_duration * 1000, "#ZenyExpulsionSystem::OnExpelPlayer";
+				
+				// Agendar avisos
+				if ($@zeny_duration > 300) {
+					addtimer (($@zeny_duration - 300) * 1000), "#ZenyExpulsionSystem::OnWarningTimer";
+				}
+				if ($@zeny_duration > 60) {
+					addtimer (($@zeny_duration - 60) * 1000), "#ZenyExpulsionSystem::OnFinalWarning";
+				}
+				
+				mes "^339966[Ilha do Zeny]^000000";
+				mes "^00AA00Entrada gratuita concedida!^000000";
+				mes "Você tem ^ff00001 hora^000000 para explorar a ilha!";
+				mes " ";
+				mes "Boa sorte na caçada aos tesouros!";
+				close2;
+				warp "1@zeny", 107, 30;
+				end;
+			case 2:
+				// Continua para sistema de ticket
+				break;
+			case 3:
+				close;
+		}
+	}
+	
+	// Sistema de tickets
+	mes "^339966[Ilha do Zeny]^000000";
+	mes "Para entrar você precisa de um:";
+	mes "^ff0000• Ticket de Acesso à Ilha do Zeny^000000";
+	mes " ";
+	
+	if (countitem($@zeny_ticket_id) > 0) {
+		mes "^00AA00Você possui " + countitem($@zeny_ticket_id) + " ticket(s)!^000000";
+		mes "Deseja usar um ticket?";
+		next;
+		if (select("^339966[»]^000000 Usar ticket:^ff0000[»] Cancelar^000000") == 1) {
+			delitem $@zeny_ticket_id, 1;
+			.@new_expire = .@current_time + $@zeny_duration;
+			.@update$ = "UPDATE zeny_island_access SET ticket_expire = " + .@new_expire + " WHERE account_id = " + .@account_id;
+			query_sql .@update$;
+			
+			// Agendar expulsão automática
+			addtimer $@zeny_duration * 1000, "#ZenyExpulsionSystem::OnExpelPlayer";
+			
+			// Agendar avisos
+			if ($@zeny_duration > 300) {
+				addtimer (($@zeny_duration - 300) * 1000), "#ZenyExpulsionSystem::OnWarningTimer";
+			}
+			if ($@zeny_duration > 60) {
+				addtimer (($@zeny_duration - 60) * 1000), "#ZenyExpulsionSystem::OnFinalWarning";
+			}
+			
+			mes "^339966[Ilha do Zeny]^000000";
+			mes "^0066CCTicket consumido com sucesso!^000000";
+			mes "Você tem ^ff00001 hora^000000 para explorar a ilha!";
+			mes "^FFD700Você receberá avisos antes do tempo expirar!^000000";
+			mes "Boa sorte na aventura!";
+			close2;
+			warp "1@zeny", 107, 30;
+			end;
+		}
+	} else {
+		mes "^ff0000Você não possui tickets de entrada.^000000";
+		mes "Consiga um ticket para poder entrar!";
+	}
+	close;
+
+OnInit:
+	// Inicia oculto
+	$zeny_island_active = 0;
+	disablenpc strnpcinfo(0);
+	// Nome acima do NPC
+	while(1) {
+	showscript "[ Ilha do Zeny ]", getnpcid(0);
+	sleep 100;
+	}
+	end;
+	
+	// Sistema de horários
+	OnClock0600:
+	OnClock1000:
+	OnClock1435:
+	OnClock2000:
+	OnClock0000:
+		// Ativa o sistema
+		$zeny_island_active = 1;
+		$zeny_spawned = 0;
+		
+		// Torna o portal visível
+		enablenpc strnpcinfo(0);
+		
+		// Anúncios
+		announce "O Portal para a Ilha do Zeny apareceu em Prontera! Vocês têm 2 horas!", bc_all | bc_yellow;
+		
+		// Timer para desativar em 2 horas
+		initnpctimer;
+		end;
+	
+	OnDeactivate:
+		// Desativa o sistema
+		$zeny_island_active = 0;
+		
+		// Oculta o portal
+		disablenpc strnpcinfo(0);
+		
+		// Anúncios
+		announce "O Portal para a Ilha do Zeny desapareceu... até o próximo horário!", bc_all | bc_yellow;
+		
+		// Expulsa jogadores da ilha se houver
+		if (getmapusers("1@zeny") > 0) {
+			mapannounce "1@zeny", "O portal se fechou! Todos serão teleportados em 5 segundos!", bc_map;
+			sleep 5000;
+			mapwarp "1@zeny", "prontera", 155, 191;
+		}
+		
+		// Limpar dados expirados
+		donpcevent "ZenyIsland_SQL_Init::OnCleanup";
+		end;
+		
+OnTimer7200000:
+	donpcevent strnpcinfo(0) + "::OnDeactivate";
+	end;
+}
+
+// ==================== CONFIGURAÇÃO DO MAPA ====================
+1@zeny	mapflag	nosave	SavePoint
+1@zeny	mapflag	noteleport
+1@zeny	mapflag	nomemo
+1@zeny	mapflag	nowarpto
+1@zeny	mapflag	nowarp
+1@zeny	mapflag	noloot
+1@zeny	mapflag	nocommand	60
+1@zeny	mapflag	noskill
+
+// ==================== WARPS ====================
+1@zeny,107,26,0	warp	zeny_exit	1,3,prontera,155,191
+
+// ==================== SISTEMA DE EXPULSÃO ====================
+1@zeny,1,6,0	script	#ZenyExpulsionSystem	HIDDEN_WARP_NPC,{
+
+OnExpelPlayer:
+	// Verifica se o jogador ainda está no mapa
+	if (strcharinfo(3) != "1@zeny") end;
+	
+	// Verifica se o acesso realmente expirou
+	.@account_id = getcharid(3);
+	.@current_time = gettimetick(2);
+	.@query$ = "SELECT ticket_expire FROM zeny_island_access WHERE account_id = " + .@account_id;
+	
+	if (query_sql(.@query$, .@ticket_expire) > 0) {
+		if (.@ticket_expire <= .@current_time) {
+			// Tempo expirado - expulsar jogador
+			mes "^339966[Ilha do Zeny]^000000";
+			mes "^ff0000Seu tempo de acesso expirou!^000000";
+			mes "Você será teleportado de volta para Prontera.";
+			mes " ";
+			mes "Obrigado por visitar a Ilha do Zeny!";
+			close2;
+			warp "prontera", 155, 191;
+			end;
+		}
+	}
+	end;
+
+// Timer de aviso (5 minutos antes)
+OnWarningTimer:
+	if (strcharinfo(3) != "1@zeny") end;
+	
+	dispbottom "[AVISO] Seu acesso à Ilha do Zeny expirará em 5 minutos!";
+	specialeffect2 EF_SIGHT;
+	end;
+
+// Timer de aviso final (1 minuto antes)
+OnFinalWarning:
+	if (strcharinfo(3) != "1@zeny") end;
+	
+	dispbottom "[AVISO FINAL] Seu acesso expirará em 1 minuto! Prepare-se!";
+	specialeffect2 EF_LOUD;
+	end;
+}
+
+// ==================== SISTEMA DE ENTRADA NO MAPA ====================
+1@zeny,107,30,0	script	#ZenyIslandEntry	HIDDEN_WARP_NPC,3,3,{
+OnTouch:
+	// Verifica se tem acesso válido
+	.@account_id = getcharid(3);
+	.@current_time = gettimetick(2);
+	.@query$ = "SELECT ticket_expire FROM zeny_island_access WHERE account_id = " + .@account_id;
+	
+	if (query_sql(.@query$, .@ticket_expire) < 1 || .@ticket_expire <= .@current_time) {
+		mes "^339966[Ilha do Zeny]^000000";
+		mes "^ff0000[ACESSO NEGADO]^000000";
+		mes "Seu tempo de acesso expirou ou você não tem permissão!";
+		close2;
+		warp "prontera", 155, 191;
+		end;
+	}
+	
+	// Calcula tempo restante
+	.@time_left = .@ticket_expire - .@current_time;
+	.@minutes_left = .@time_left / 60;
+	.@seconds_left = .@time_left % 60;
+	dispbottom "Bem-vindo à Ilha do Zeny! Tempo restante: " + .@minutes_left + "m " + .@seconds_left + "s";
+	
+	// Spawna mobs apenas uma vez
+	if (!$zeny_spawned) {
+		donpcevent "#ZenyIslandController::OnSpawnMobs";
+		$zeny_spawned = 1;
+	}
+	end;
+}
+
+// ==================== CONTROLADOR DA INSTÂNCIA ====================
+1@zeny,1,1,0	script	#ZenyIslandController	HIDDEN_WARP_NPC,{
+
+OnSpawnMobs:
+	// Remove mobs existentes
+	killmonster "1@zeny", "All";
+	
+	// Spawn dos Ladrões de Zeny (40 mobs)
+	for(.@i = 0; .@i < 40; .@i++) {
+		for(.@attempts = 0; .@attempts < 50; .@attempts++) {
+			.@x = rand(55, 157);
+			.@y = rand(55, 157);
+			if (checkcell("1@zeny", .@x, .@y, cell_chkpass)) {
+				monster "1@zeny", .@x, .@y, "Ladrão de Zeny", 1071, 1, "#ZenyThiefController::OnMobKill";
+				break;
+			}
+		}
+	}
+	
+	// Spawn dos Macacos Traiçoeiros (20 mobs)
+	for(.@i = 0; .@i < 20; .@i++) {
+		for(.@attempts = 0; .@attempts < 50; .@attempts++) {
+			.@x = rand(55, 157);
+			.@y = rand(55, 157);
+			if (checkcell("1@zeny", .@x, .@y, cell_chkpass)) {
+				monster "1@zeny", .@x, .@y, "Macaco Traiçoeiro", 1057, 1, "#TraitorMerchantController::OnMobKill";
+				break;
+			}
+		}
+	}
+	
+	// Spawn dos Baús de Tesouro (5 baús)
+	for(.@i = 0; .@i < 5; .@i++) {
+		for(.@attempts = 0; .@attempts < 50; .@attempts++) {
+			.@x = rand(55, 157);
+			.@y = rand(55, 157);
+			if (checkcell("1@zeny", .@x, .@y, cell_chkpass)) {
+				monster "1@zeny", .@x, .@y, "Baú de Tesouro", 1324, 1, "#TreasureChestController::OnChestKill";
+				break;
+			}
+		}
+	}
+	end;
+}
+
+// ==================== CONTROLADOR DOS LADRÕES ====================
+1@zeny,1,2,0	script	#ZenyThiefController	HIDDEN_WARP_NPC,{
+
+OnMobKill:
+	if (strcharinfo(3) != "1@zeny") end;
+	
+	// Drop de Zeny (50% chance)
+	if (rand(100) < 50) {
+		.@zeny_amount = rand(500000, 2500000);
+		Zeny += .@zeny_amount;
+		dispbottom "Você encontrou " + .@zeny_amount + " Zeny!";
+	}
+	
+	// Drop do item 7228 (25% chance)
+	if (rand(100) < 25) {
+		getitem 7228, 1;
+		dispbottom "Você encontrou o Ouro dos Piratas!";
+	}
+	
+	// Drop do item raro (5% chance)
+	if (rand(100) < 5) {
+		getitem 7642, 1;
+		dispbottom "Você encontrou um item raro!";
+	}
+	
+	// Drop do Ticket Extra (1% chance)
+	if (rand(100) < 1) {
+		getitem $@zeny_ticket_id, 1;
+		dispbottom "Você encontrou um Ticket de Acesso Extra!";
+	}
+	
+	// Respawn em 20 segundos
+	addtimer 20000, "#ZenyThiefController::OnRespawn";
+	end;
+
+OnRespawn:
+	if (getmapusers("1@zeny") > 0) {
+		for(.@attempts = 0; .@attempts < 50; .@attempts++) {
+			.@x = rand(55, 157);
+			.@y = rand(55, 157);
+			if (checkcell("1@zeny", .@x, .@y, cell_chkpass)) {
+				monster "1@zeny", .@x, .@y, "Ladrão de Zeny", 1071, 1, "#ZenyThiefController::OnMobKill";
+				break;
+			}
+		}
+	}
+	end;
+}
+
+// ==================== CONTROLADOR DOS MACACOS ====================
+1@zeny,1,3,0	script	#TraitorMerchantController	HIDDEN_WARP_NPC,{
+
+OnMobKill:
+	if (strcharinfo(3) != "1@zeny") end;
+	
+	// 50% chance de dar dano, 25% de dar recompensa
+	if (rand(100) < 25) {
+		// Aplica dano
+		if (rand(2)) {
+			// Mammonite
+			.@damage = maxhp * rand(20, 40) / 100;
+			heal .@damage * -1, 0;
+			specialeffect2 EF_MAMMONITE;
+			dispbottom "O macaco te atacou com uma habilidade!";
+		} else {
+			// Confusão
+			sc_start SC_CONFUSION, 10000, 1;
+			specialeffect2 EF_STUN;
+			dispbottom "O macaco te confundiu!";
+		}
+	} else {
+		// Recompensa
+		.@reward_type = rand(3);
+		if (.@reward_type == 0) {
+			// Zeny
+			.@zeny_amount = rand(1000000, 5000000);
+			Zeny += .@zeny_amount;
+			dispbottom "O macaco te deu " + .@zeny_amount + " Zeny!";
+		} else if (.@reward_type == 1) {
+			// Item 7228
+			getitem 7228, 1;
+			dispbottom "Você encontrou o Ouro dos Piratas!";
+		} else {
+			// Item raro
+			getitem 7642, 1;
+			dispbottom "O macaco te deu um item raro!";
+		}
+		specialeffect2 EF_COIN;
+	}
+	
+	// Respawn em 5 minutos
+	addtimer 300000, "#TraitorMerchantController::OnRespawn";
+	end;
+
+OnRespawn:
+	if (getmapusers("1@zeny") > 0) {
+		for(.@attempts = 0; .@attempts < 50; .@attempts++) {
+			.@x = rand(55, 157);
+			.@y = rand(55, 157);
+			if (checkcell("1@zeny", .@x, .@y, cell_chkpass)) {
+				monster "1@zeny", .@x, .@y, "Macaco Traiçoeiro", 1057, 1, "#TraitorMerchantController::OnMobKill";
+				break;
+			}
+		}
+	}
+	end;
+}
+
+// ==================== CONTROLADOR DOS BAÚS ====================
+1@zeny,1,4,0	script	#TreasureChestController	HIDDEN_WARP_NPC,{
+
+OnChestKill:
+	if (strcharinfo(3) != "1@zeny") end;
+	
+	// Recompensa do baú (1kk a 10kk)
+	.@zeny_amount = rand(1000000, 10000000);
+	Zeny += .@zeny_amount;
+	dispbottom "Você abriu um baú e encontrou " + .@zeny_amount + " Zeny!";
+	specialeffect2 EF_COIN;
+	
+	// Respawn em 10 minutos
+	addtimer 600000, "#TreasureChestController::OnRespawn";
+	end;
+
+OnRespawn:
+	if (getmapusers("1@zeny") > 0) {
+		for(.@attempts = 0; .@attempts < 50; .@attempts++) {
+			.@x = rand(55, 157);
+			.@y = rand(55, 157);
+			if (checkcell("1@zeny", .@x, .@y, cell_chkpass)) {
+				monster "1@zeny", .@x, .@y, "Baú de Tesouro", 1324, 1, "#TreasureChestController::OnChestKill";
+				break;
+			}
+		}
+	}
+	end;
+}
+
+// ==================== SISTEMA DE VERIFICAÇÃO ====================
+1@zeny,1,5,0	script	#AccessChecker	HIDDEN_WARP_NPC,{
+
+OnTimer30000:
+	// Se a instância foi desativada, expulsa todos
+	if (!$zeny_island_active) {
+		if (getmapusers("1@zeny") > 0) {
+			mapannounce "1@zeny", "A Ilha do Zeny desapareceu! Teleportando todos os jogadores...", bc_map;
+			sleep 3000;
+			mapwarp "1@zeny", "prontera", 155, 191;
+		}
+		stopnpctimer;
+		end;
+	}
+	
+	// Verificação de segurança para jogadores com acesso expirado
+	.@current_time = gettimetick(2);
+	.@expire_query$ = "SELECT account_id, ticket_expire FROM zeny_island_access WHERE ticket_expire > 0 AND ticket_expire <= " + .@current_time;
+	.@count = query_sql(.@expire_query$, .@accounts, .@expires);
+	
+	for (.@i = 0; .@i < .@count; .@i++) {
+		if (isloggedin(.@accounts[.@i])) {
+			attachrid(.@accounts[.@i]);
+			if (strcharinfo(3) == "1@zeny") {
+				dispbottom "[SISTEMA] Acesso expirado! Retornando para Prontera...";
+				sleep 2000;
+				warp "prontera", 155, 191;
+			}
+			detachrid;
+		}
+	}
+	
+	initnpctimer;
+	end;
+
+OnInit:
+	initnpctimer;
+	end;
+}
+
+// ==================== SISTEMA DE LIMPEZA ====================
+-	script	ZenyCleaner	-1,{
+
+OnClock0000:
+OnClock0600:
+OnClock1200:
+OnClock1800:
+	donpcevent "ZenyIsland_SQL_Init::OnCleanup";
+	end;
+}
+
+// ==================== COMANDOS GM ====================
+-	script	zeny_gm_commands	-1,{
+OnInit:
+	bindatcmd "zenyinfo", strnpcinfo(3)+"::OnZenyInfo", 80, 99;
+	bindatcmd "zenyclean", strnpcinfo(3)+"::OnZenyClean", 99, 99;
+	bindatcmd "zenyshow", strnpcinfo(3)+"::OnZenyShow", 99, 99;
+	bindatcmd "zenyhide", strnpcinfo(3)+"::OnZenyHide", 99, 99;
+	bindatcmd "zenyactivate", strnpcinfo(3)+"::OnZenyActivate", 99, 99;
+	bindatcmd "zenytime", strnpcinfo(3)+"::OnZenyTime", 80, 99;
+	end;
+
+OnZenyInfo:
+	.@count_sql$ = "SELECT COUNT(*) FROM zeny_island_access WHERE ticket_expire > " + gettimetick(2);
+	query_sql(.@count_sql$, .@active_players);
+	dispbottom "[ZENY INFO] Jogadores com acesso ativo: " + .@active_players;
+	
+	.@today$ = gettimestr("%Y-%m-%d", 21);
+	.@today_count_sql$ = "SELECT COUNT(*) FROM zeny_island_access WHERE last_free_date = '" + .@today$ + "'";
+	query_sql(.@today_count_sql$, .@today_free);
+	dispbottom "[ZENY INFO] Entradas gratuitas usadas hoje: " + .@today_free;
+	
+	if ($zeny_island_active) {
+		dispbottom "[ZENY INFO] Status: ATIVO - Portal visível";
+	} else {
+		dispbottom "[ZENY INFO] Status: INATIVO - Portal oculto";
+	}
+	
+	dispbottom "[ZENY INFO] Jogadores na ilha: " + getmapusers("1@zeny");
+	end;
+
+OnZenyClean:
+	donpcevent "ZenyIsland_SQL_Init::OnCleanup";
+	dispbottom "[ZENY ADMIN] Limpeza manual executada!";
+	end;
+
+OnZenyShow:
+	enablenpc "Ilha do Zeny";
+	$zeny_island_active = 1;
+	dispbottom "[ZENY ADMIN] Portal ativado e exibido!";
+	end;
+
+OnZenyHide:
+	disablenpc "Ilha do Zeny";
+	$zeny_island_active = 0;
+	dispbottom "[ZENY ADMIN] Portal desativado e ocultado!";
+	// Expulsa jogadores da ilha
+	if (getmapusers("1@zeny") > 0) {
+		sleep 3000;
+		mapwarp "1@zeny", "prontera", 155, 191;
+	}
+	end;
+
+OnZenyActivate:
+	enablenpc "Ilha do Zeny";
+	$zeny_island_active = 1;
+	$zeny_spawned = 0;
+	donpcevent "Ilha do Zeny::OnClock0600";
+	dispbottom "[ZENY ADMIN] Portal ativado por 2 horas!";
+	end;
+
+OnZenyTime:
+	.@current_time = gettimetick(2);
+	.@time_query$ = "SELECT account_id, ticket_expire FROM zeny_island_access WHERE ticket_expire > " + .@current_time;
+	.@count = query_sql(.@time_query$, .@accounts, .@expires);
+	
+	dispbottom "[ZENY TIME] Jogadores com acesso ativo:";
+	for(.@i = 0; .@i < .@count; .@i++) {
+		.@time_left = (.@expires[.@i] - .@current_time) / 60;
+		dispbottom "- Account " + .@accounts[.@i] + ": " + .@time_left + " minutos restantes";
+	}
+	
+	if (.@count == 0) {
+		dispbottom "[ZENY TIME] Nenhum jogador com acesso ativo.";
+	}
+	end;
+}
+
+//CREATE TABLE zeny_island_access (
+//    account_id INT(11) NOT NULL PRIMARY KEY,
+//    last_free_date DATE DEFAULT NULL,
+//    ticket_expire INT(11) DEFAULT 0
+//) ENGINE=MyISAM DEFAULT CHARSET=utf8

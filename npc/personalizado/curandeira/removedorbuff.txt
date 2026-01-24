@@ -1,0 +1,20 @@
+//=======================================
+// Remoção automática dos buffs CASH ao entrar em PvP/WoE
+//=======================================
+-	script	RemoverBuffsPvP	-1,{
+
+OnPCLoadMapEvent:
+
+	// Mapas PvP/WoE que deseja aplicar a remoção
+	if (inarray($@pvp_maps$, strcharinfo(3)) > -1) {
+		// Remove os buffs específicos
+		sc_end SC_FOOD_STR_CASH;
+		sc_end SC_FOOD_AGI_CASH;
+		sc_end SC_FOOD_VIT_CASH;
+		sc_end SC_FOOD_INT_CASH;
+		sc_end SC_FOOD_DEX_CASH;
+		sc_end SC_FOOD_LUK_CASH;
+
+	}
+	end;
+}

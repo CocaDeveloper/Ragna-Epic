@@ -1,0 +1,175 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                 NPC - Teleporte WOE
+//===============================================================
+
+prontera,169,231,6	script	Guerra do Emperium	1288,{
+	emotion 52;
+	mes "^339966[Teleporte WoE]^000000";
+	mes "Olá, ^ffa500"+strcharinfo(0)+"^000000 Selecione o serviço:";
+	switch(select("^339966[»]^000000 Teleportar para WoE.:^339966[»]^000000 Salvar ponto de retorno.:^ff0000[»] Nada obrigado.^000000")) {
+	case 1:
+		next;
+		mes "^339966[Teleporte WoE]^000000";
+		mes "Por favor ^ffa500"+strcharinfo(0)+"^000000 Selecione o Feudo:";
+		next;
+		switch(select("Prontera:Payon:Geffen:Aldebaran")) {
+		//Prontera
+		case 1:
+			mes "^339966[Teleporte WoE]^000000";
+			mes "Para qual castelo deseja ir?";
+			next;
+			switch(select("Brynhild:Hrist:Kriemild:Gondul:Skoegul:^ff0000Nenhum^000000")) {
+			//Castelos de Prontera
+			case 1:
+				warp "prt_gld", 153, 133;
+				close;
+			case 2:
+				warp "prt_gld", 240, 131;
+				close;
+			case 3:
+				warp "prt_gld", 135, 65;
+				close;
+			case 4:
+				warp "prt_gld", 195, 240;
+				close;
+			case 5:
+				warp "prt_gld", 124, 240;
+				close;
+			case 6:
+				mes "^339966[Teleporte WoE]^000000";
+				mes "Tudo bem. Volte quando quiser.";
+				close;
+			}
+		//Payon
+		case 2:
+			mes "^339966[Teleporte WoE]^000000";
+			mes "Para qual castelo deseja ir?";
+			next;
+			switch(select("Palácio da Colina:Palácio Escarlate:Palácio da Sombra:Lago Sagrado:Palácio do Sol:^ff0000Nenhum^000000")) {
+			//Castelos de Payon
+			case 1:
+				warp "pay_gld", 194, 272;
+				close;
+			case 2:
+				warp "pay_gld", 140, 164;
+				close;
+			case 3:
+				warp "pay_gld", 317, 294;
+				close;
+			case 4:
+				warp "pay_gld", 296, 116;
+				close;
+			case 5:
+				warp "pay_gld", 121, 232;
+				close;
+			case 6:
+				mes "^339966[Teleporte WoE]^000000";
+				mes "Tudo bem. Volte quando quiser.";
+				close;
+			}
+		//Geffen
+		case 3:
+			mes "^339966[Teleporte WoE]^000000";
+			mes "Para qual castelo deseja ir?";
+			next;
+			switch(select("Arsulf:Trapesac:Ruaden:Safran:Arima:^ff0000Nenhum^000000")) {
+			//Castelos de Geffen
+			case 1:
+				warp "gef_fild13", 216, 74;
+				close;
+			case 2:
+				warp "gef_fild13", 308, 238;
+				close;
+			case 3:
+				warp "gef_fild13", 147, 240;
+				close;
+			case 4:
+				warp "gef_fild13", 191, 276;
+				close;
+			case 5:
+				warp "gef_fild13", 309, 88;
+				close;
+			case 6:
+				mes "^339966[Teleporte WoE]^000000";
+				mes "Tudo bem. Volte quando quiser.";
+				close;
+			}
+		//Aldebaran
+		case 4:
+			mes "^339966[Teleporte WoE]^000000";
+			mes "Para qual castelo deseja ir?";
+			next;
+			switch(select("Acrux:Rigel:Canopus:Astrum:Sirius:^ff0000Nenhum^000000")) {
+			//Castelos de Aldebaran
+			case 1:
+				warp "alde_gld", 268, 91;
+				close;
+			case 2:
+				warp "alde_gld", 236, 243;
+				close;
+			case 3:
+				warp "alde_gld", 142, 86;
+				close;
+			case 4:
+				warp "alde_gld", 95, 248;
+				close;
+			case 5:
+				warp "alde_gld", 48, 91;
+				close;
+			case 6:
+				mes "^339966[Teleporte WoE]^000000";
+				mes "Tudo bem. Volte quando quiser.";
+				close;
+			}
+		}
+		break;
+	//Salvar ponto de retorno.
+	case 2:
+		next;
+		savepoint "prontera", 155, 180;
+		mes "^339966[Teleporte WoE]^000000";
+		mes "Seu ponto de retorno foi salvo em: "+getsavepoint(0)+", "+getsavepoint(1)+", "+getsavepoint(2)+".";
+		close;
+	//Nada obrigado.
+	case 3:
+		next;
+		mes "^339966[Teleporte WoE]^000000";
+		mes "Tudo bem. Volte quando quiser.";
+		close;
+	}
+	
+OnInit:
+
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 60;	
+	setunittitle getnpcid(0), "[Teleporte WoE]";
+	end;
+	
+}
+
+prontera,169,231,5	script	#teleportewoe1	111,{
+
+OnInit:
+	// Chat em cima do npc
+	while(1) {
+		showscript "[ Teleporte WoE ]", getnpcid(0);
+		sleep 100;
+	}
+}
+
+1@herbs,263,65,5	script	#teleportewoe2	111,{
+
+OnInit:
+	// Chat em cima do npc
+	while(1) {
+		showscript "[ Teleporte WoE ]", getnpcid(0);
+		sleep 100;
+	}
+}

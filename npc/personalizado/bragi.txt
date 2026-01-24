@@ -1,0 +1,126 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                   BARDO BRAGI
+//===============================================================
+
+malangdo,220,268,5	script	Bardo#Dano1	479,3,3,{
+	end;
+	
+OnTouch:
+	if( .sbragi < gettimetick(2) ){			// triggered within area 7x7, start bragi if not on delay
+		unitskilluseid getnpcid(0),321,10;	// bragi(321) level 10
+		set .sbragi,gettimetick(2) + 10;	// delay 3 minute for npc to cast song
+	}
+	end;
+	
+OnInit:
+	setunitdata getnpcid(0),UNPC_INT,600;	// set npc INT 150
+	setunitdata getnpcid(0),UNPC_DEX,600;	// set NPC DEX 150
+	end;
+}
+
+malangdo,147,266,5	script	Bardo#Dano2	479,3,3,{
+	end;
+	
+OnTouch:
+	if( .sbragi < gettimetick(2) ){			// triggered within area 7x7, start bragi if not on delay
+		unitskilluseid getnpcid(0),321,10;	// bragi(321) level 10
+		set .sbragi,gettimetick(2) + 10;	// delay 3 minute for npc to cast song
+	}
+	end;
+	
+OnInit:
+	setunitdata getnpcid(0),UNPC_INT,600;	// set npc INT 150
+	setunitdata getnpcid(0),UNPC_DEX,600;	// set NPC DEX 150
+	end;
+}
+
+malangdo,87,234,5	script	Bardo#Emp1	479,3,3,{
+	end;
+	
+OnTouch:
+	if( .sbragi < gettimetick(2) ){			// triggered within area 7x7, start bragi if not on delay
+		unitskilluseid getnpcid(0),321,10;	// bragi(321) level 10
+		set .sbragi,gettimetick(2) + 10;	// delay 3 minute for npc to cast song
+	}
+	end;
+	
+OnInit:
+	setunitdata getnpcid(0),UNPC_INT,600;	// set npc INT 150
+	setunitdata getnpcid(0),UNPC_DEX,600;	// set NPC DEX 150
+	end;
+}
+
+malangdo,269,220,6	script	Bardo#Emp2	479,3,3,{
+	end;
+	
+OnTouch:
+	if( .sbragi < gettimetick(2) ){			// triggered within area 7x7, start bragi if not on delay
+		unitskilluseid getnpcid(0),321,10;	// bragi(321) level 10
+		set .sbragi,gettimetick(2) + 10;	// delay 3 minute for npc to cast song
+	}
+	end;
+	
+OnInit:
+	setunitdata getnpcid(0),UNPC_INT,600;	// set npc INT 150
+	setunitdata getnpcid(0),UNPC_DEX,600;	// set NPC DEX 150
+	end;
+}
+
+
+malangdo,221,268,5	script	#bardo1	111,{
+
+OnInit:
+	// Chat em cima do npc
+	while(1) {
+		showscript "[ Buffs ]", getnpcid(0);
+		sleep 100;
+	}
+}
+
+malangdo,88,234,5	script	#bardo2	111,{
+
+OnInit:
+	// Chat em cima do npc
+	while(1) {
+		showscript "[ Buffs ]", getnpcid(0);
+		sleep 100;
+	}
+}
+
+malangdo,270,220,5	script	#bardo3	111,{
+
+OnInit:
+	// Chat em cima do npc
+	while(1) {
+		showscript "[ Buffs ]", getnpcid(0);
+		sleep 100;
+	}
+}
+
+malangdo,148,266,5	script	#bardo4	111,{
+
+OnInit:
+	// Chat em cima do npc
+	while(1) {
+		showscript "[ Buffs ]", getnpcid(0);
+		sleep 100;
+	}
+}
+
+1@herbs,271,104,5	script	#bardo5	111,{
+
+OnInit:
+	// Chat em cima do npc
+	while(1) {
+		showscript "[ Buffs ]", getnpcid(0);
+		sleep 100;
+	}
+}

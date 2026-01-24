@@ -1,0 +1,312 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                 EVENTO PORING PREMIADO
+// ===================== Descrição: =============================
+// Evento onde jogadores devem encontrar o Poring correto entre
+// vários Porings com nomes errados. Apenas 1 tem o nome correto!
+//===============================================================
+
+1@herbs,308,38,3	script	Poring Premiado	1002,{
+
+	set .@GMLevel,60;	// Nível GM necessário para acessar o painel admin
+	set .@n$,"^FF1493[Poring Premiado]^000000";
+
+	// Painel Administrativo
+	if (getgmlevel()>=.@GMLevel) {
+		mes .@n$;
+		mes "Painel Administrativo";
+		mes "Status Evento: " + ($eventoporingativo ? "^00FF00ATIVO^000000" : "^FF0000INATIVO^000000");
+		if($eventoporingativo) {
+			mes "Jogadores no evento: ^0000FF" + getmapusers("poring_w01") + "^000000";
+		}
+		next;
+		switch(select("^339966[»]^000000 Iniciar Evento:^339966[»]^000000 Parar Evento:^339966[»]^000000 Limpar Mapa:^339966[»]^000000 Menu Jogador")) {
+		case 1:
+			mes .@n$;
+			if ($eventoporingativo) {
+				mes "O evento já está ativo!";
+				mes "Deseja reiniciá-lo?";
+			} else {
+				mes "Deseja iniciar o Evento Poring Premiado?";
+			}
+			if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+			
+			donpcevent "CorePoringPremiado::OnAdminStart";
+			next;
+			mes .@n$;
+			mes "Evento Poring Premiado iniciado!";
+			close;
+		case 2:
+			mes .@n$;
+			if (!$eventoporingativo && !$portaoporing) {
+				mes "Não há evento ativo!";
+				close;
+			}
+			mes "Deseja parar o evento?";
+			mes "Isso fechará a entrada e expulsará todos os jogadores.";
+			if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+			
+			donpcevent "CorePoringPremiado::OnAdminStop";
+			next;
+			mes .@n$;
+			mes "Evento parado com sucesso!";
+			close;
+		case 3:
+			mes .@n$;
+			mes "Deseja limpar o mapa do evento?";
+			mes "Isso removerá todos os monstros e jogadores.";
+			if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+			
+			donpcevent "CorePoringPremiado::OnAdminClean";
+			next;
+			mes .@n$;
+			mes "Mapa limpo com sucesso!";
+			close;
+		case 4:
+			// Continua para o menu normal do jogador
+			break;
+		}
+	}
+
+	// Menu normal para jogadores
+	mes .@n$;
+	mes (gettime(3)>= 6&&gettime(3)<= 12?"Bom-dia":(gettime(3)>=13&&gettime(3)<=18?"Boa-tarde":"Boa-noite"))+", ^ffa500"+strcharinfo(0)+"^000000!";
+	mes "Você possui ^ff0000"+pontosevento+"^000000 pontos de evento.";
+	mes " ";
+	mes " ";
+	mes "^ff0000O que deseja fazer?^000000";
+		switch(select("^339966[»]^000000 Ir para o evento:^339966[»]^000000 Ver horários:^339966[»]^000000 Como funciona?:^ff0000[»] Sair^000000")) {
+		case 01:
+		if($portaoporing == 0){ 
+		next; 
+		mes .@n$;
+		mes "^ff0000O evento está fechado no momento. Por favor, volte mais tarde!^000000";
+		close;
+		}
+		warp "poring_w01",100,98;
+		announce "[Poring Premiado]: O jogador "+strcharinfo(0)+" entrou no evento Poring Premiado!", bc_all | bc_yellow;
+		close;
+
+		case 02:
+		next;
+		mes .@n$;
+		mes "O evento acontece às:";
+		mes "• ^ffa50002H05min^000000";
+		mes "• ^ffa50005H05min^000000";
+		mes "• ^ffa50008H35min^000000";
+		mes "• ^ffa50012H05min^000000";
+		mes "• ^ffa50016H05min^000000";
+		mes "• ^ffa50019H05min^000000";
+		mes "• ^ffa50023H05min^000000";
+		mes "Horário do servidor.";
+		close;
+
+		case 03:
+		next;
+		mes .@n$;
+		mes "^0066CCComo funciona o evento:^000000";
+		mes "• Vários Porings aparecerão no mapa";
+		mes "• Apenas ^ff00001 Poring^000000 terá o nome correto";
+		mes "• Se matar o Poring errado = ^ff0000ELIMINADO^000000";
+		mes "• Cada vencedor receberá +3 Pontos de Evento além da premiação aleatória.";
+		mes "• Quanto mais jogadores, mais Porings!";
+		close;
+
+		case 04:
+		close;
+	}
+	
+OnInit:
+
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 1009;	
+		setunittitle getnpcid(0), "[Rune-Midgard]";
+
+		while(1) {
+		showscript "[ Poring Premiado ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+-	script	CorePoringPremiado	-1,{
+
+OnInit:
+	set $portaoporing,0;
+	set $eventoporingativo,0;
+	end;
+
+// Labels administrativos
+OnAdminStart:
+	if ($eventoporingativo) {
+		// Para o evento atual primeiro
+		donpcevent "CorePoringPremiado::OnAdminStop";
+		sleep 2000;
+	}
+	set $portaoporing, 1;
+	set $eventoporingativo, 1;
+	// Removido: enablenpc "Poring Premiado"; - NPC sempre ativo
+	killmonsterall "poring_w01";
+	announce "[Poring Premiado]: O Evento Poring Premiado está prestes a começar! Para participar, digite: @eventos e fale com o NPC... Vocês têm 5 minutos!!", bc_all | bc_yellow;
+	goto EventSequence;
+
+OnAdminStop:
+	set $portaoporing, 0;
+	set $eventoporingativo, 0;
+	// Removido: disablenpc "Poring Premiado"; - NPC sempre ativo
+	killmonsterall "poring_w01";
+	areawarp "poring_w01", 0, 0, 200, 200, "prontera", 155, 191;
+	announce "[Poring Premiado]: Um ADM parou o Evento Poring Premiado.", bc_all | bc_yellow;
+	end;
+
+OnAdminClean:
+	killmonsterall "poring_w01";
+	areawarp "poring_w01", 0, 0, 200, 200, "prontera", 155, 191;
+	mapannounce "poring_w01", "[Poring Premiado]: O mapa foi limpo por um administrador.", bc_yellow;
+	end;
+
+// Horários automáticos (mantidos como estavam)
+OnClock0215:
+OnClock0515:
+OnClock0815:
+OnClock1215:
+OnClock1615:
+OnClock1915:
+OnClock2315: // Teste
+	set $portaoporing, 1;
+	set $eventoporingativo, 1;
+	// Removido: enablenpc "Poring Premiado"; - NPC sempre ativo
+	killmonsterall "poring_w01";
+	announce "[Poring Premiado]: O Evento Poring Premiado está prestes a começar! Para participar, digite: @eventos e fale com o NPC... Vocês têm 5 minutos!!", bc_all | bc_yellow;
+
+EventSequence:
+	sleep 60000; // 1 minuto
+	announce "[Poring Premiado]: A entrada para o Poring Premiado fechará em 4 minutos!", bc_all | bc_yellow;
+	sleep 60000; // 1 minuto
+	announce "[Poring Premiado]: A entrada para o Poring Premiado fechará em 3 minutos!", bc_all | bc_yellow;
+	sleep 60000; // 1 minuto
+	announce "[Poring Premiado]: A entrada para o Poring Premiado fechará em 2 minutos!", bc_all | bc_yellow;
+	sleep 60000; // 1 minuto
+	announce "[Poring Premiado]: A entrada para o Poring Premiado fechará em 1 minuto!", bc_all | bc_yellow;
+	sleep 60000; // 1 minuto
+	set $portaoporing, 0;
+	// Removido: disablenpc "Poring Premiado"; - NPC sempre ativo
+	announce "[Poring Premiado]: A entrada para o Poring Premiado foi fechada! Tente novamente na próxima!!", bc_all | bc_yellow;
+	
+	// Conta jogadores no mapa
+	set $jogadores_poring, getmapusers("poring_w01");
+	
+	if($jogadores_poring < 1) {
+		mapannounce "poring_w01", "[Poring Premiado]: Nenhum jogador foi encontrado! O evento foi cancelado.", bc_yellow;
+		set $eventoporingativo, 0;
+		end;
+	}
+	
+	mapannounce "poring_w01", "[Poring Premiado]: "+$jogadores_poring+" jogador(es) estão participando do evento! Preparem-se... os porings aparecerão em 20 segundos!", bc_yellow;
+	sleep 20000;
+	
+	// Calcula número de Porings baseado no número de jogadores
+	set $num_porings, ($jogadores_poring * 25) + rand(10,15); // Base: 25 por jogador + 10-15 extras
+	if($num_porings > 500) set $num_porings, 500; // Limite máximo
+	
+	// Array com nomes errados
+	setarray $nomes_errados$[0], "Proings", "Pouring", "Por1ng", "Porunig", "P0ring", "Porimg", "Pormg", "Porng", "Porig", "Poing", "Poring!", "Por!ng", "Poriing", "Porring", "Porinhg", "Porinng", "Porign", "Porinf", "Porinh", "Porink", "Poriny", "Porings", "Poringa", "Poringz", "Poreng", "Porung", "Porong", "P0r1ng", "Por1n9", "Pr0ing";
+	
+	// Gera posições aleatórias e spawna Porings errados (CORRIGIDO - dentro da área válida)
+	for(set .@i, 0; .@i < ($num_porings - 1); set .@i, .@i + 1) {
+		set .@x, rand(80, 123); // Área corrigida: X entre 80-123
+		set .@y, rand(90, 114); // Área corrigida: Y entre 90-114
+		set .@nome_idx, rand(0, getarraysize($nomes_errados$) - 1);
+		monster "poring_w01", .@x, .@y, $nomes_errados$[.@nome_idx], 1002, 1, "PoringErrado::OnPoringErradoMorte";
+	}
+	
+	// Spawna o Poring correto em posição aleatória (CORRIGIDO - dentro da área válida)
+	set .@x_correto, rand(80, 123); // Área corrigida: X entre 80-123
+	set .@y_correto, rand(90, 114);  // Área corrigida: Y entre 90-114
+	monster "poring_w01", .@x_correto, .@y_correto, "Poring", 1002, 1, "PoringCorreto::OnPoringCorretoMorte";
+	
+	mapannounce "poring_w01", "[Poring Premiado]: "+$num_porings+" Porings foram liberados! Encontrem o 'Poring' correto!", bc_yellow;
+	mapannounce "poring_w01", "[Poring Premiado]: CUIDADO!! Se matarem o Poring errado, serão ELIMINADOS!", bc_yellow;
+	
+	// Timer de 10 minutos para o evento
+	sleep 600000; // 10 minutos
+	
+	if($eventoporingativo == 1) {
+		killmonsterall "poring_w01";
+		mapannounce "poring_w01", "[Poring Premiado]: Tempo esgotado! Ninguém encontrou o Poring correto. O evento foi encerrado!", bc_yellow;
+		areawarp "poring_w01", 0, 0, 200, 200, "prontera", 155, 191;
+		set $eventoporingativo, 0;
+	}
+	end;
+}
+
+// Script para Poring Errado
+-	script	PoringErrado	-1,{
+OnPoringErradoMorte:
+	if($eventoporingativo == 0) end;
+	
+	announce "[Poring Premiado]: O jogador "+strcharinfo(0)+" matou um Poring ERRADO e foi eliminado!",0,0xFF0000; 
+	warp "prontera", 155, 191;
+	end;
+}
+
+// Script para Poring Correto
+-	script	PoringCorreto	-1,{
+OnPoringCorretoMorte:
+	if($eventoporingativo == 0) end;
+	
+	// Para o evento
+	set $eventoporingativo, 0;
+	killmonsterall "poring_w01";
+	
+	// Prêmios aleatórios
+	set .@premio, rand(1,4);
+	if(.@premio == 1) { 
+		set Zeny, Zeny + 15000000; 
+		set pontosevento, pontosevento + 3;
+		announce "[Poring Premiado]: O jogador "+strcharinfo(0)+" encontrou o Poring correto e ganhou 15.000.000 de zenys!", bc_all | bc_yellow;
+	}
+	else if(.@premio == 2) { 
+		getitem 1001007, 10; 
+		set pontosevento, pontosevento + 3;
+		announce "[Poring Premiado]: O jogador "+strcharinfo(0)+" encontrou o Poring correto e ganhou 10 Moedas de Evento!", bc_all | bc_yellow;
+	}
+	else if(.@premio == 3) { 
+		getitem 7621, 8; 
+		set pontosevento, pontosevento + 3;
+		announce "[Poring Premiado]: O jogador "+strcharinfo(0)+" encontrou o Poring correto e ganhou 8 Amuletos de Ziegfried!", bc_all | bc_yellow;
+	}
+	else if(.@premio == 4) {
+		getitem 14232, 10; 
+		set pontosevento, pontosevento + 3;
+		announce "[Poring Premiado]: O jogador "+strcharinfo(0)+" encontrou o Poring correto e ganhou 10 Caixas de Fruto de Yggdrasil!", bc_all | bc_yellow;
+	}
+	
+	mapannounce "poring_w01", "[Poring Premiado]: Parabéns "+strcharinfo(0)+"! Você venceu o evento!", bc_yellow;
+	sleep 3000;
+	areawarp "poring_w01", 0, 0, 200, 200, "prontera", 155, 191;
+	end;
+}
+
+// Mapflags para o mapa do evento - CORRIGIDO para liberar comandos de ADM
+poring_w01	mapflag	noloot
+poring_w01	mapflag	nomemo
+poring_w01	mapflag	nowarp
+poring_w01	mapflag	nowarpto
+poring_w01	mapflag	noicewall
+poring_w01	mapflag	nosave	SavePoint
+poring_w01	mapflag	noreturn
+poring_w01	mapflag	noteleport
+poring_w01	mapflag	nobranch
+poring_w01	mapflag	nopenalty
+poring_w01	mapflag	nocommand	60	// CORRIGIDO: Bloqueia comandos apenas para jogadores (level < 60)
+poring_w01	mapflag	nochat
+poring_w01	mapflag	noskill	99
+
+new_evt,168,170,3	duplicate(Poring Premiado)	Poring Premiado#evento	1002

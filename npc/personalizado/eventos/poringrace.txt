@@ -1,0 +1,742 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                    EVENTO PORING RACE
+// ===================== Descrição: =============================
+//======================= Mapflags: =============================
+
+p_track02	mapflag	nobranch
+p_track02	mapflag	noicewall
+p_track02	mapflag	nomemo
+p_track02	mapflag	noreturn
+p_track02	mapflag	noteleport
+p_track02	mapflag	nowarpto	
+p_track02	mapflag	nowarp
+p_track02	mapflag	pvp	off
+p_track02	mapflag	nosave	SavePoint
+p_track02	mapflag	pvp_noparty
+p_track02	mapflag	pvp_noguild
+p_track02	mapflag	nopenalty
+p_track02	mapflag	nocommand	60
+p_track02	mapflag	noskill	99
+
+//====== Teleporte: ============================================
+
+1@herbs,298,38,3	script	Poring Race#prace0	508,{
+	
+	set .@n$,"^FF1493[Poring Race]^000000";
+	set .@GMLevel,60;	// Nível GM necessário para acessar o painel admin
+
+	// Painel Administrativo
+	if (getgmlevel()>=.@GMLevel) {
+		mes .@n$;
+		mes "Painel Administrativo";
+		mes "Status: " + ($prace_gate ? "^00FF00ATIVO^000000" : "^FF0000INATIVO^000000");
+		next;
+		switch(select("^339966[»]^000000 Iniciar Evento:^339966[»]^000000 Parar Evento:^339966[»]^000000 Menu Jogador")) {
+		case 1:
+			mes .@n$;
+			if ($prace_gate) {
+				mes "O evento já está ativo!";
+				close;
+			}
+			mes "Deseja iniciar a Corrida dos Porings manualmente?";
+			if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+			
+			donpcevent "CorePoringRace::OnAdminStart";
+			next;
+			mes .@n$;
+			mes "Corrida dos Porings foi iniciada manualmente!";
+			close;
+		case 2:
+			mes .@n$;
+			if (!$prace_gate) {
+				mes "O evento não está ativo!";
+				close;
+			}
+			mes "Deseja parar o evento?";
+			mes "Isso fechará a entrada imediatamente.";
+			if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+			
+			donpcevent "CorePoringRace::OnAdminStop";
+			next;
+			mes .@n$;
+			mes "Evento parado com sucesso!";
+			close;
+		case 3:
+			// Continua para o menu normal do jogador
+			break;
+		}
+	}
+
+	// Menu normal para jogadores
+	mes .@n$;
+	mes (gettime(3)>= 6&&gettime(3)<= 12?"Bom-dia":(gettime(3)>=13&&gettime(3)<=18?"Boa-tarde":"Boa-noite"))+", ^ffa500"+strcharinfo(0)+"^000000!";
+	mes "Bem-vindo à Corrida dos Porings!";
+	mes "Você possui ^ff0000"+pontosevento+"^000000 pontos de evento.";
+	mes " ";
+	mes "^ff0000O que deseja fazer?^000000";
+	
+	switch(select("^339966[»]^000000 Ir para a corrida:^339966[»]^000000 Ver horários:^ff0000[»] Sair^000000")) {
+	case 1:
+		if($prace_gate == 0) { 
+			next; 
+			mes .@n$;
+			mes "^ff0000A Corrida dos Porings está fechada no momento. Por favor, volte mais tarde!^000000";
+			close;
+		}
+		next;
+		mes .@n$;
+		mes "Teleportando para a arena...";
+		close2; 
+		warp "p_track02",55,41; 
+		end;
+
+	case 2:
+		next;
+		mes .@n$;
+		mes "A corrida acontece às:";
+		mes "• ^ffa50010H00min^000000";
+		mes "• ^ffa50012H00min^000000";
+		mes "• ^ffa50014H00min^000000";
+		mes "• ^ffa50016H00min^000000";
+		mes "• ^ffa50018H00min^000000";
+		mes "• ^ffa50020H00min^000000";
+		mes "• ^ffa50022H00min^000000";
+		mes "Horário do servidor.";
+		close;
+
+	case 3:
+		close;
+	}
+	
+OnInit:
+
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 1009;	
+		setunittitle getnpcid(0), "[Rune-Midgard]";
+
+		while(1) {
+		showscript "[ Poring Race ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+//====== Warps: ================================================
+
+p_track02,66,43,0	warp	p_track002	1,3,prontera,155,191
+
+//====== Core do Sistema: ======================================
+-	script	CorePoringRace	-1,{
+
+OnInit:
+	// Inicializar sistema
+	set $prace_gate,0;
+	set $prace_racing,0;
+	set $prace_current_race,0;
+	set $prace_bets,0;
+	cleararray $prace_bidders[0], 0, 128;
+	cleararray $prace_points[0], 0, 6;
+	set $prace_winner$,"";
+	set $prace_final_winner$,"";
+	set $prace_final_points,0;
+	end;
+
+// Labels administrativos
+OnAdminStart:
+	if ($prace_gate) end; // Evita iniciar se já estiver ativo
+	callsub OnStartEvent;
+	end;
+
+OnAdminStop:
+	set $prace_gate, 0;
+	set $prace_racing, 0;
+	donpcevent "RaceController#prace::OnCleanup";
+	end;
+
+// Horários automáticos
+OnClock1000:
+OnClock1237:
+OnClock1255:
+OnClock1732:
+OnClock1800:
+OnClock2000:
+OnClock2200:
+	callsub OnStartEvent;
+	end;
+
+OnStartEvent:
+	// CORREÇÃO: Limpar qualquer estado anterior antes de iniciar
+	donpcevent "RaceController#prace::OnPreCleanup";
+	
+	set $prace_gate,1;
+	set $prace_racing,0;
+	set $prace_current_race,0;
+	set $prace_bets,0;
+	cleararray $prace_bidders[0], 0, 128;
+	cleararray $prace_points[0], 0, 6;
+	set $prace_winner$,"";
+	set $prace_final_winner$,"";
+	set $prace_final_points,0;
+	announce "[Poring Race]: A Corrida dos Porings está aberta! Façam suas apostas! Use @eventos e fale com o NPC para participar! A corrida começará em 5 minutos!", bc_all | bc_yellow;
+	
+	// Sequência do evento
+	sleep 60000; // 1 minuto
+	announce "[Poring Race]: A Corrida dos Porings começará em 4 minutos!", bc_all | bc_yellow;
+	sleep 60000; // 1 minuto  
+	announce "[Poring Race]: A Corrida dos Porings começará em 3 minutos!", bc_all | bc_yellow;
+	sleep 60000; // 1 minuto
+	announce "[Poring Race]: A Corrida dos Porings começará em 2 minutos!", bc_all | bc_yellow;
+	sleep 60000; // 1 minuto
+	announce "[Poring Race]: A Corrida dos Porings começará em 1 minuto!", bc_all | bc_yellow;
+	sleep 60000; // 1 minuto
+	
+	// Verificar se há apostas
+	if ($prace_bets <= 0) {
+		set $prace_gate, 0;
+		announce "[Poring Race]: Nenhuma aposta foi feita. A corrida foi cancelada!", bc_all | bc_yellow;
+		return;
+	}
+	
+	set $prace_gate, 0; // Fechar apostas
+	announce "[Poring Race]: Apostas encerradas! A Corrida dos Porings começou!", bc_all | bc_yellow;
+	
+	sleep 5000;
+	mapannounce "p_track02","A CORRIDA VAI COMEÇAR!!...",1,0xFFAB54;
+	sleep 5000;
+	mapannounce "p_track02","Porings, em suas marcas...",1,0xFFAB54;
+	sleep 2500;
+	mapannounce "p_track02","...3...",1,0xFFAB54;
+	sleep 1000;
+	mapannounce "p_track02","...2...",1,0xFFAB54;
+	sleep 1000;
+	mapannounce "p_track02","...1...",1,0xFFAB54;
+	sleep 1000;
+	mapannounce "p_track02","Goooo!!!",1,0xFFAB54;
+	
+	// Iniciar a corrida
+	donpcevent "RaceController#prace::OnStartRace";
+	
+	// Timer de segurança para limpar após 2 minutos
+	sleep 120000;
+	if ($prace_racing == 1) {
+		donpcevent "RaceController#prace::OnForceEnd";
+	}
+	return;
+}
+
+//====== NPC Principal de Apostas: =============================
+p_track02,58,41,3	script	Bidder, O Velho#prace0	712,{ 
+	set .@prace_zeny,10000; // Custo da aposta
+	set .@n$,"^FF1493[Apostador Bidder]^000000";
+
+	// CORREÇÃO: Verificar se o sistema foi resetado mas o jogador ainda tem variáveis antigas
+	if (@prace_playing == 1 && $prace_bets == 0) {
+		set @prace_playing, 0;
+		set @prace_winner$, "";
+		set @prace_can_claim, 0;
+	}
+
+	// Verificar se pode coletar prêmio
+	if (@prace_can_claim == 1) {
+		mes .@n$;
+		mes "^339966Parabéns! Você venceu a corrida!^000000";
+		mes "Clique em 'Coletar Prêmio' para receber sua recompensa.";
+		mes "^FF0000Atenção: Este prêmio expira em alguns minutos!^000000";
+		next;
+		if(select("Coletar Prêmio:Voltar") == 1) {
+			set .@prace_prize, 1001007; // Moeda de Evento
+			set .@prace_prize_quantity, 3;
+			getitem .@prace_prize, .@prace_prize_quantity;
+			set pontosevento,pontosevento+3;
+			set Zeny, Zeny + 50000000; // Bônus em zeny
+			mes .@n$;
+			mes "Você recebeu "+.@prace_prize_quantity+" "+getitemname(.@prace_prize)+" e 50.000.000 de Zeny!";
+			mapannounce "p_track02","[Apostador]: Parabéns! "+strcharinfo(0)+" coletou seu prêmio!",1,0xFFAB54;
+			
+			// CORREÇÃO: Reset completo após coletar prêmio
+			set @prace_can_claim, 0;
+			set @prace_winner$, "";
+			set @prace_playing, 0;
+			emotion 21;
+		}
+		close;
+	}
+
+	// Verificar se já apostou
+	if (@prace_playing==1) {
+		mes .@n$; 
+		mes "Você apostou em ^00bb00"+@prace_winner$+"^000000.";
+		if ($prace_racing > 0) {
+			mes "A corrida está em andamento...";
+		} else if ($prace_gate == 0) {
+			mes "Aguarde o resultado da corrida!";
+		}
+		close;
+	}
+	
+	// Verificar se há corrida em andamento
+	if ($prace_racing == 1){
+		mes .@n$; 
+		mes "^ff0000Uma corrida está em andamento... Aguarde o final!^000000"; 
+		close;
+	}
+	
+	// Verificar se as apostas estão abertas
+	if ($prace_gate == 0) {
+		mes .@n$;
+		mes "^ff0000As apostas estão fechadas no momento.^000000";
+		mes "Aguarde a próxima corrida!";
+		close;
+	}
+	
+	mes .@n$; 
+	mes "^339966=== CORRIDA DOS PORINGS ===^000000";
+	mes "Escolha o poring em que deseja apostar:";
+	mes "Custo: ^FF0000"+.@prace_zeny+"^000000 Zeny por aposta.";
+	mes "Apostas atuais: ^0066FF"+$prace_bets+"^000000";
+	next;
+	
+	switch(select("Poring:Angeling:Metaling:Deviling:Poring Noel:Poporing")){
+		case 1: set .@choice$, "Poring"; break;
+		case 2: set .@choice$, "Angeling"; break;
+		case 3: set .@choice$, "Metaling"; break;
+		case 4: set .@choice$, "Deviling"; break;
+		case 5: set .@choice$, "Poring Noel"; break;
+		case 6: set .@choice$, "Poporing"; break;
+	}
+	
+	// Verificar Zeny
+	if (Zeny < .@prace_zeny) { 
+		mes .@n$; 
+		mes "Você não tem Zeny suficiente."; 
+		close;
+	}
+		
+	// Processar a aposta
+	set Zeny, Zeny - .@prace_zeny;
+	set @prace_winner$, .@choice$;
+	set @prace_playing, 1;
+	
+	// Adicionar ao sistema de apostas
+	set $prace_bets, $prace_bets + 1; 
+	set $prace_bidders[$prace_bets], getcharid(3);
+	
+	mes .@n$; 
+	mes "Você apostou em ^339966"+@prace_winner$+"^000000!";
+	mes "Total de apostas: ^0066FF"+$prace_bets+"^000000";
+	
+	npctalk "[Apostador]: "+ strcharinfo(0)+" fez sua aposta em "+@prace_winner$+"!"; 
+	close;
+
+OnInit:
+
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 1009;	
+	setunittitle getnpcid(0), "[Rune-Midgard]";
+
+	//Chat em cima do npc.
+
+	while(1) {
+		showscript "[ Apostador ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+//====== Controlador da Corrida: ===============================
+p_track02,44,41,0	script	RaceController#prace	-1,{
+end;
+
+OnStartRace:
+	set $prace_racing, 1;
+	donpcevent "Poring#prace1::OnRace";
+	donpcevent "Angeling#prace2::OnRace";
+	donpcevent "Metaling#prace3::OnRace";
+	donpcevent "Deviling#prace4::OnRace";
+	donpcevent "Poring Noel#prace5::OnRace";
+	donpcevent "Poporing#prace6::OnRace";
+	end;
+
+OnStopRace:
+	donpcevent "Poring#prace1::OnStop";
+	donpcevent "Angeling#prace2::OnStop";
+	donpcevent "Metaling#prace3::OnStop";
+	donpcevent "Deviling#prace4::OnStop";
+	donpcevent "Poring Noel#prace5::OnStop";
+	donpcevent "Poporing#prace6::OnStop";
+	if ($prace_winner$!="") donpcevent "RaceController#prace::OnWinRace";
+	end;
+
+OnReturnRace:
+	set $prace_racing, 0;
+	donpcevent "Poring#prace1::OnReturn";
+	donpcevent "Angeling#prace2::OnReturn";
+	donpcevent "Metaling#prace3::OnReturn";
+	donpcevent "Deviling#prace4::OnReturn";
+	donpcevent "Poring Noel#prace5::OnReturn";
+	donpcevent "Poporing#prace6::OnReturn";
+	end;
+
+OnForceEnd:
+	if ($prace_racing == 1) {
+		set $prace_racing, 0;
+		mapannounce "p_track02","Corrida finalizada por tempo limite!",1,0xFF0000;
+		donpcevent "RaceController#prace::OnReturnRace";
+		sleep 5000;
+		donpcevent "RaceController#prace::OnCleanup";
+	}
+	end;
+
+OnWinRace:
+	set $prace_racing, 0;
+	// Anunciar vencedor da corrida
+	mapannounce "p_track02","[Poring Race]: O vencedor da Corrida dos Porings é "+$prace_winner$+"! Parabéns aos vencedores!",bc_map | bc_yellow;
+	
+	sleep 3000;
+	donpcevent "RaceController#prace::OnFinalResult";
+	end;
+
+OnFinalResult:
+	// Processar apostas e efetuar pagamentos
+	for(set .@i,1; .@i <= $prace_bets; set .@i, .@i + 1){
+		if(attachrid($prace_bidders[.@i])){
+			if (@prace_playing!=1) continue;
+			dispbottom "O CAMPEÃO é "+$prace_winner$+" e você apostou em "+@prace_winner$+".";
+			if (@prace_winner$==$prace_winner$ && @prace_winner$!=""){  
+				set @prace_can_claim, 1;
+				dispbottom "PARABÉNS! Você venceu! Fale com o Apostador para coletar seu prêmio!"; 
+				dispbottom "ATENÇÃO: Você tem 5 minutos para coletar seu prêmio!"; 
+				emotion 21;
+			} else { 
+				dispbottom "Você perdeu, tente novamente na próxima!"; 
+				emotion 28;
+			}
+			// CORREÇÃO: Resetar @prace_playing para TODOS os jogadores
+			set @prace_playing, 0;
+		}
+	}
+	
+	// Limpar após 5 minutos
+	sleep 300000;
+	donpcevent "RaceController#prace::OnCleanup";
+	end;
+
+OnPreCleanup:
+	// Limpar qualquer jogador que ainda esteja "preso" no sistema anterior
+	query_sql "SELECT account_id FROM `char` WHERE online=1", .@aid;
+	for(set .@i, 0; .@i < getarraysize(.@aid); set .@i, .@i + 1) {
+		if(attachrid(.@aid[.@i])) {
+			set @prace_can_claim, 0;
+			set @prace_winner$, "";
+			set @prace_playing, 0;
+		}
+	}
+	end;
+
+OnCleanup:
+	// Aviso antes da limpeza para vencedores que não coletaram
+	mapannounce "p_track02","[Poring Race]: Limpeza do sistema em andamento... Prêmios não coletados serão perdidos!",bc_map | bc_yellow;
+	sleep 5000;
+	
+	// Limpeza final - resetar TODAS as variáveis dos jogadores
+	for(set .@i,1; .@i <= $prace_bets; set .@i, .@i + 1){
+		if(attachrid($prace_bidders[.@i])){
+			// Avisar jogadores que perderam prêmios não coletados
+			if (@prace_can_claim == 1) {
+			dispbottom "[Apostador]: Seu prêmio expirou por não ter sido coletado a tempo!";
+			}
+			// Resetar todas as variáveis relacionadas à corrida
+			set @prace_can_claim, 0;
+			set @prace_winner$, "";
+			set @prace_playing, 0;
+		}
+	}
+	
+	// Limpar variáveis globais
+	cleararray $prace_bidders[0], 0, 128;
+	set $prace_bets, 0;
+	set $prace_winner$, "";
+	set $prace_final_winner$, "";
+	set $prace_racing, 0;
+	
+	end;
+}
+
+//====== NPCs dos Porings: =====================================
+p_track02,58,38,3	script	Poring#prace1	1002,{ 
+	mes "^FF1493[Poring]^000000";
+	mes "Poring poring!";
+	close;
+
+OnRace: 
+	set .target_x, 30;
+	set .current_x, 58;
+	set .moving, 1;
+	callsub OnMove;
+	end;
+
+OnStop: 
+	set .moving, 0;
+	sleep 1000;
+	npcwalkto 58,38;
+	set .current_x, 58;
+	end;
+
+OnReturn: 
+	set .moving, 0;
+	sleep 2000;
+	npcwalkto 58,38; 
+	set .current_x, 58;
+	end;
+
+OnMove:
+	while(.moving == 1 && .current_x > .target_x) {
+		set .@move_chance, rand(100);
+		if (.@move_chance < 65) {
+			set .current_x, .current_x - 1;
+			npcwalkto .current_x, 38;
+		}
+		
+		if (.current_x <= .target_x) { 
+			set $prace_winner$,"Poring"; 
+			emotion 29; 
+			donpcevent "RaceController#prace::OnStopRace";
+			return;
+		}
+		sleep 1000 + rand(500);
+	}
+	return;
+}
+
+p_track02,58,36,3	script	Angeling#prace2	1096,{
+	mes "^FF1493[Angeling]^000000";
+	mes "Ding ding!";
+	close;
+
+OnRace: 
+	set .target_x, 30;
+	set .current_x, 58;
+	set .moving, 1;
+	callsub OnMove;
+	end;
+
+OnStop: 
+	set .moving, 0;
+	sleep 1000;
+	npcwalkto 58,36;
+	set .current_x, 58;
+	end;
+
+OnReturn: 
+	set .moving, 0;
+	sleep 2000;
+	npcwalkto 58,36; 
+	set .current_x, 58;
+	end;
+
+OnMove:
+	while(.moving == 1 && .current_x > .target_x) {
+		set .@move_chance, rand(100);
+		if (.@move_chance < 65) {
+			set .current_x, .current_x - 1;
+			npcwalkto .current_x, 36;
+		}
+		
+		if (.current_x <= .target_x) { 
+			set $prace_winner$,"Angeling"; 
+			emotion 29; 
+			donpcevent "RaceController#prace::OnStopRace";
+			return;
+		}
+		sleep 1000 + rand(500);
+	}
+	return;
+}
+
+p_track02,58,34,3	script	Metaling#prace3	1613,{
+	mes "^FF1493[Metaling]^000000";
+	mes "Clank clank!";
+	close;
+
+OnRace: 
+	set .target_x, 30;
+	set .current_x, 58;
+	set .moving, 1;
+	callsub OnMove;
+	end;
+
+OnStop: 
+	set .moving, 0;
+	sleep 1000;
+	npcwalkto 58,34;
+	set .current_x, 58;
+	end;
+
+OnReturn: 
+	set .moving, 0;
+	sleep 2000;
+	npcwalkto 58,34; 
+	set .current_x, 58;
+	end;
+
+OnMove:
+	while(.moving == 1 && .current_x > .target_x) {
+		set .@move_chance, rand(100);
+		if (.@move_chance < 65) {
+			set .current_x, .current_x - 1;
+			npcwalkto .current_x, 34;
+		}
+		
+		if (.current_x <= .target_x) { 
+			set $prace_winner$,"Metaling"; 
+			emotion 29; 
+			donpcevent "RaceController#prace::OnStopRace";
+			return;
+		}
+		sleep 1000 + rand(500);
+	}
+	return;
+}
+
+p_track02,58,32,3	script	Deviling#prace4	1582,{
+	mes "^FF1493[Deviling]^000000";
+	mes "Hehe...";
+	close;
+
+OnRace: 
+	set .target_x, 30;
+	set .current_x, 58;
+	set .moving, 1;
+	callsub OnMove;
+	end;
+
+OnStop: 
+	set .moving, 0;
+	sleep 1000;
+	npcwalkto 58,32;
+	set .current_x, 58;
+	end;
+
+OnReturn: 
+	set .moving, 0;
+	sleep 2000;
+	npcwalkto 58,32; 
+	set .current_x, 58;
+	end;
+
+OnMove:
+	while(.moving == 1 && .current_x > .target_x) {
+		set .@move_chance, rand(100);
+		if (.@move_chance < 65) {
+			set .current_x, .current_x - 1;
+			npcwalkto .current_x, 32;
+		}
+		
+		if (.current_x <= .target_x) { 
+			set $prace_winner$,"Deviling"; 
+			emotion 29; 
+			donpcevent "RaceController#prace::OnStopRace";
+			return;
+		}
+		sleep 1000 + rand(500);
+	}
+	return;
+}
+
+p_track02,58,30,3	script	Poring Noel#prace5	1062,{
+	mes "^FF1493[Poring Noel]^000000";
+	mes "Ho ho ho!";
+	close;
+
+OnRace: 
+	set .target_x, 30;
+	set .current_x, 58;
+	set .moving, 1;
+	callsub OnMove;
+	end;
+
+OnStop: 
+	set .moving, 0;
+	sleep 1000;
+	npcwalkto 58,30;
+	set .current_x, 58;
+	end;
+
+OnReturn: 
+	set .moving, 0;
+	sleep 2000;
+	npcwalkto 58,30; 
+	set .current_x, 58;
+	end;
+
+OnMove:
+	while(.moving == 1 && .current_x > .target_x) {
+		set .@move_chance, rand(100);
+		if (.@move_chance < 65) {
+			set .current_x, .current_x - 1;
+			npcwalkto .current_x, 30;
+		}
+		
+		if (.current_x <= .target_x) { 
+			set $prace_winner$,"Poring Noel"; 
+			emotion 29; 
+			donpcevent "RaceController#prace::OnStopRace";
+			return;
+		}
+		sleep 1000 + rand(500);
+	}
+	return;
+}
+
+p_track02,58,28,3	script	Poporing#prace6	1031,{
+	mes "^FF1493[Poporing]^000000";
+	mes "Pop pop!";
+	close;
+
+OnRace: 
+	set .target_x, 30;
+	set .current_x, 58;
+	set .moving, 1;
+	callsub OnMove;
+	end;
+
+OnStop: 
+	set .moving, 0;
+	sleep 1000;
+	npcwalkto 58,28;
+	set .current_x, 58;
+	end;
+
+OnReturn: 
+	set .moving, 0;
+	sleep 2000;
+	npcwalkto 58,28; 
+	set .current_x, 58;
+	end;
+
+OnMove:
+	while(.moving == 1 && .current_x > .target_x) {
+		set .@move_chance, rand(100);
+		if (.@move_chance < 65) {
+			set .current_x, .current_x - 1;
+			npcwalkto .current_x, 28;
+		}
+		
+		if (.current_x <= .target_x) { 
+			set $prace_winner$,"Poporing"; 
+			emotion 29; 
+			donpcevent "RaceController#prace::OnStopRace";
+			return;
+		}
+		sleep 1000 + rand(500);
+	}
+	return;
+}
+
+new_evt,170,175,5	duplicate(Poring Race#prace0)	Poring Race#new	508

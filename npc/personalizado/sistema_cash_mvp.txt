@@ -1,0 +1,151 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//				SISTEMA DE CASH - DROP MVP
+//===============================================================
+-	script	cash_mvp	-1,{
+	OnInit:
+//================================================
+//== Restrição: set .restri
+//== 0 = Qualquer MVP e em qualquer Mapa
+//== 1 = Apenas Mapas e Monstros Específicos
+//================================================
+	
+		set .restri,1;
+		
+		set .minchance, 5;		// Chance Minima (1 = 1%)
+		set .maxchance, 75;		// Chance Máxima (100 = 100%)
+		set .mincash, 1;		// Minimo de Cash Ganho
+		set .maxcash, 100;		// Máximo de cash Ganho
+	
+		setarray (.monstros[0],	// Id dos monstros
+			1038,				// Osíris
+			1039,				// Bafomé
+			1046,				// Doppelganger
+			1059,				// Abelha Rainha
+			1086,				// Besouro-Ladrão Dourado
+			1087,				// Orc Herói
+			1112,				// Drake
+			1115,				// Eddga
+			1147,				// Maya
+			1150,				// Flor do Luar
+			1157,				// Faraó
+			1159,				// Freeoni
+			1190,				// Senhor dos Orcs
+			1251,				// Cavaleiro da Tempestade
+			1252,				// Hatii
+			1272,				// Senhor das Trevas
+			1312,				// General Tartaruga
+			1373,				// Senhor dos Mortos
+			1389,				// Drácula
+			1418,				// Serpente Suprema
+			1492,				// Samurai Encarnado
+			1511,				// Amon Ra
+			1583,				// Tao Gunka
+			1623,				// RSX-0806
+			1630,				// Lady Branca
+			1646,				// Lord Knight Seyren
+			1647,				// Assassino Cross Eremes
+			1648,				// Mestre Ferreiro Howard
+			1649,				// Sumo Sacerdotisa Margaretha
+			1650,				// Atiradora de Elite Cecil
+			1651,				// Arquimaga Kathryne
+			1658,				// Egnigem Chefe
+			1685,				// Vesper
+			1688,				// Lady Tanee
+			1708,				// Memória de Thanatos
+			1719,				// Detardeurus
+			1734,				// Kiel D-01
+			1751,				// Valquíria Randgris
+			1768,				// Pesar Noturno
+			1779,				// Ktullanux
+			1785,				// Atroce
+			1832,				// Ifrit
+			1871				// Bispo Decadente					
+		);
+		
+		setarray (.mapas$[0],	// Mapa dos monstros
+			"moc_pryd04",		// Osíris
+			"prt_maze03",		// Bafomé
+			"gef_dun02",		// Doppelganger
+			"mjolnir_04",		// Abelha Rainha
+			"prt_sewb4",		// Besouro-Ladrão Dourado
+			"gef_fild02",		// Orc Héroi
+			"treasure02",		// Drake
+			"pay_fild11",		// Eddga
+			"anthell02",		// Maya
+			"pay_dun04",		// Flor do Luar
+			"in_sphinx5",		// Faraó
+			"moc_fild17",		// Freeoni
+			"gef_fild10",		// Senhor dos Orcs
+			"xmas_dun02",		// Cavaleiro da Tempestade
+			"xmas_fild01",		// Hatii
+			"gl_chyard",		// Senhor das Trevas
+			"tur_dun04",		// General Tartaruga
+			"niflheim",			// Senhor dos Mortos
+			"gef_dun01",		// Drácula
+			"gon_dun03",		// Serpente Suprema
+			"ama_dun03",		// Samurai Encarnado
+			"moc_pryd06",		// Amon Ra
+			"beach_dun",		// Tao Gunka
+			"ein_dun02",		// RSX-0806
+			"lou_dun03",		// Lady Branca
+			"lhz_dun03",		// Lord Knight Seyren
+			"lhz_dun03",		// Assassino Cross Eremes
+			"lhz_dun03",		// Mestre Ferreiro Howard
+			"lhz_dun03",		// Sumo Sacerdotisa Margaretha
+			"lhz_dun03",		// Atiradora de Elite Cecil
+			"lhz_dun03",		// Arquimaga Kathryne
+			"lhz_dun02",		// Egnigem Chefe
+			"jupe_core",		// Vesper
+			"ayo_dun02",		// Lady Tanee
+			"thana_boss",		// Memória de Thanatos
+			"abyss_03",			// Detardeurus
+			"kh_dun02",			// Kiel D-01
+			"odin_tem03",		// Valquíria Randgris
+			"ra_san05",			// Pesar Noturno
+			"ice_dun03",		// Ktullanux
+			"ra_fild04",		// Atroce
+			"thor_v03",			// Ifrit
+			"abbey02"			// Bispo Decadente
+		);
+	end;
+//================================================
+//== Script
+//================================================
+	
+	OnNPCKillEvent:
+		// Verifica se é um MVP (apenas MVPs têm modo especial)
+		if(!getmonsterinfo(killedrid, MOB_MODE) & 0x20) end;
+		
+		if(.restri) {
+			// Procura o índice do monstro morto
+			for(.@i = 0; .@i < getarraysize(.monstros); .@i++){
+				if(killedrid == .monstros[.@i]){
+					// Verifica se está no mapa correto (mesmo índice)
+					if(strcharinfo(3) == .mapas$[.@i]){
+						.@amount = rand( .mincash,.maxcash );
+						#CASHPOINTS += .@amount;
+						announce "[Sistema]: O jogador "+ strcharinfo(0) +" eliminou o MVP "+ getmonsterinfo( killedrid, MOB_NAME ) +" em "+ .mapas$[.@i] +" e recebeu "+.@amount+" Cash's.", bc_all | bc_yellow;
+						//dispbottom "[Sistema]: Você derrotou "+ getmonsterinfo( killedrid, MOB_NAME ) +" e recebeu "+.@amount+" Cash's.";
+						end; // Para a execução após encontrar e processar
+					}
+					end; // Para se encontrou o monstro mas não está no mapa correto
+				}
+			}
+		} else {
+			if (getmonsterinfo(killedrid,22))
+				if(.minchance >= rand(.maxchance)){
+					.@amount = rand( .mincash,.maxcash );
+					#CASHPOINTS += .@amount;
+					dispbottom "[Sistema]: Você derrotou "+ getmonsterinfo( killedrid, MOB_NAME ) +" e recebeu "+.@amount+" Cash's.";
+				}		
+		}
+	end;	
+}

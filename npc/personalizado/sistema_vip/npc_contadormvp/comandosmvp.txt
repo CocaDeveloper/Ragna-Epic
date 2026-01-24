@@ -1,0 +1,197 @@
+// Comandos GM para o Sistema MVP Cards
+// Adicione no arquivo de comandos customizados ou como script separado
+
+// Comando: @mvpstats - Ver estatísticas rápidas
+-	script	atcommand_mvpstats	-1,{
+OnInit:
+	bindatcmd "mvpstats", strnpcinfo(3)+"::OnMVPStats", 60, 100;
+	end;
+
+OnMVPStats:
+	if(getgmlevel() < 60) {
+		dispbottom "Você não tem permissão para usar este comando.";
+		end;
+	}
+	
+	// Contar estatísticas básicas
+	set .@total, 0;
+	set .@players, 0;
+	set .@types, 0;
+	
+	query_sql("SELECT COUNT(*) FROM mvp_cards_dropped", .@total);
+	query_sql("SELECT COUNT(DISTINCT player_name) FROM mvp_cards_dropped", .@players);
+	query_sql("SELECT COUNT(DISTINCT card_id) FROM mvp_cards_dropped", .@types);
+	
+	dispbottom "=== MVP CARDS STATISTICS ===";
+	dispbottom "Total cards dropped: " + .@total;
+	dispbottom "Unique players: " + .@players;
+	dispbottom "Different card types: " + .@types;
+	
+	// Última carta dropada
+	set .@nb, 0;
+	.@nb = query_sql("SELECT card_name, player_name, mvp_name FROM mvp_cards_dropped ORDER BY id DESC LIMIT 1", .@last_card$, .@last_player$, .@last_mvp$);
+	
+	if(.@nb > 0) {
+		dispbottom "Last drop: " + .@last_card$ + " by " + .@last_player$ + " (" + .@last_mvp$ + ")";
+	}
+	
+	end;
+}
+
+// Comando: @mvpsearch <player> - Buscar cartas de um jogador
+-	script	atcommand_mvpsearch	-1,{
+OnInit:
+	bindatcmd "mvpsearch", strnpcinfo(3)+"::OnMVPSearch", 60, 100;
+	end;
+
+OnMVPSearch:
+	if(getgmlevel() < 60) {
+		dispbottom "Você não tem permissão para usar este comando.";
+		end;
+	}
+	
+	if(.@atcmd_parameters$[0] == "") {
+		dispbottom "Uso: @mvpsearch <nome_do_jogador>";
+		end;
+	}
+	
+	set .@player$, .@atcmd_parameters$[0];
+	
+	set .@nb, 0;
+	.@nb = query_sql("SELECT card_name, mvp_name FROM mvp_cards_dropped WHERE player_name = '" + escape_sql(.@player$) + "' ORDER BY id DESC", .@cards$, .@mvps$);
+	
+	if(.@nb == 0) {
+		dispbottom "Player '" + .@player$ + "' has no MVP cards registered.";
+	} else {
+		dispbottom "=== MVP CARDS FOR " + .@player$ + " ===";
+		dispbottom "Total found: " + .@nb;
+		
+		for(set .@i, 0; .@i < .@nb && .@i < 10; set .@i, .@i + 1) {
+			dispbottom (.@i + 1) + ". " + .@cards$[.@i] + " (" + .@mvps$[.@i] + ")";
+		}
+		
+		if(.@nb > 10) {
+			dispbottom "... and " + (.@nb - 10) + " more cards.";
+		}
+	}
+	
+	end;
+}
+
+// Comando: @mvpadd <card_id> [player] - Adicionar carta manualmente
+-	script	atcommand_mvpadd	-1,{
+OnInit:
+	bindatcmd "mvpadd", strnpcinfo(3)+"::OnMVPAdd", 80, 100;
+	end;
+
+OnMVPAdd:
+	if(getgmlevel() < 80) {
+		dispbottom "Você não tem permissão para usar este comando.";
+		end;
+	}
+	
+	if(.@atcmd_parameters$[0] == "") {
+		dispbottom "Uso: @mvpadd <card_id> [player_name]";
+		dispbottom "Exemplo: @mvpadd 4121 PlayerName";
+		end;
+	}
+	
+	set .@card_id, atoi(.@atcmd_parameters$[0]);
+	
+	// Verificar se é uma carta MVP válida
+	setarray .@valid_cards[0], 4144,4147,4142,4132,4128,4143,4137,4123,4146,4131,4148,4121,4135,4318,4324,4168,4305,4276,4134,4330,4263,4236,4302,4342,4372,4357,4359,4361,4363,4367,4365,4352,4374,4376,4399,4386,4403,4407,4408,4419,4425,4430,4441,4145;
+	
+	set .@valid, 0;
+	for(set .@i, 0; .@i < getarraysize(.@valid_cards); set .@i, .@i + 1) {
+		if(.@card_id == .@valid_cards[.@i]) {
+			set .@valid, 1;
+			break;
+		}
+	}
+	
+	if(.@valid == 0) {
+		dispbottom "Card ID " + .@card_id + " is not a valid MVP card.";
+		end;
+	}
+	
+	// Definir jogador alvo
+	if(.@atcmd_parameters$[1] != "") {
+		set .@target_player$, .@atcmd_parameters$[1];
+		set .@target_id, 0; // Não temos o char_id
+	} else {
+		set .@target_player$, strcharinfo(0);
+		set .@target_id, getcharid(0);
+	}
+	
+	// Obter informações da carta
+	set .@card_name$, getitemname(.@card_id);
+	set .@mvp_name$, callfunc("GetMVPName", .@card_id);
+	set .@map_name$, strcharinfo(3);
+	
+	// Inserir no banco
+	query_sql("INSERT INTO mvp_cards_dropped (card_id, card_name, mvp_name, player_name, player_id, map_name, drop_time) VALUES (" + .@card_id + ", '" + escape_sql(.@card_name$) + "', '" + escape_sql(.@mvp_name$) + "', '" + escape_sql(.@target_player$) + "', " + .@target_id + ", '" + escape_sql(.@map_name$) + "', NOW())");
+	
+	dispbottom "MVP card added successfully!";
+	dispbottom "Card: " + .@card_name$ + " (" + .@mvp_name$ + ")";
+	dispbottom "Player: " + .@target_player$;
+	
+	// Anúncio opcional
+	announce "[GM] " + .@card_name$ + " foi adicionada para " + .@target_player$ + " pelo GM " + strcharinfo(0) + "!", bc_all, 0x00FF00;
+	
+	end;
+}
+
+// Comando: @mvpclear [confirmação] - Limpar todos os registros
+-	script	atcommand_mvpclear	-1,{
+OnInit:
+	bindatcmd "mvpclear", strnpcinfo(3)+"::OnMVPClear", 99, 100;
+	end;
+
+OnMVPClear:
+	if(getgmlevel() < 99) {
+		dispbottom "Você não tem permissão para usar este comando.";
+		end;
+	}
+	
+	if(.@atcmd_parameters$[0] != "CONFIRM") {
+		dispbottom "ATENÇÃO: Este comando apagará TODOS os registros de MVP cards!";
+		dispbottom "Para confirmar, use: @mvpclear CONFIRM";
+		end;
+	}
+	
+	query_sql("DELETE FROM mvp_cards_dropped");
+	
+	dispbottom "Todos os registros de MVP cards foram apagados!";
+	announce "[Sistema] Registros de cartas MVP foram limpos pelo administrador " + strcharinfo(0) + "!", bc_all, 0xFF0000;
+	
+	end;
+}
+
+// Comando: @mvphelp - Mostrar ajuda dos comandos
+-	script	atcommand_mvphelp	-1,{
+OnInit:
+	bindatcmd "mvphelp", strnpcinfo(3)+"::OnMVPHelp", 60, 100;
+	end;
+
+OnMVPHelp:
+	if(getgmlevel() < 60) {
+		dispbottom "Você não tem permissão para usar este comando.";
+		end;
+	}
+	
+	dispbottom "=== MVP CARDS GM COMMANDS ===";
+	dispbottom "@mvpstats - Ver estatísticas gerais";
+	dispbottom "@mvpsearch <player> - Buscar cartas de um jogador";
+	
+	if(getgmlevel() >= 80) {
+		dispbottom "@mvpadd <card_id> [player] - Adicionar carta manualmente";
+	}
+	
+	if(getgmlevel() >= 99) {
+		dispbottom "@mvpclear CONFIRM - Limpar todos os registros";
+	}
+	
+	dispbottom "@mvphelp - Mostrar esta ajuda";
+	
+	end;
+}

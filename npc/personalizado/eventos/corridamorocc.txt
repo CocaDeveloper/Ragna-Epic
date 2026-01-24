@@ -1,0 +1,1037 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                 EVENTO CORRIDA MOROCC
+// ===================== Descrição: =============================
+
+// Mapflags para o mapa da corrida
+
+morocc_race	mapflag	nowarpto
+morocc_race	mapflag	nowarp
+morocc_race	mapflag	noreturn
+morocc_race	mapflag	nosave	SavePoint
+morocc_race	mapflag	noteleport
+morocc_race	mapflag	noskill
+morocc_race	mapflag	noicewall
+morocc_race	mapflag	nomemo
+morocc_race	mapflag	nobranch
+morocc_race	mapflag	nocommand	60
+
+//===============================================================
+//    SISTEMA DE PORTAIS ADMINISTRATIVO CORRIDA DE MOROCC
+//===============================================================
+1@herbs,310,66,5	script	Corrida de Morocc	448,{
+	set .@GMLevel,99;	// Nível GM necessário
+	set .@n$,"^FF1493[Corrida de Morocc]^000000";
+	// Verifica se é GM
+	if (getgmlevel() < .@GMLevel) {
+		mes .@n$;
+		mes "Você não tem permissão para acessar este NPC.";
+		mes "Apenas Administradores podem iniciar este evento";
+		close;
+	}
+	// Painel Administrativo
+	mes .@n$;
+	mes "Painel Administrativo da Corrida de Morocc";
+	mes "Status: " + ($portais_ativos ? "^00FF00ATIVOS^000000" : "^FF0000INATIVOS^000000");
+	next;
+	
+	switch(select("^339966[»]^000000 Abrir Portais:^339966[»]^000000 Fechar Portais:^ff0000[»] Cancelar^000000")) {
+	case 1:
+		mes .@n$;
+		if ($portais_ativos) {
+			mes "Os portais já estão ativos!";
+			close;
+		}
+		mes "Deseja abrir os portais em Prontera e Morocc para a Corrida de Morocc?";
+		mes "Eles ficarão abertos por ^ff00003 minutos^000000.";
+		if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+		
+		donpcevent "ControlPortais::OnAbrirPortais";
+		next;
+		mes .@n$;
+		mes "Portais abertos com sucesso!";
+		close;
+		
+	case 2:
+		mes .@n$;
+		if (!$portais_ativos) {
+			mes "Os portais não estão ativos!";
+			close;
+		}
+		mes "Deseja fechar os portais imediatamente?";
+		if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+		
+		donpcevent "ControlPortais::OnFecharPortais";
+		next;
+		mes .@n$;
+		mes "Portais fechados com sucesso!";
+		close;
+		
+	case 3:
+		close;
+	}
+OnInit:
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 1009;	
+	setunittitle getnpcid(0), "[Rune-Midgard]";
+	while(1) {
+	showscript "[ Corrida de Morocc ]", getnpcid(0);
+	sleep 100;
+	}
+	end;
+}
+
+// Script de Controle dos Portais
+-	script	ControlPortais	-1,{
+OnInit:
+	set $portais_ativos, 0;
+	disablenpc "Portal Prontera";
+	disablenpc "Portal Morocc";
+	end;
+
+OnAbrirPortais:
+	if ($portais_ativos) end; // Evita abrir se já estiver ativo
+	
+	set $portais_ativos, 1;
+	enablenpc "Portal Prontera";
+	enablenpc "Portal Morocc";
+	
+	announce "[Corrida de Morocc]: Os portais para Corrida de Morocc foram abertos em @go 0 e @go 1! Você tem 3 minutos para participar!", bc_all | bc_yellow;
+	
+	sleep 60000; // 1 minuto
+	announce "[Corrida de Morocc]: Os portais para Corrida de Morocc fecharão em 2 minutos!", bc_all | bc_yellow;
+	
+	sleep 60000; // 1 minuto
+	announce "[Corrida de Morocc]: Os Portais para Corrida de Morocc fecharão em 1 minuto!", bc_all | bc_yellow;
+	
+	sleep 30000; // 30 segundos
+	announce "[Corrida de Morocc]: Os Portais para Corrida de Morocc fecharão em 30 segundos!", bc_all | bc_yellow;
+	
+	sleep 20000; // 20 segundos
+	announce "[Corrida de Morocc]: Os Portais para Corrida de Morocc fecharão em 10 segundos!", bc_all | bc_yellow;
+	
+	sleep 10000; // 10 segundos
+	announce "[Corrida de Morocc]: Os Portais para Corrida de Morocc foram fechados! Boa sorte na próxima!", bc_all | bc_yellow;
+	
+	set $portais_ativos, 0;
+	disablenpc "Portal Prontera";
+	disablenpc "Portal Morocc";
+	end;
+
+OnFecharPortais:
+	set $portais_ativos, 0;
+	disablenpc "Portal Prontera";
+	disablenpc "Portal Morocc";
+	announce "[Corrida de Morocc]: Os portais foram fechados por um administrador!", bc_all | bc_yellow;
+	end;
+}
+
+// Portal em Prontera
+prontera,155,180,0	script	Portal Prontera	WARPNPC,1,1,{
+OnTouch:
+	warp "morocc_race", 158, 267;
+	end;
+	
+OnInit:
+	disablenpc "Portal Prontera";
+	end;
+}
+
+// Portal em Morocc
+morocc,158,91,0	script	Portal Morocc	WARPNPC,1,1,{
+OnTouch:
+	warp "morocc_race", 158, 267;
+	end;
+	
+OnInit:
+	disablenpc "Portal Morocc";
+	end;
+}
+
+new_evt,175,159,1	duplicate(Corrida de Morocc)	Corrida de Morocc#new	448
+
+//===============================================================
+//    COMANDOS ATCONSOLDE @moroccstart e @moroccend
+//===============================================================
+
+-	script	atcmd_corrida	-1,{
+OnInit:
+	bindatcmd "moroccstart", strnpcinfo(3)+"::OnCorridaStart", 99, 99;
+	bindatcmd "moroccend", strnpcinfo(3)+"::OnCorridaEnd", 99, 99;
+	end;
+
+OnCorridaStart:
+	if ($portais_ativos) {
+		dispbottom "Os portais da Corrida de Morocc já estão ativos!";
+		end;
+	}
+	dispbottom "Iniciando Corrida de Morocc...";
+	donpcevent "ControlPortais::OnAbrirPortais";
+	end;
+
+OnCorridaEnd:
+	if (!$portais_ativos) {
+		dispbottom "Os portais da Corrida de Morocc não estão ativos!";
+		end;
+	}
+	dispbottom "Encerrando Corrida de Morocc...";
+	donpcevent "ControlPortais::OnFecharPortais";
+	end;
+}
+
+//===============================================================
+//    					NPCs DENTRO DA CORRIDA
+//===============================================================
+
+morocc_race,166,266,3	script	Garota da Corrida#02	601,{
+	
+	mes "^FF1493[Garota da Corrida]^000000";
+	mes "Bem-vindo à Pista de Corrida de Morroc!";
+	next;
+	menu "Informações",-,"Ver Ranking",L_Ranking,"Sair",L_Warp,"Cancelar",L_Cancel;
+	mes "^FF1493[Garota da Corrida]^000000";
+	mes "^FF0000REGRAS DA CORRIDA:^000000";
+	mes "• Posicione-se atrás da primeira bandeira";
+	mes "• Quando a corrida começar, corra no sentido anti-horário";
+	mes "• Passe por todos os pontos de controle";
+	mes "• Cuidado com as armadilhas!";
+	mes "• Tempo limite: 5 minutos";
+	next;
+	mes "^FF1493[Garota da Corrida]^000000";
+	mes "^0000FFPREMIOS:^000000";
+	mes "^ff0000[1º LUGAR]^000000: 100KK Zeny + 50 GS + 10 Moedas de Evento.";
+	mes "^ff0000[2º LUGAR]^000000: 50KK Zeny + 30 GS + 5 Moedas de Evento.";
+	mes "^ff0000[3º LUGAR]^000000: 25KK Zeny + 15 GS + 3 Moedas de Evento.";
+	mes "^ff0000[PARTICIPAÇÃO]^000000: 1 Moeda de Evento.";
+	close;
+
+L_Ranking:
+	mes "^FF1493[Garota da Corrida]^000000";
+	mes "^0000FF=== RANKING DOS CAMPEÕES ===^000000";
+	if ($race_winner1$ == "") {
+		mes "Ainda não houve corridas hoje!";
+	} else {
+		mes "^ff0000[1º LUGAR]: " + $race_winner1$ + "^000000";
+		if ($race_winner2$ != "")
+			mes "^ff0000[2º LUGAR]: " + $race_winner2$ + "^000000";
+		if ($race_winner3$ != "")
+			mes "^ff0000[3º LUGAR]: " + $race_winner3$ + "^000000";
+	}
+	close;
+
+L_Warp:
+	warp "morocc",159,94;
+	close;
+
+L_Cancel:
+	mes "^FF1493[Garota da Corrida]^000000";
+	mes "Tudo bem! Volte em breve!";
+	close;
+
+OnInit:
+
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 1009;	
+		setunittitle getnpcid(0), "[Rune-Midgard]";
+
+		while(1) {
+		showscript "[ Garota da Corrida ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+// Faz a contagem regressiva e inicia a corrida
+morocc_race,148,267,5	script	Iniciador	733,{
+	if ($@race != 0) goto L_Started;
+	if ($@counting != 0) goto L_Started;
+
+	// Verificar se é GM
+	if (getgmlevel() < 80 && !$@race_event_active) {
+		mes "^FF1493[Iniciador da Corrida]^000000";
+		mes "Apenas administradores podem iniciar as corridas.";
+		mes "^ff0000Aguarde o evento iniciar!^000000";
+		close;
+	}
+
+L_Menu:
+	mes "^FF1493[Iniciador da Corrida]^000000";
+	if ($@race_event_active) {
+		mes "^FF0000EVENTO AUTOMATICO ATIVO^000000";
+	} else {
+		mes "^0000FFPainel Administrativo^000000";
+	}
+	mes "Jogadores na area: " + getmapusers("morocc_race");
+	next;
+	menu "Iniciar Corrida",L_Count,"Cancelar",-;
+	close;
+
+L_Count:
+	if (getmapusers("morocc_race") < 2) {
+		mes "^FF1493[Iniciador da Corrida]^000000";
+		mes "E necessario pelo menos 2 jogadores para iniciar!";
+		close;
+	}
+	
+	set $@counting,1;
+	set $@race_time_limit, gettimetick(2) + 300; // 5 minutos
+	mes "^FF1493[Iniciador da Corrida]^000000";
+	mes "Fazendo contagem regressiva...";
+	
+	// Ativar armadilhas
+	donpcevent "TrapController::OnActivate";
+	
+	addtimer 1000, "Iniciador::OnCount1000";
+	addtimer 2000, "Iniciador::OnCount2000";
+	addtimer 3000, "Iniciador::OnCount3000";
+	addtimer 4000, "Iniciador::OnCount4000";
+	addtimer 300000, "Iniciador::OnTimeLimit"; // Timer de 5 minutos
+	
+	mapannounce "morocc_race", "[Corrida de Morocc]: PREPAREM-SE... A CORRIDA VAI COMEÇAR! Tempo limite: 5 minutos!", bc_yellow;
+	close;
+
+OnCount1000:
+	mapannounce "morocc_race", "[3]", bc_yellow;
+//	soundeffectall "ring_of_nibelungen.wav", 0;
+	end;
+
+OnCount2000:
+	mapannounce "morocc_race", "[2]", bc_yellow;
+//	soundeffectall "ring_of_nibelungen.wav", 0;
+	end;
+
+OnCount3000:
+	mapannounce "morocc_race", "[1]", bc_yellow;
+	soundeffectall "ring_of_nibelungen.wav", 0;
+	end;
+
+OnCount4000:
+	emotion 27;
+	specialeffect EF_CHIMTO;
+	mapannounce "morocc_race", "[LARGADA!] BOA SORTE A TODOS!", bc_yellow;
+	soundeffectall "se_explored.wav", 0;
+	set $@race,1;
+	set $@position,0;
+	set $@counting,0;
+	set $@raceid,rand(100000,999999);
+	
+	// Limpar winners da corrida atual
+	set $@current_winner1$, "";
+	set $@current_winner2$, "";
+	set $@current_winner3$, "";
+	end;
+
+OnTimeLimit:
+	if ($@race == 1) {
+		mapannounce "morocc_race", "[Corrida de Morocc]: TEMPO ESGOTADO! A corrida terminou!", bc_yellow;
+		donpcevent "Iniciador::OnRaceEnd";
+	}
+	end;
+
+OnRaceEnd:
+	set $@race,0;
+	set $@position,0;
+	set $@counting,0;
+	set $@race_event_active,0;
+	
+	// Desativar armadilhas
+	donpcevent "TrapController::OnDeactivate";
+	
+	// Atualizar ranking global se houver vencedores
+	if ($@current_winner1$ != "") {
+		set $race_winner1$, $@current_winner1$;
+		set $race_winner2$, $@current_winner2$;
+		set $race_winner3$, $@current_winner3$;
+	}
+	
+	end;
+
+L_Started:
+	mes "^FF1493[Iniciador da Corrida]^000000";
+	mes "Corrida em andamento...";
+	mes "Tempo restante: ^ff0000" + ($@race_time_limit - gettimetick(2)) + " segundos^000000.";
+	close;
+
+// Evento automático - CORREÇÃO AQUI
+OnInit:
+	set $@race,0;
+	set $@position,0;
+	set $@counting,0;
+	set $@race_event_active,0;
+	
+	// Usar initnpctimer ao invés de addtimer no OnInit
+//	initnpctimer;
+	
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 1009;	
+	setunittitle getnpcid(0), "[Rune-Midgard]";
+
+	while(1) {
+	showscript "[ Iniciador ]", getnpcid(0);
+	sleep 100;
+	}
+	end;
+
+// Timer para eventos automáticos (30 minutos = 1800000ms)
+//OnTimer1800000:
+//	// Verificar se há jogadores online
+//	if (getusers(1) >= 5) {
+//		set $@race_event_active,1;
+//		announce "EVENTO DE CORRIDA EM MORROC!", bc_all;
+//		announce "Dirija-se a pista de corrida! Inicio em 2 minutos!", bc_all;
+//		// Usar addtimer para o próximo evento após 2 minutos
+//		addtimer 120000, "Iniciador::OnAutoStart";
+//	}
+//	
+//	// Reiniciar timer para próximo evento
+//	stopnpctimer;
+//	initnpctimer;
+//	end;
+
+OnAutoStart:
+	if (getmapusers("morocc_race") >= 2) {
+		donpcevent "Iniciador::OnCount4000";
+	} else {
+		announce "Evento cancelado - poucos participantes.", bc_all;
+		set $@race_event_active,0;
+	}
+	end;
+}
+
+// Controlador de Armadilhas
+-	script	TrapController	-1,{
+OnActivate:
+	// Ativar todas as armadilhas
+	enablenpc "Armadilha#01";
+	enablenpc "Armadilha#02";
+	enablenpc "Armadilha#03";
+	enablenpc "Armadilha#04";
+	enablenpc "Armadilha#05";
+	enablenpc "Armadilha#06";
+	enablenpc "Armadilha#07";
+	enablenpc "Armadilha#08";
+	enablenpc "Armadilha#09";
+	enablenpc "Armadilha#10";
+	enablenpc "Armadilha#11";
+	enablenpc "Armadilha#12";
+	enablenpc "Armadilha#13";
+	enablenpc "Armadilha#14";
+	enablenpc "Armadilha#15";
+	enablenpc "Armadilha#16";
+	enablenpc "Armadilha#17";
+	enablenpc "Armadilha#18";
+	enablenpc "Armadilha#19";
+	enablenpc "Armadilha#20";
+	enablenpc "Armadilha#21";
+	enablenpc "Armadilha#22";
+	enablenpc "Armadilha#23";
+	enablenpc "Armadilha#24";
+	enablenpc "Armadilha#25";
+	enablenpc "Armadilha#26";
+	enablenpc "Armadilha#27";
+	enablenpc "Armadilha#28";
+	enablenpc "Armadilha#29";
+	enablenpc "Armadilha#30";
+	end;
+
+OnDeactivate:
+	// Desativar todas as armadilhas
+	disablenpc "Armadilha#01";
+	disablenpc "Armadilha#02";
+	disablenpc "Armadilha#03";
+	disablenpc "Armadilha#04";
+	disablenpc "Armadilha#05";
+	disablenpc "Armadilha#06";
+	disablenpc "Armadilha#07";
+	disablenpc "Armadilha#08";
+	disablenpc "Armadilha#09";
+	disablenpc "Armadilha#10";
+	disablenpc "Armadilha#11";
+	disablenpc "Armadilha#12";
+	disablenpc "Armadilha#13";
+	disablenpc "Armadilha#14";
+	disablenpc "Armadilha#15";
+	disablenpc "Armadilha#16";
+	disablenpc "Armadilha#17";
+	disablenpc "Armadilha#18";
+	disablenpc "Armadilha#19";
+	disablenpc "Armadilha#20";
+	disablenpc "Armadilha#21";
+	disablenpc "Armadilha#22";
+	disablenpc "Armadilha#23";
+	disablenpc "Armadilha#24";
+	disablenpc "Armadilha#25";
+	disablenpc "Armadilha#26";
+	disablenpc "Armadilha#27";
+	disablenpc "Armadilha#28";
+	disablenpc "Armadilha#29";
+	disablenpc "Armadilha#30";
+	end;
+
+OnInit:
+	// Desativar armadilhas no início
+	disablenpc "Armadilha#01";
+	disablenpc "Armadilha#02";
+	disablenpc "Armadilha#03";
+	disablenpc "Armadilha#04";
+	disablenpc "Armadilha#05";
+	disablenpc "Armadilha#06";
+	disablenpc "Armadilha#07";
+	disablenpc "Armadilha#08";
+	disablenpc "Armadilha#09";
+	disablenpc "Armadilha#10";
+	disablenpc "Armadilha#11";
+	disablenpc "Armadilha#12";
+	disablenpc "Armadilha#13";
+	disablenpc "Armadilha#14";
+	disablenpc "Armadilha#15";
+	disablenpc "Armadilha#16";
+	disablenpc "Armadilha#17";
+	disablenpc "Armadilha#18";
+	disablenpc "Armadilha#19";
+	disablenpc "Armadilha#20";
+	disablenpc "Armadilha#21";
+	disablenpc "Armadilha#22";
+	disablenpc "Armadilha#23";
+	disablenpc "Armadilha#24";
+	disablenpc "Armadilha#25";
+	disablenpc "Armadilha#26";
+	disablenpc "Armadilha#27";
+	disablenpc "Armadilha#28";
+	disablenpc "Armadilha#29";
+	disablenpc "Armadilha#30";
+	end;
+}
+
+// Armadilhas pelo percurso
+morocc_race,118,257,0	script	Armadilha#01	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 30) { // 30% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " caiu em uma armadilha!", bc_yellow;
+		percentheal -30,0; // Perde 30% de HP
+		sc_start SC_STUN,3000,0; // Stun por 3 segundos
+		specialeffect2 EF_BASH;
+	}
+	end;
+}
+
+morocc_race,92,253,0	script	Armadilha#02	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 30) { // 30% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " caiu em uma armadilha!", bc_yellow;
+		percentheal -30,0; // Perde 30% de HP
+		sc_start SC_STUN,3000,0; // Stun por 3 segundos
+		specialeffect2 EF_BASH;
+	}
+	end;
+}
+
+morocc_race,75,250,0	script	Armadilha#03	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 30) { // 30% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " caiu em uma armadilha!", bc_yellow;
+		percentheal -30,0; // Perde 30% de HP
+		sc_start SC_STUN,3000,0; // Stun por 3 segundos
+		specialeffect2 EF_BASH;
+	}
+	end;
+}
+
+morocc_race,69,200,0	script	Armadilha#04	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 25) { // 25% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " escorregou no gelo!", bc_yellow;
+		sc_start SC_FREEZE,2000,0; // Freeze por 2 segundos
+		specialeffect2 EF_FROSTDIVER;
+	}
+	end;
+}
+
+morocc_race,64,183,0	script	Armadilha#05	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 25) { // 25% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " escorregou no gelo!", bc_yellow;
+		sc_start SC_FREEZE,2000,0; // Freeze por 2 segundos
+		specialeffect2 EF_FROSTDIVER;
+	}
+	end;
+}
+
+morocc_race,62,151,0	script	Armadilha#06	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 25) { // 25% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " escorregou no gelo!", bc_yellow;
+		sc_start SC_FREEZE,2000,0; // Freeze por 2 segundos
+		specialeffect2 EF_FROSTDIVER;
+	}
+	end;
+}
+
+morocc_race,64,117,0	script	Armadilha#07	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 25) { // 25% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " escorregou no gelo!", bc_yellow;
+		sc_start SC_FREEZE,2000,0; // Freeze por 2 segundos
+		specialeffect2 EF_FROSTDIVER;
+	}
+	end;
+}
+
+morocc_race,74,51,0	script	Armadilha#08	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 35) { // 35% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " foi atingido por espinhos!", bc_yellow;
+		percentheal -20,0;
+		sc_start SC_POISON,10000,0; // Veneno por 10 segundos
+		specialeffect2 EF_ENVENOM;
+	}
+	end;
+}
+
+morocc_race,82,40,0	script	Armadilha#09	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 25) { // 25% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " escorregou no gelo!", bc_yellow;
+		sc_start SC_FREEZE,2000,0; // Freeze por 2 segundos
+		specialeffect2 EF_FROSTDIVER;
+	}
+	end;
+}
+
+morocc_race,118,50,0	script	Armadilha#10	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 30) { // 30% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " caiu em uma armadilha!", bc_yellow;
+		percentheal -30,0; // Perde 30% de HP
+		sc_start SC_STUN,3000,0; // Stun por 3 segundos
+		specialeffect2 EF_BASH;
+	}
+	end;
+}
+
+morocc_race,165,50,0	script	Armadilha#11	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 30) { // 30% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " caiu em uma armadilha!", bc_yellow;
+		percentheal -30,0; // Perde 30% de HP
+		sc_start SC_STUN,3000,0; // Stun por 3 segundos
+		specialeffect2 EF_BASH;
+	}
+	end;
+}
+
+morocc_race,168,43,0	script	Armadilha#12	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 25) { // 25% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " escorregou no gelo!", bc_yellow;
+		sc_start SC_FREEZE,2000,0; // Freeze por 2 segundos
+		specialeffect2 EF_FROSTDIVER;
+	}
+	end;
+}
+
+morocc_race,196,54,0	script	Armadilha#13	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 30) { // 30% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " caiu em uma armadilha!", bc_yellow;
+		percentheal -30,0; // Perde 30% de HP
+		sc_start SC_STUN,3000,0; // Stun por 3 segundos
+		specialeffect2 EF_BASH;
+	}
+	end;
+}
+
+morocc_race,234,60,0	script	Armadilha#14	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 30) { // 30% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " caiu em uma armadilha!", bc_yellow;
+		percentheal -30,0; // Perde 30% de HP
+		sc_start SC_STUN,3000,0; // Stun por 3 segundos
+		specialeffect2 EF_BASH;
+	}
+	end;
+}
+
+morocc_race,250,65,0	script	Armadilha#15	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 25) { // 25% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " escorregou no gelo!", bc_yellow;
+		sc_start SC_FREEZE,2000,0; // Freeze por 2 segundos
+		specialeffect2 EF_FROSTDIVER;
+	}
+	end;
+}
+
+morocc_race,257,88,0	script	Armadilha#16	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 20) { // 20% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " foi pego por uma rede!", bc_yellow;
+		sc_start SC_SPIDER,4000,0; // Web por 4 segundos
+		specialeffect2 EF_SPIDERWEB;
+	}
+	end;
+}
+
+morocc_race,257,116,0	script	Armadilha#17	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 20) { // 20% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " foi pego por uma rede!", bc_yellow;
+		sc_start SC_SPIDER,4000,0; // Web por 4 segundos
+		specialeffect2 EF_SPIDERWEB;
+	}
+	end;
+}
+
+morocc_race,262,163,0	script	Armadilha#18	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 30) { // 30% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " pisou em uma mina terrestre!", bc_yellow;
+		percentheal -25,0;
+		sc_start SC_BLIND,5000,0; // Cegueira por 5 segundos
+		specialeffect2 EF_DEMONSTRATION;
+	}
+	end;
+}
+
+morocc_race,261,202,0	script	Armadilha#19	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 30) { // 30% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " pisou em uma mina terrestre!", bc_yellow;
+		percentheal -25,0;
+		sc_start SC_BLIND,5000,0; // Cegueira por 5 segundos
+		specialeffect2 EF_DEMONSTRATION;
+	}
+	end;
+}
+
+morocc_race,264,238,0	script	Armadilha#20	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 25) { // 25% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " foi eletrocutado!", bc_yellow;
+		percentheal -15,0;
+		sc_start SC_SILENCE,3000,0; // Silêncio por 3 segundos
+		specialeffect2 EF_JUPITEL;
+	}
+	end;
+}
+
+morocc_race,256,254,0	script	Armadilha#21	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 25) { // 25% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " escorregou no gelo!", bc_yellow;
+		sc_start SC_FREEZE,2000,0; // Freeze por 2 segundos
+		specialeffect2 EF_FROSTDIVER;
+	}
+	end;
+}
+
+morocc_race,190,255,0	script	Armadilha#22	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 25) { // 25% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " escorregou no gelo!", bc_yellow;
+		sc_start SC_FREEZE,2000,0; // Freeze por 2 segundos
+		specialeffect2 EF_FROSTDIVER;
+	}
+	end;
+}
+
+morocc_race,193,241,0	script	Armadilha#23	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 30) { // 30% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " pisou em uma mina terrestre!", bc_yellow;
+		percentheal -25,0;
+		sc_start SC_BLIND,5000,0; // Cegueira por 5 segundos
+		specialeffect2 EF_DEMONSTRATION;
+	}
+	end;
+}
+
+morocc_race,220,259,0	script	Armadilha#24	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 25) { // 25% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " foi eletrocutado!", bc_yellow;
+		percentheal -15,0;
+		sc_start SC_SILENCE,3000,0; // Silêncio por 3 segundos
+		specialeffect2 EF_JUPITEL;
+	}
+	end;
+}
+
+morocc_race,192,88,0	script	Armadilha#25	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 20) { // 20% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " foi pego por uma rede!", bc_yellow;
+		sc_start SC_SPIDER,4000,0; // Web por 4 segundos
+		specialeffect2 EF_SPIDERWEB;
+	}
+	end;
+}
+
+morocc_race,257,180,0	script	Armadilha#26	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 30) { // 30% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " pisou em uma mina terrestre!", bc_yellow;
+		percentheal -25,0;
+		sc_start SC_BLIND,5000,0; // Cegueira por 5 segundos
+		specialeffect2 EF_DEMONSTRATION;
+	}
+	end;
+}
+
+morocc_race,67,218,0	script	Armadilha#27	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 25) { // 25% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " foi eletrocutado!", bc_yellow;
+		percentheal -15,0;
+		sc_start SC_SILENCE,3000,0; // Silêncio por 3 segundos
+		specialeffect2 EF_JUPITEL;
+	}
+	end;
+}
+
+morocc_race,61,151,0	script	Armadilha#28	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 25) { // 25% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " escorregou no gelo!", bc_yellow;
+		sc_start SC_FREEZE,2000,0; // Freeze por 2 segundos
+		specialeffect2 EF_FROSTDIVER;
+	}
+	end;
+}
+
+morocc_race,64,103,0	script	Armadilha#29	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 25) { // 25% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " escorregou no gelo!", bc_yellow;
+		sc_start SC_FREEZE,2000,0; // Freeze por 2 segundos
+		specialeffect2 EF_FROSTDIVER;
+	}
+	end;
+}
+
+morocc_race,97,49,0	script	Armadilha#30	139,2,2,{
+	end;
+OnTouch:
+	if (rand(100) < 25) { // 25% de chance
+		mapannounce "morocc_race", "O jogador " + strcharinfo(0) + " escorregou no gelo!", bc_yellow;
+		sc_start SC_FREEZE,2000,0; // Freeze por 2 segundos
+		specialeffect2 EF_FROSTDIVER;
+	}
+	end;
+}
+
+// Ponto de Controle 1 (Largada)
+morocc_race,144,262,5	script	Ponto de Controle 1	111,0,5,{
+	end;
+OnTouch:
+	if ($@race != 1) {
+		mes "^339966[Ponto de Controle]^000000";
+		mes "A corrida não comecou ainda, por favor aguarde.";
+		close;
+	}
+	if (@raceid != $@raceid) {
+		set @race,1;
+		set @raceid,$@raceid;
+		set @race_start_time, gettimetick(2);
+	}
+	if (@race == 6) {
+		mes "^339966[Ponto de Controle]^000000";
+		mes "Você ja completou a corrida.";
+		close;
+	}
+	end;
+}
+
+// Ponto de Controle 2
+morocc_race,73,247,5	script	Ponto de Controle 2	111,6,6,{
+	end;
+OnTouch:
+	if (@race != 1) {
+		mes "^339966[Ponto de Controle]^000000";
+		mes "Você perdeu um Ponto de Controle. Por favor volte.";
+		close;
+	}
+	set @race,2;
+	mapannounce "morocc_race", "O jogador [" + strcharinfo(0) +"] passou pelo Checkpoint 1!", bc_yellow;
+	specialeffect2 EF_BLESSING;
+	end;
+}
+
+// Ponto de Controle 3
+morocc_race,77,44,5	script	Ponto de Controle 3	111,6,6,{
+	end;
+OnTouch:
+	if (@race != 2) {
+		mes "^339966[Ponto de Controle]^000000";
+		mes "Você perdeu um Ponto de Controle. Por favor volte.";
+		close;
+	}
+	set @race,3;
+	mapannounce "morocc_race", "O jogador [" + strcharinfo(0) +"] passou pelo Checkpoint 2!", bc_yellow;
+	specialeffect2 EF_BLESSING;
+	end;
+}
+
+// Ponto de Controle 4
+morocc_race,249,60,5	script	Ponto de Controle 4	111,6,6,{
+	end;
+OnTouch:
+	if (@race != 3) {
+		mes "^339966[Ponto de Controle]^000000";
+		mes "Você perdeu um Ponto de Controle. Por favor volte.";
+		close;
+	}
+	set @race,4;
+	mapannounce "morocc_race", "O jogador [" + strcharinfo(0) +"] passou pelo Checkpoint 3!", bc_yellow;
+	specialeffect2 EF_BLESSING;
+	end;
+}
+
+// Ponto de Controle 5
+morocc_race,255,256,5	script	Ponto de Controle 5	111,6,6,{
+	end;
+OnTouch:
+	if (@race != 4) {
+		mes "^339966[Ponto de Controle]^000000";
+		mes "Você perdeu um Ponto de Controle. Por favor volte.";
+		close;
+	}
+	set @race,5;
+	mapannounce "morocc_race", "O jogador [" + strcharinfo(0) +"] passou pelo Checkpoint 4!", bc_yellow;
+	specialeffect2 EF_BLESSING;
+	end;
+}
+
+// Linha de Chegada
+morocc_race,174,244,5	script	Linha de Chegada	111,6,6,{
+	end;
+OnTouch:
+	if (@raceid != $@raceid) {
+		mes "^339966[Ponto de Controle]^000000";
+		mes "Você nao esta nesta corrida.";
+		close;
+	}
+	if (@race != 5) {
+		mes "^339966[Ponto de Controle]^000000";
+		mes "Você perdeu um Ponto de Controle. Por favor, volte.";
+		close;
+	}
+	if (@race == 6) {
+		mes "^339966[Ponto de Controle]^000000";
+		mes "Você ja finalizou a corrida!";
+		close;
+	}
+
+	set @race,6;
+	set $@position,$@position+1;
+	set @finish_time, gettimetick(2) - @race_start_time;
+	
+	mapannounce "morocc_race", "O jogador [" + strcharinfo(0) +"] chegou em " + $@position + " lugar! (Tempo: " + @finish_time + "s)", bc_yellow;
+	specialeffect2 EF_ANGEL2;
+	
+	// Sistema de premiação
+	if ($@position == 1) {
+		set $@current_winner1$, strcharinfo(0);
+		mes "^FF1493[Garota da Corrida]^000000";
+		mes "^ff0000[PRIMEIRO LUGAR] PARABENS!^000000";
+		mes "Você ganhou:";
+		mes "• 100.000.000 de Zeny";
+		mes "• 50 Galhos Sangrentos";
+		mes "• 10 Moedas de Evento";
+		set Zeny, Zeny + 100000000;
+		getitem 12103, 50; // Galhos Sangrentos
+		getitem 1001007, 10; // Moedas de Evento
+		announce strcharinfo(0) + " conquistou o 1º lugar na Corrida de Morocc!", bc_all;
+	}
+	else if ($@position == 2) {
+		set $@current_winner2$, strcharinfo(0);
+		mes "^FF1493[Garota da Corrida]^000000";
+		mes "^ff0000[SEGUNDO LUGAR] Muito bem!^000000";
+		mes "Você ganhou:";
+		mes "• 50.000.000 de Zeny";
+		mes "• 30 Galhos Sangrentos";
+		mes "• 05 Moedas de Evento";
+		set Zeny, Zeny + 50000000;
+		getitem 12103, 30; // Galhos Sangrentos
+		getitem 1001007, 5; // Moedas de Evento
+		announce strcharinfo(0) + " conquistou o 2º lugar na Corrida de Morocc!", bc_all;
+	}
+	else if ($@position == 3) {
+		set $@current_winner3$, strcharinfo(0);
+		mes "^FF1493[Garota da Corrida]^000000";
+		mes "^ff0000[TERCEIRO LUGAR] Bom trabalho!^000000";
+		mes "Você ganhou:";
+		mes "• 25.000.000 de Zeny";
+		mes "• 15 Galhos Sangrentos";
+		mes "• 03 Moedas de Evento";
+		set Zeny, Zeny + 25000000;
+		getitem 12103, 15; // Galhos Sangrentos
+		getitem 1001007, 3; // Moedas de Evento
+		announce strcharinfo(0) + " conquistou o 3º lugar na Corrida de Morocc!", bc_all;
+	}
+	else {
+		mes "^FF1493[Garota da Corrida]^000000";
+		mes "Parabens por completar a corrida!";
+		mes "Você ganhou ^ff00001 Moeda de Evento^000000 como premio de participação.";
+		getitem 1001007, 1; // Moedas de Evento
+	}
+	
+	next;
+	mes "^FF1493[Garota da Corrida]^000000";
+	mes "Seu tempo:^ff0000 " + @finish_time + " segundos^000000";
+	close2;
+	
+	// Verificar se deve finalizar a corrida
+	if ($@position >= 3 || getmapusers("morocc_race") <= $@position) {
+		sleep 3000;
+		donpcevent "Iniciador::OnRaceEnd";
+	}
+	end;
+}
+
+// Bandeiras Marcadoras dos Pontos de Controle
+morocc_race,144,267,4	script	Ponto de Controle 1#01	722,{ end; }
+morocc_race,144,257,4	script	Ponto de Controle 1#02	722,{ end; }
+morocc_race,70,252,3	script	Ponto de Controle 2#01	722,{ end; }
+morocc_race,77,243,3	script	Ponto de Controle 2#02	722,{ end; }
+morocc_race,81,48,1	script	Ponto de Controle 3#01	722,{ end; }
+morocc_race,72,40,1	script	Ponto de Controle 3#02	722,{ end; }
+morocc_race,244,65,7	script	Ponto de Controle 4#01	722,{ end; }
+morocc_race,252,57,7	script	Ponto de Controle 4#02	722,{ end; }
+morocc_race,259,260,5	script	Ponto de Controle 5#01	722,{ end; }
+morocc_race,251,252,5	script	Ponto de Controle 5#02	722,{ end; }
+morocc_race,174,249,4	script	Linha de Chegada#01	722,{ end; }
+morocc_race,174,238,4	script	Linha de Chegada#02	722,{ end; }

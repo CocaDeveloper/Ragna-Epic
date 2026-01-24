@@ -1,0 +1,1074 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//================================================================
+//                  NPC - BANQUEIRO
+//================================================================
+//= NPC de Banco para depositar, sacar e transferir Zeny
+//= Cada conta pode ser protegida por senha
+//= Todo dia às 6 horas da manhã, uma quantidade relativa de Zeny é adicionada a cada conta. A porcentagem pode ser alterada
+//= na função _BankInterest
+//= Saldo máximo de cada conta é 18446744073709551615 (Big Integer)
+//= Saldo máximo que pode ser movido de uma vez é determinado pelo input_max_value do servidor em conf/script_athena.conf
+//= comando @bank totalmente funcional (mesmas funções do NPC, mas mais versátil)
+//===== Por: ======================================================================================================================
+//= ~De@dly Silence~
+//===== Versão Atual: =============================================================================================================
+//= 2.1
+//===== Compatível Com: ===========================================================================================================
+//= rAthena SVN
+//===== Comentários Adicionais: ===================================================================================================
+//= 1.0 Versão Inicial
+//= 2.0 adicionado cache para senhas e menu de comando at
+//= 2.1 corrigido problema com espaços em nomes de usuário e adicionados atalhos (@bn, @info, @deposit, @withdrawl, @transaction, @password)
+//===== A Fazer: ==================================================================================================================
+//== - impedir que MySQL estoure após atingir os limites do bigint
+//==   (é improvável que isso aconteça, você precisaria depositar 1.000.000.000 Zeny mais de 18.000.000.000 vezes)
+//== - cheques (precisa de itens adicionais para isso)
+//== - requisitos como nível mínimo ou tempo mínimo após criação antes de poder enviar/receber dinheiro 
+//=================================================================================================================================
+
+-	script	_BankInit	-1,{
+
+    OnInit:
+        // declarar algumas variáveis globalmente para que possam ser chamadas de qualquer lugar
+        $bankNpcName$   = "^339966[Ernesto Banqueiro]^000000"; // obviamente, o nome do NPC
+        $maxInput       = 500000000; // defina para o mesmo valor que input_max_value em conf/script_athena.conf 
+        $maxZeny        = 2000000000; // quantidade máxima de zeny que um jogador pode ter por vez (para propósitos de @bank)
+        $interestPerDay = 500; // o juro diário que é adicionado a cada conta automaticamente toda manhã às 6, funciona como qualquer outro cálculo de porcentagem: 10000 = 100%, 1000 = 10%, 100 = 1%, 1 = 0,01%
+		end;
+}
+
+prontera,168,177,3	script	Ernesto Banqueiro	833,{
+     
+    mes "" + $bankNpcName$ + "";
+    mes "Bem-vindo(a), " + strcharinfo(0) + ", ao ^ff0000Banco Nacional de Prontera^000000.", "Deixe-me verificar se você tem uma conta.";
+    next;
+    
+    // verificar se uma conta já existe
+    if (query_sql("SELECT `balance`, `password` FROM `bank` WHERE `account_id`=" + getcharid(3), .@balance$, .@password$)) {
+    
+        // pegar o saldo atual e colocá-lo em um formato mais legível
+        .@balance$ = callfunc("beautifyNumber", .@balance$, ",");
+        
+        // limitar acesso àqueles que conhecem a senha da conta
+        if ((!@disablePassword) && ("" != .@password$)) {
+
+            mes "" + $bankNpcName$ + "";
+            mes "Sua conta está protegida por uma senha.", "Por favor, digite sua senha para verificar sua identidade.";
+            input(.@passwortInput$);
+            if ((callfunc("makeHash", .@passwortInput$)) != .@password$) {
+            
+                next;
+                mes "" + $bankNpcName$ + "";
+                mes "Desculpe, mas a senha que você digitou está incorreta.";
+                close;
+            }
+            
+            // desabilitar senha para a sessão atual
+            @disablePassword = 1;
+            next;
+        }
+        
+        mes "" + $bankNpcName$ + "";
+        mes "Vejo que você já tem uma conta.", "O saldo da sua conta é ^ff0000" + .@balance$ + " ^000000Zeny.", "O que você deseja fazer?";
+        .@menu = select("^339966[»]^000000 Operações Bancárias:^339966[»]^000000 Perfil:^ff0000[»] Nada^000000");
+        
+        if (1 == .@menu) {
+            .@menu = select("^339966[»]^000000 Depositar:^339966[»]^000000 Sacar:^339966[»]^000000 Transferir");
+        
+            next;
+            
+            if (1 == .@menu) {
+                callfunc("_bankDeposit", "npc");
+            } else if (2 == .@menu) {
+                callfunc("_bankWithdraw", "npc");
+            } else if (3 == .@menu) {
+                callfunc("_bankTransaction", "npc");
+            }
+        
+            close;
+            
+        } else if (2 == .@menu) {
+        
+            .@menu = select("^339966[»]^000000 Informações da Conta:^339966[»]^000000 Histórico de Transações:^339966[»]^000000 Alterar Senha");
+            
+            next;
+            
+            if (1 == .@menu) {
+                callfunc("_bankInformation", "npc", .@balance$);
+            } else if (2 == .@menu) {
+                mes "" + $bankNpcName$ + "";
+                mes "Qual histórico você deseja ver?";
+                
+                .@menu = select("^339966[»]^000000 Depósitos:^339966[»]^000000 Saques:^339966[»]^000000 Transações Recebidas:^339966[»]^000000 Transações Enviadas:^ff0000[»] Nenhum^000000");
+
+                next;
+                if (1 == .@menu) {
+                    callfunc("_bankActivities", "npc", "deposit");
+                } else if (2 == .@menu) {
+                    callfunc("_bankActivities", "npc", "withdrawal");
+                } else if (3 == .@menu) {
+                    callfunc("_bankActivities", "npc", "incomingTransaction");
+                } else if (4 == .@menu) {
+                    callfunc("_bankActivities", "npc", "outgoingTransaction");
+                } else {
+                    next;
+                }
+            } else if (3 == .@menu) {
+                callfunc("_changePassword", "npc");
+            }
+        } else {
+            next;
+        }
+        
+        mes "" + $bankNpcName$ + "";
+        mes "Obrigado, volte sempre.";
+        close;
+    } else {
+        
+        mes "" + $bankNpcName$ + "";
+        mes "Parece que você ainda não tem uma conta. Por favor, permita-me apresentar-me.";
+        next;
+        
+        mes "" + $bankNpcName$ + "";
+        mes "Sou Ernesto, o representante do banco de Prontera e posso abrir sua própria conta bancária, onde você pode depositar e sacar Zeny. Você também pode transferir Zeny para outras contas.", "Quer que eu abra uma conta para você?";
+        
+        .@menu = select("^339966[»]^000000 Sim:^ff0000[»] Não^000000");
+            
+        next;
+        if (1 == .@menu) {
+            query_sql("INSERT INTO `bank` (account_id, balance, created_at) VALUES ('" + getcharid(3) + "', 0, NOW())");
+            mes "" + $bankNpcName$ + "";
+            mes "Sua conta foi criada.";
+        } else {
+            mes "" + $bankNpcName$ + "";
+            mes "Talvez na próxima vez.";
+        }
+    }
+    close;
+
+OnInit:
+		
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 62;	
+	setunittitle getnpcid(0), "[Banco de Prontera]";
+	
+while(1) {
+		showscript "[ Banqueiro ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+//===== Comentário em Bloco =======================================================================================================
+//== Função ======================================================================================================================= 
+//== Descrição ====================================================================================================================
+//== Fornece informações sobre o banco e a conta, como entrada máxima, saldo atual, número da conta
+//== Parâmetros =================================================================================================================== 
+//== 0 - origem da chamada da função
+//== 1 - saldo atual do usuário
+//=================================================================================================================================
+function	script	_bankInformation	{
+    
+    .@source$  = getarg(0);
+    .@balance$ = getarg(1);
+       
+    if ("npc" == .@source$) {
+
+        mes "" + $bankNpcName$ + "";
+        mes "O número da sua conta é ^ff0000" + getcharid(3) + "^000000 e sua conta tem um saldo de ^ff0000" + .@balance$ + "^000000 Zeny.";
+        next;
+        mes "" + $bankNpcName$ + "";
+        mes "Você pode depositar, sacar e transferir até ^ff0000" + callfunc("beautifyNumber", $maxInput, ",") + "^000000 Zeny por operação.", "O juros diário adicionado é de ^ff0000" + $interestPerDay / 100 + "%^000000.";
+        next;
+    } else if ("atCmd" == .@source$) {
+    
+        dispbottom "O número da sua conta é " + getcharid(3) + " e sua conta tem um saldo de"  + .@balance$ + " Zeny.";
+        dispbottom "Você pode depositar, sacar e transferir até " + callfunc("beautifyNumber", $maxZeny, ",") + " Zeny por operação.";
+        dispbottom "O juros diário adicionado é de " + $interestPerDay / 100 + "%.";
+    }
+
+    return;
+}
+
+//===== Comentário em Bloco =======================================================================================================
+//== Função ======================================================================================================================= 
+//== Descrição ====================================================================================================================
+//== Subfunção para depositar zeny
+//== Parâmetros =================================================================================================================== 
+//== 0 - origem da chamada da função
+//=================================================================================================================================
+function	script	_bankDeposit	{
+    
+    .@source$  = getarg(0);
+
+    if ("npc" == .@source$) {
+    
+        mes "" + $bankNpcName$ + "";
+        mes "Quanto você deseja depositar?";
+        if (0 == input(.@amount, 1, $maxInput) && (Zeny >= .@amount)) {
+            
+            next;
+            mes "" + $bankNpcName$ + "";
+            mes "Você deseja depositar ^ff0000" + callfunc("beautifyNumber", .@amount, ",") + "^000000 Zeny?";
+            
+            .@menu = select("^339966[»]^000000 Sim:^ff0000[»] Não^000000");
+            next;
+            if (1 == .@menu) {
+                
+                mes "" + $bankNpcName$ + "";
+                mes "Seu saldo foi atualizado. ", callfunc("beautifyNumber", .@amount, ",") + " Zeny foram adicionados à sua conta.", "Obrigado, volte sempre.";
+            }
+        } else {
+            
+            next;
+            mes "" + $bankNpcName$ + "";
+            mes (Zeny < .@amount) ? "Desculpe, mas você não tem Zeny suficiente." : "Desculpe, mas você só pode depositar entre 1 e " + $maxInput + " Zeny.";
+            close;
+        }
+        
+    } else if ("atCmd" == .@source$) {
+    
+        // primeiro verificar com atoi já que variáveis inteiras só podem armazenar int (previne erros conv_num)
+        if ((0 >= atoi(getarg(1))) || ($maxZeny < atoi(getarg(1)))) {
+
+            dispbottom "Você só pode depositar no mínimo 1 e no máximo " + callfunc("beautifyNumber", $maxZeny, ",") + "^ Zeny por vez.";
+            return;
+        }
+        
+        .@amount = getarg(1);
+        
+        if (Zeny < .@amount) {
+        
+            dispbottom "Você não tem Zeny suficiente.";
+            return;
+        }
+        
+        dispbottom callfunc("beautifyNumber", .@amount, ",") + " Zeny foram adicionados à sua conta.";
+    }
+    
+    // subtrai quantidade do zeny atual e adiciona à conta bancária, também registra logs
+    Zeny = Zeny - .@amount;
+    query_sql("UPDATE `bank` SET `balance` = `balance` + " + .@amount + " WHERE `account_id` = " + getcharid(3));
+    query_logsql("INSERT INTO `banklog` (`from_account`, `to_account`, `amount`, `type`) VALUES(" + getcharid(3) + ", " + getcharid(3) + ", " + .@amount + ", 'deposit')");
+        
+    return;
+}
+
+//===== Comentário em Bloco =======================================================================================================
+//== Função ======================================================================================================================= 
+//== Descrição ====================================================================================================================
+//== Subfunção para sacar zeny
+//== Parâmetros =================================================================================================================== 
+//== 0 - origem da chamada da função
+//=================================================================================================================================
+function	script	_bankWithdraw	{
+    
+    .@source$  = getarg(0);
+
+    if ("npc" == .@source$) {
+    
+        mes "" + $bankNpcName$ + "";
+        mes "Quanto você deseja sacar?";
+        if (0 == input(.@amount, 1, $maxInput) && query_sql("SELECT `balance` FROM `bank` WHERE `account_id` = " + getcharid(3) + " AND `balance` >= " + .@amount, .@sufficientBalance)) {
+            
+            next;
+            mes "" + $bankNpcName$ + "";
+            mes "Você deseja sacar ^ff0000" + callfunc("beautifyNumber", .@amount, ",") + "^000000 Zeny da sua conta?";
+            
+            .@menu = select("^339966[»]^000000 Sim:^ff0000[»] Não^000000");
+            next;
+            if (1 == .@menu) {
+
+                mes "" + $bankNpcName$ + "";
+                mes "Seu saldo foi atualizado.^ff0000", callfunc("beautifyNumber", .@amount, ",") + "^000000 Zeny foram movidos da sua conta para seu inventário.", "Obrigado, volte sempre.";
+            }
+        } else {
+            
+            next;
+            mes "" + $bankNpcName$ + "";
+		mes (!.@sufficientBalance) ? "Desculpe, mas você não tem saldo suficiente." : "Desculpe, mas você só pode sacar entre ^ff00001^000000 e " + $maxInput + "^000000 Zeny.";
+            close;
+        }
+        
+    } else if ("atCmd" == .@source$) {
+
+        // primeiro verificar com atoi já que variáveis inteiras só podem armazenar int (previne erros conv_num)
+        if ((0 >= atoi(getarg(1))) || ($maxZeny < atoi(getarg(1)))) {
+
+            dispbottom "Você só pode sacar no mínimo 1 e no máximo " + callfunc("beautifyNumber", $maxZeny, ",") + " por vez.";
+            return;
+        }
+        
+        .@amount = getarg(1);
+        
+        if (!query_sql("SELECT `balance` FROM `bank` WHERE `account_id` = " + getcharid(3) + " AND `balance` >= " + .@amount, .@sufficientBalance)) {
+        
+            dispbottom "Você não tem Zeny suficiente na sua conta.";
+            return;
+        }
+        
+        if ($maxZeny < (Zeny + .@amount)) {
+        
+            dispbottom "Você não pode carregar tanto Zeny. Você só pode ter no máximo " + callfunc("beautifyNumber", $maxZeny, ",") + " Zeny por vez.";
+            return;
+        }
+        
+        dispbottom callfunc("beautifyNumber", .@amount, ",") + " Zeny foram movidos da sua conta para seu inventário.";
+    }
+    
+    // adiciona quantidade ao zeny atual e subtrai da conta bancária, também registra logs
+    Zeny = Zeny + .@amount;
+    query_sql("UPDATE `bank` SET `balance` = `balance` - " + .@amount + " WHERE `account_id` = " + getcharid(3));
+    query_logsql("INSERT INTO `banklog` (`from_account`, `to_account`, `amount`, `type`) VALUES(" + getcharid(3) + ", " + getcharid(3) + ", " + .@amount + ", 'withdrawal')");
+    
+    return;
+}
+
+//===== Comentário em Bloco =======================================================================================================
+//== Função ======================================================================================================================= 
+//== Descrição ====================================================================================================================
+//== Subfunção para qualquer transação
+//== Parâmetros =================================================================================================================== 
+//== 0 - origem da chamada da função
+//=================================================================================================================================
+function	script	_bankTransaction	{
+
+    .@source$  = getarg(0);
+
+        if ("npc" == .@source$) {
+        
+        mes "" + $bankNpcName$ + "";
+        mes "Você quer escolher o destinatário pelo nome ou pelo número da conta?";
+        
+        .@menu = select("^339966[»]^000000 Número da Conta:^339966[»]^000000 Nome");
+        next;
+        if (1 == .@menu) {
+        
+            mes "" + $bankNpcName$ + "";
+            mes "Por favor, digite o número da conta do destinatário.";
+            input(.@accountNumber);
+        } else {
+                    
+            mes "" + $bankNpcName$ + "";
+            mes "Por favor, digite o nome do destinatário.";
+            input(.@name$);
+            // encontrar account_id e char_id do usuário desejado
+            query_sql("select `account_id`, `char_id` from `char` where `name` = '" + .@name$ + "'", .@accountNumber, .@charId);
+        }
+        
+        // verificação para prevenir transferência de zeny para sua própria conta
+        if (getcharid(3) == .@accountNumber) {
+        
+            next;
+            mes "" + $bankNpcName$ + "";
+            mes "Você não pode transferir dinheiro para sua própria conta.";
+            close;
+        }
+
+        // verificar se a conta do destinatário existe
+        if(query_sql("SELECT `id` FROM `bank` WHERE `account_id` = '" + .@accountNumber + "'", .@id)) {
+            
+            next;
+            mes "" + $bankNpcName$ + "";
+            mes "Quanto você deseja transferir?";
+            if (0 == input(.@amount, 1, $maxInput)) {
+                
+                next;
+                mes "" + $bankNpcName$ + "";
+                mes "Você deseja transferir ^ff0000" + callfunc("beautifyNumber", .@amount, ",") + "^000000 Zeny?";
+                
+                .@menu = select("^339966[»]^000000 Sim:^ff0000[»] Não^000000");
+                next;
+                if (1 == .@menu) {
+
+                    mes "" + $bankNpcName$ + "";
+                    mes "Seu saldo foi atualizado.", "Você transferiu com sucesso ^ff0000" + callfunc("beautifyNumber", .@amount, ",") + "^000000 Zeny para outra conta.", "Obrigado, volte sempre.";
+                }
+            } else {
+                
+                next;
+                mes "" + $bankNpcName$ + "";
+                mes "Desculpe, mas você só pode sacar entre ^ff00001^000000 e ^ff0000" + $maxInput + "^000000 Zeny.";
+                close;
+            }
+        } else {
+        
+            next;
+            mes "" + $bankNpcName$ + "";
+            mes "Parece haver um problema.", "O destinatário não possui conta bancária.";
+            next;
+        }
+        
+    } else if ("atCmd" == .@source$) {
+
+        // primeiro verificar com atoi já que variáveis inteiras só podem armazenar int (previne erros conv_num)
+        if ((0 >= atoi(getarg(2))) || ($maxZeny < atoi(getarg(2)))) {
+
+            dispbottom "Você só pode transferir no mínimo 1 e no máximo " + callfunc("beautifyNumber", $maxZeny, ",") + " Zeny por vez.";
+            return;
+        }
+        
+        .@recipient$  = getarg(1);
+        .@amount      = getarg(2);
+        
+        if (!query_sql("SELECT `balance` FROM `bank` WHERE `account_id` = " + getcharid(3) + " AND `balance` >= " + .@amount, .@sufficientBalance)) {
+        
+            dispbottom "Você não tem Zeny suficiente na sua conta.";
+            return;
+        }
+        
+        if ((0 == atoi(.@recipient$)) || ((getstrlen(atoi(.@recipient$) + "")) != (getstrlen(.@recipient$ + "")))) {
+            query_sql("select `account_id`, `char_id` from `char` where `name` = '" + .@recipient$ + "'", .@accountNumber, .@charId);
+        } else {
+            .@accountNumber = atoi(.@recipient$);
+        }
+        
+        // verificação para prevenir transferência de zeny para sua própria conta
+        if (getcharid(3) == .@accountNumber) {
+        
+            dispbottom "Você não pode transferir dinheiro para sua própria conta.";
+            return;
+        }
+        
+        // verificar se a conta do destinatário existe
+        if(!query_sql("SELECT `id` FROM `bank` WHERE `account_id` = '" + .@accountNumber + "'", .@id)) {
+            
+            dispbottom "O destinatário não possui conta bancária.";
+            return;
+        }
+        
+        dispbottom callfunc("beautifyNumber", .@amount, ",") + " Zeny foram movidos da sua conta para outra conta.";
+    }    
+    
+    // transfere zeny para outra conta e registra log
+    query_sql(
+          "UPDATE `bank` "
+        + "SET `balance` = CASE `account_id` "
+        + "WHEN " + getcharid(3) + " THEN `balance` - " + .@amount + " "
+        + "WHEN " + .@accountNumber + " THEN `balance` + " + .@amount + " END "
+        + "WHERE `account_id` IN (" + getcharid(3) + ", " + .@accountNumber + ")"
+    );
+    query_logsql(
+          "INSERT INTO `banklog` (`from_account`, `to_account`, `from_character`, `to_character`, `amount`, `type`) "
+        + "VALUES("
+            + getcharid(3) 
+            + ", " + .@accountNumber 
+            + ", " +  getcharid(0)
+            + ", " + .@charId
+            + ", " + .@amount 
+            + ", 'transaction'"
+        + ")"
+    );
+ 
+    return;
+}
+
+//===== Comentário em Bloco =======================================================================================================
+//== Função ======================================================================================================================= 
+//== Descrição ====================================================================================================================
+//== Fornece informações sobre as atividades bancárias do usuário atual
+//== Parâmetros =================================================================================================================== 
+//== 0 - origem da chamada da função
+//== 1 - tipo de transação desejada (deposit|withdrawal|incomingTransaction|outgoingTransaction)
+//=================================================================================================================================
+function	script	_bankActivities	{
+
+    .@source$  = getarg(0);
+    .@type$    = getarg(1);
+
+    if ("deposit" == .@type$)  {
+
+        .@colourPrefix$   = "^00AA00+";
+        .@column$         = "from";
+        .@activityString$ = "Seus depósitos são:";
+    } else if (("withdrawal" == .@type$) || ("withdraw" == .@type$)) {
+
+        .@colourPrefix$   = "^CC0000-";
+        .@column$         = "from";
+        .@activityString$ = "Seus saques são:";
+    } else if (("incomingTransaction" == .@type$) || ("in" == .@type$)) {
+
+        .@colourPrefix$      = "^00AA00+";
+        .@column$            = "to";
+        .@activityString$    = "Suas transações recebidas são:";
+        .@type$              = "transaction";
+    
+    } else if (("outgoingTransaction" == .@type$) || ("out" == .@type$)) {
+
+        .@colourPrefix$      = "^CC0000-";
+        .@column$            = "from";
+        .@activityString$    = "Suas transações enviadas são:";
+        .@type$              = "transaction";
+    } else {
+
+        dispbottom "Tipo inválido. Tipos válidos são deposit, withdraw, withdrawal, in, out.";
+        return;
+    }
+    
+    if ("npc" == .@source$) {
+    
+       
+        // encontra atividades no banco de dados de logs
+        .@totalRows = query_logsql(
+              "SELECT `id` "
+            + "FROM `banklog` "
+            + "WHERE `" + .@column$ + "_account` = " + getcharid(3) + " "
+            + "AND `type` = '" + escape_sql(.@type$) + "'"
+            , .@id
+        );
+           
+        // se não houver transações para mostrar, informe o usuário
+        if (!.@totalRows) {
+        
+            mes "" + $bankNpcName$ + "";
+            mes "Você não tem atividades nesta categoria.";
+            close;
+        }    
+           
+        // loop até que todas as transações sejam mostradas
+        .@limit = 0;
+        while (.@rows = query_logsql(
+              "SELECT `from_account`, `to_account`, `from_character`, `to_character`, `amount`, DATE_FORMAT(`created_at`, '%d.%m.%Y') as date,  DATE_FORMAT(`created_at`, '%H:%i') as time "
+            + "FROM `banklog` "
+            + "WHERE `" + .@column$ + "_account` = " + getcharid(3) + " "
+            + "AND `type` = '" + escape_sql(.@type$) + "' "
+            + "LIMIT " + .@limit + ",5"
+            , .@from, .@to, .@fromChar, .@toChar, .@amount, .@date$, .@time$
+        )) {
+        
+            mes "" + $bankNpcName$ + "";
+            mes .@activityString$;
+            // percorrer todas as linhas selecionadas
+            for (.@i = 0; .@i < .@rows; .@i += 1) {
+            
+                mes "[" + .@date$[.@i] + " " + .@time$[.@i] + "] ", .@colourPrefix$ + callfunc("beautifyNumber", .@amount[.@i], ",") + "^000000Z.";
+                if ("transaction" == .@type$) {
+                
+                    if (.@toChar[.@i]) {
+                    
+                        // transformar char_id -> nome
+                        .@fromName$ = callfunc("getCharNameByCharId", .@fromChar[.@i]);
+                        .@toName$   = callfunc("getCharNameByCharId", .@toChar[.@i]);
+                        
+                        if ("" != .@fromName$) {
+                            mes "De: " + .@fromName$ + " (" + .@from[.@i] + ")";
+                        } else {
+                            mes "De: " + .@fromChar[.@i] + " (" + .@from[.@i] + ")";
+                        }
+                    
+                        if ("" != .@toName$) {
+                            mes "Para: " + .@toName$ + " (" + .@to[.@i] + ")";
+                        } else {
+                            mes "Para: " + .@toChar[.@i] + " (" + .@to[.@i] + ")";
+                        }
+                    } else {
+                        mes "De: " + .@from[.@i], "Para: " + .@to[.@i];
+                    }
+                
+                }
+                mes "                   ";
+            }
+          
+            .@menu = select("^339966[»]^000000 Próxima Página:^339966[»]^000000 Página Anterior:^ff0000[»] Cancelar^000000");
+            next;
+            if (1 == .@menu) {
+            
+                if ((.@limit + 5) < .@totalRows) {
+                    .@limit += 5;
+                } else {
+                
+                    mes "" + $bankNpcName$ + "";
+                    mes "Você viu todas as atividades.";
+                    next;
+                    return;
+                }
+            } else if (2 == .@menu) {
+            
+                if (5 <= .@limit) {
+                    .@limit -= 5;
+                } else {
+                
+                    mes "" + $bankNpcName$ + "";
+                    mes "Você já está na página um.";
+                    next;
+                }
+            } else {
+                return;
+            }
+        }
+    
+    } else if ("atCmd" == .@source$) {
+    
+        if ((0 >= atoi(getarg(2))) || (50 < atoi(getarg(2)))) {
+        
+            dispbottom "Você só pode mostrar no mínimo 1 e no máximo 50 atividades.";
+            return;
+        }
+        .@limit    = getarg(2);
+
+        query_logsql(
+                  "SELECT `from_account`, `to_account`, `from_character`, `to_character`, `amount`, DATE_FORMAT(`created_at`, '%d.%m.%Y') as date,  DATE_FORMAT(`created_at`, '%H:%i') as time "
+                + "FROM `banklog` "
+                + "WHERE `" + .@column$ + "_account` = " + getcharid(3) + " "
+                + "AND `type` = '" + escape_sql(.@type$) + "' "
+                + "ORDER by `id` DESC " 
+                + "LIMIT " + .@limit
+                , .@from, .@to, .@fromChar, .@toChar, .@amount, .@date$, .@time$
+        );
+        
+        dispbottom .@activityString$;
+        
+        // não mostrar tantos detalhes para log de depósito e saque
+        if (("deposit" == .@type$) || ("withdrawal" == .@type$) || ("withdraw" == .@type$))  {
+
+            for (.@i = 0; .@i < .@limit; .@i += 1) {
+                
+                if (.@from[.@i]) {
+                    
+                    dispbottom "[" +.@date$[.@i] + " " + .@time$[.@i] + "] Quantia: " + callfunc("beautifyNumber", .@amount[.@i], ",") + " Zeny";
+                }
+            }
+
+        } else {
+        
+            for (.@i = 0; .@i < .@limit; .@i += 1) {
+
+                if (.@from[.@i]) {
+
+                    // transformar char_id -> nome
+                    .@fromName$ = callfunc("getCharNameByCharId", .@fromChar[.@i]);
+                    .@toName$   = callfunc("getCharNameByCharId", .@toChar[.@i]);
+                    
+                    if ("" != .@fromName$) {
+                                        
+                        .@fromString$ = .@fromName$ + " (" + .@from[.@i] + ")";
+                    } else {
+                                        
+                        .@fromString$ = .@from[.@i];
+                    }
+                
+                    if ("" != .@toName$) {
+                                        
+                        .@toString$ = .@toName$ + " (" + .@to[.@i] + ")";
+                    } else {
+                                        
+                        .@toString$ = .@to[.@i];
+                    }
+                    
+                    dispbottom "[" +.@date$[.@i] + " " + .@time$[.@i] + "] De: " + .@fromString$ + ", Para: " + .@toString$ + ", Quantia: " + callfunc("beautifyNumber", .@amount[.@i], ",") + " Zeny";
+                }
+            }
+        }
+
+    }
+    return;    
+}
+
+//===== Comentário em Bloco =======================================================================================================
+//== Função ======================================================================================================================= 
+//== Descrição ====================================================================================================================
+//== Função para definir/alterar/remover senha
+//== Parâmetros =================================================================================================================== 
+//== 0 - origem da chamada da função
+//=================================================================================================================================
+function	script	_changePassword	{
+    
+    .@source$  = getarg(0);
+
+    if ("npc" == .@source$) {
+    
+        .@menu = select("^339966[»]^000000 Alterar Senha:^339966[»]^000000 Remover Senha");
+        next;
+        if (1 == .@menu) {
+            mes "" + $bankNpcName$ + "";
+            mes "Por favor, digite sua nova senha.";
+            input(.@newPassword$);
+            
+            query_sql("UPDATE `bank` SET `password` = '" + callfunc("makeHash", .@newPassword$) + "' WHERE `account_id` = " + getcharid(3));
+            
+            next;
+            mes "" + $bankNpcName$ + "";
+            mes "Sua senha foi atualizada com sucesso.";
+            close;
+
+        } else {
+        
+            query_sql("UPDATE `bank` SET `password` = NULL WHERE `account_id` = " + getcharid(3));
+            
+            mes "" + $bankNpcName$ + "";
+            mes "Sua senha foi removida.", "Por motivos de segurança, recomendo usar uma senha.";
+            close;
+        }
+        
+    } else if ("atCmd" == .@source$) {
+    
+        .@password$ = getarg(1);
+    
+        if ("" != .@password$) {
+        
+            query_sql("UPDATE `bank` SET `password` = '" + callfunc("makeHash", .@password$) + "' WHERE `account_id` = " + getcharid(3));
+            dispbottom "Sua senha foi atualizada com sucesso.";
+            
+        } else {
+                    
+            query_sql("UPDATE `bank` SET `password` = NULL WHERE `account_id` = " + getcharid(3));
+            dispbottom "Sua senha foi removida.";
+            
+        }
+    }
+
+    return;    
+}
+
+-	script	_BankAtCmd	-1,{
+
+    OnInit:
+    
+        // comando principal
+        bindatcmd("bank",strnpcinfo(3)+"::OnAtcommand");
+        bindatcmd("bn",strnpcinfo(3)+"::OnAtcommand");
+        
+        // comando curto - informação
+        bindatcmd("info",strnpcinfo(3)+"::OnAtcommand");
+                
+        // comando curto - depositar
+        bindatcmd("deposit",strnpcinfo(3)+"::OnAtcommand");
+                
+        // comando curto - sacar
+        bindatcmd("withdraw",strnpcinfo(3)+"::OnAtcommand");
+                
+        // comando curto - transação
+        bindatcmd("transaction",strnpcinfo(3)+"::OnAtcommand");
+                
+        // comando curto - atividades
+        bindatcmd("activities",strnpcinfo(3)+"::OnAtcommand");
+                
+        // comando curto - senha
+        bindatcmd("password",strnpcinfo(3)+"::OnAtcommand");
+        end;
+    OnAtcommand:
+      
+        // se nenhum parâmetro for especificado, mostrar a ajuda
+        if ((("@bn" == .@atcmd_command$) || ("@bank" == .@atcmd_command$)) && (!.@atcmd_numparameters || ("help" == .@atcmd_parameters$[0]))) {
+        
+            dispbottom "Uso do comando:";
+            dispbottom .@atcmd_command$ + " info: Mostra informações relacionadas ao banco e à conta.";
+            dispbottom .@atcmd_command$ + " deposit <quantia>: Deposita a quantia especificada de Zeny.";
+            dispbottom "Exemplo: " + .@atcmd_command$ + " deposit 1000";
+            dispbottom .@atcmd_command$ + " withdraw <quantia>: Saca a quantia especificada de Zeny.";
+            dispbottom "Exemplo: " + .@atcmd_command$ + " withdraw 1000";
+            dispbottom .@atcmd_command$ + " transaction <nome do jogador OU ID da conta> <quantia>: Transfere Zeny para a conta de alguém.";
+            dispbottom "Exemplo: " + .@atcmd_command$ + " transaction 2000000 1000";
+            dispbottom .@atcmd_command$ + " activities <tipo> <limite>: Mostra as últimas transações de um tipo específico. Pode ser limitado (padrão: 10, máximo: 50). Tipos válidos são deposit, withdrawal, in, out.";
+            dispbottom .@atcmd_command$ + " password <novasenha>: Altera a senha atual. Deixe vazio para remover a senha.";
+            dispbottom "Exemplo: " + .@atcmd_command$ + " password abcdef";
+           
+            end;
+        }
+        
+        // verificar se o personagem tem uma conta bancária
+        if (!query_sql("SELECT `balance`, `password` FROM `bank` WHERE `account_id`=" + getcharid(3), .@balance$, .@password$)) {
+            
+            dispbottom "Você não tem uma conta. Por favor, registre uma com nossos funcionários do banco primeiro.";
+            end;
+        }
+        
+        // embelezar saldo atual
+        .@balance$ = callfunc("beautifyNumber", .@balance$, ",");
+
+        // verificação de senha
+        if ( (!@disablePassword) && ("" != .@password$)) {
+        
+            mes "" + $bankNpcName$ + "";
+            mes "Sua conta está protegida por uma senha.", "Por favor, digite sua senha para verificar sua identidade.";
+            input(.@passwortInput$);
+            if ((callfunc("makeHash", .@passwortInput$)) != .@password$) {
+            
+                dispbottom "A senha que você digitou está incorreta.";
+                close;
+            }
+            
+            // desabilitar senha para a sessão atual
+            @disablePassword = 1;
+            dispbottom "A senha foi aceita. Sua sessão será armazenada em cache até o logout.";
+        } 
+        
+        // descobrir qual parâmetro foi chamado, ordenado por quantidade de parâmetros esperados
+        if (((("@bn" == .@atcmd_command$) || ("@bank" == .@atcmd_command$)) && ("info" == .@atcmd_parameters$[0])) || ("@info" == .@atcmd_command$)) {
+
+            callfunc("_bankInformation", "atCmd", .@balance$);
+            end;
+        } else if (((("@bn" == .@atcmd_command$) || ("@bank" == .@atcmd_command$)) && ("deposit" == .@atcmd_parameters$[0]) && (2 == .@atcmd_numparameters)) || (("@deposit" == .@atcmd_command$) && (1 == .@atcmd_numparameters))) {
+
+            
+            callfunc("_bankDeposit", "atCmd", .@atcmd_parameters$[(getarraysize(.@atcmd_parameters$) - 1)]);
+            end;
+        } else if (((("@bn" == .@atcmd_command$) || ("@bank" == .@atcmd_command$)) && ("withdraw" == .@atcmd_parameters$[0]) && (2 == .@atcmd_numparameters)) || (("@withdraw" == .@atcmd_command$) && (1 == .@atcmd_numparameters))) {
+
+            callfunc("_bankWithdraw", "atCmd", .@atcmd_parameters$[(getarraysize(.@atcmd_parameters$) - 1)]);
+            end;
+        } else if (((("@bn" == .@atcmd_command$) || ("@bank" == .@atcmd_command$)) && ("transaction" == .@atcmd_parameters$[0]) && (3 <= .@atcmd_numparameters)) || (("@transaction" == .@atcmd_command$) && (2 <= .@atcmd_numparameters))) {
+
+            .@recipientName$ = "";
+            // percorrer todos os parâmetros, exceto os que contêm a função a chamar e a quantia
+            for (.@i = ("@transaction" == .@atcmd_command$) ? 0 : 1; .@i < (getarraysize(.@atcmd_parameters$) - 1); .@i += 1) {
+                    .@recipientName$ = .@recipientName$ + .@atcmd_parameters$[.@i];
+            }
+                
+            callfunc("_bankTransaction", "atCmd", .@recipientName$, .@atcmd_parameters$[(getarraysize(.@atcmd_parameters$) - 1)]);
+            end;
+        } else if (
+            (
+                (("@bn" == .@atcmd_command$) || ("@bank" == .@atcmd_command$))
+                && ("activities" == .@atcmd_parameters$[0]) 
+                && ((2 == .@atcmd_numparameters) || (3 == .@atcmd_numparameters))
+                || (("@activities" == .@atcmd_command$) && ((1 == .@atcmd_numparameters) || (2 == .@atcmd_numparameters)))
+            )
+        ) {
+
+            if ((("@bn" == .@atcmd_command$) || ("@bank" == .@atcmd_command$)) && (3 == .@atcmd_numparameters) || (("@password" == .@atcmd_command$) && (2 == .@atcmd_numparameters))) {
+
+                callfunc("_bankActivities", "atCmd", .@atcmd_parameters$[(getarraysize(.@atcmd_parameters$) - 2)], .@atcmd_parameters$[(getarraysize(.@atcmd_parameters$) - 1)]);
+            } else {
+
+                callfunc("_bankActivities", "atCmd", .@atcmd_parameters$[(getarraysize(.@atcmd_parameters$) - 1)], "10");
+            }
+            end;
+        } else if (((("@bn" == .@atcmd_command$) || ("@bank" == .@atcmd_command$)) && ("password" == .@atcmd_parameters$[0]) && (3 > .@atcmd_numparameters)) || (("@password" == .@atcmd_command$) && (2 > .@atcmd_numparameters))) {
+
+            if ((("@bn" == .@atcmd_command$) || ("@bank" == .@atcmd_command$)) && (2 == .@atcmd_numparameters) || (("@password" == .@atcmd_command$) && (2 > .@atcmd_numparameters))) {
+
+                callfunc("_changePassword", "atCmd", .@atcmd_parameters$[1]);
+            } else {
+            
+                callfunc("_changePassword", "atCmd", "");
+            }
+            end;
+        } else {
+            dispbottom "A sintaxe do seu comando não estava correta. Por favor, use " + .@atcmd_command$ + " help para obter informações sobre este comando.";
+            end;
+        }
+}
+
+-	script	_BankInterest	-1,{
+
+    // Adicionar juros a todas as contas toda manhã às 6 horas
+    OnClock0600:
+        query_sql("UPDATE `bank` SET `balance` = `balance` + (`balance` * " + $interestPerDay + " / 10000)");
+        end;
+}
+
+//=========================================================================
+//					COMANDOS E FUNÇÕES
+//=========================================================================
+
+function	script	beautifyNumber	{
+	.@number$  = getarg(0);
+	.@limiter$ = getarg(1);
+	.@length   = getstrlen(.@number$);
+	.@numberSeparated$ = "";
+	
+	if ("" != .@number$ &&  3 < .@length) {
+	
+		while (.@length > 3) {
+		
+			.@numberSeparated$ = ("" != .@numberSeparated$) ? substr(.@number$, .@length - 3, .@length - 1) + .@limiter$ + .@numberSeparated$ : substr(.@number$, .@length - 3, .@length - 1);
+			.@length = .@length - 3;
+		}
+		
+		.@numberSeparated$ = substr(.@number$, 0,  .@length - 1) + .@limiter$ + .@numberSeparated$;
+	}
+		
+	return (.@numberSeparated$ != "") ? .@numberSeparated$ : .@number$;
+}
+
+//===== Comentário da Função: =====================================================================================================
+//= Descrição da função: retorna um array com todos os itens equipados
+//=================================================================================================================================
+function	script	getRefineableEquipSlots	{
+	.@idx = 0;
+	deletearray @equipSlots;
+	
+	for (.@i = 1; .@i < 11; .@i += 1) {
+	
+		if (-1  != getequipid(.@i)) {
+			setarray @equipSlots[.@idx], .@i;
+			set .@idx, .@idx + 1;
+		}
+	}
+
+	return @equipSlots;
+}
+
+//===== Comentário da Função: =====================================================================================================
+//= Descrição da função: gera hash da string fornecida
+//= A função aceita um argumento: a string para gerar o hash
+//=================================================================================================================================
+function	script	makeHash	{
+
+    .@string$    = getarg(0);
+    .@salt$      = "39aeaa5d1ef9361ff71269a03fca2a70";
+    .@iterations = 2500;
+    
+    // habilita loop livre para o loop atual (previne erro de "loop infinito")
+    freeloop(1);
+    for (.@i = 0; .@i < .@iterations; .@i += 1) {
+        .@string$ = md5(.@salt$ + .@string$ + .@salt$);
+    }
+    freeloop(0);
+    
+    return .@string$;
+}
+
+//===== Comentário da Função: =====================================================================================================
+//= Descrição da função: retorna o nome do personagem independente do status online
+//= A função aceita um argumento: o id do personagem
+//=================================================================================================================================
+function	script	getCharNameByCharId	{
+
+    .@charId  = getarg(0);
+    
+    if (query_sql("SELECT `name` FROM `char` WHERE `char_id` = " + .@charId + " LIMIT 1", @name$)) {
+        return @name$;
+    } else {
+        return "";
+    }
+    
+}
+
+//===== Comentário da Função: =====================================================================================================
+//= Descrição da função: imprime o número fornecido em formato grande
+//= A função aceita um argumento: o número a ser impresso
+//=================================================================================================================================
+function	script	printNumber	{
+
+	// Apenas imprime números <10000, pois números de cinco dígitos quebram o layout
+	if (getarg(0) && getarg(0) < 10000) {
+		
+		setd ".@numArr_0$[0]", "^F7F7F7__^0000000000^F7F7F7__";
+		setd ".@numArr_0$[1]", "^F7F7F7_^00000000^F7F7F7__^00000000^F7F7F7_";
+		setd ".@numArr_0$[2]", "^F7F7F7_^00000000^F7F7F7__^00000000^F7F7F7_";
+		setd ".@numArr_0$[3]", "^F7F7F7_^00000000^F7F7F7__^00000000^F7F7F7_";
+		setd ".@numArr_0$[4]", "^F7F7F7__^0000000000^F7F7F7__";
+		
+
+		setd ".@numArr_1$[0]", "^F7F7F7___^00000011^F7F7F7___";
+		setd ".@numArr_1$[1]", "^F7F7F7__^000000111^F7F7F7___";
+		setd ".@numArr_1$[2]", "^F7F7F7___^00000011^F7F7F7___";
+		setd ".@numArr_1$[3]", "^F7F7F7___^00000011^F7F7F7___";
+		setd ".@numArr_1$[4]", "^F7F7F7_^000000111111^F7F7F7_";
+
+
+		setd ".@numArr_2$[0]", "^F7F7F7__^0000002222^F7F7F7__";
+		setd ".@numArr_2$[1]", "^F7F7F7_____^00000022^F7F7F7_";
+		setd ".@numArr_2$[2]", "^F7F7F7__^0000002222^F7F7F7__";
+		setd ".@numArr_2$[3]", "^F7F7F7_^00000022^F7F7F7_____";
+		setd ".@numArr_2$[4]", "^F7F7F7_^000000222222^F7F7F7_";
+
+
+		setd ".@numArr_3$[0]", "^F7F7F7_^000000333333^F7F7F7_";
+		setd ".@numArr_3$[1]", "^F7F7F7____^00000033^F7F7F7__";
+		setd ".@numArr_3$[2]", "^F7F7F7___^000000333^F7F7F7__";
+		setd ".@numArr_3$[3]", "^F7F7F7_____^00000033^F7F7F7_";
+		setd ".@numArr_3$[4]", "^F7F7F7_^00000033333^F7F7F7__";
+
+
+		setd ".@numArr_4$[0]", "^F7F7F7_^00000044^F7F7F7__^00000044^F7F7F7_";
+		setd ".@numArr_4$[1]", "^F7F7F7_^00000044^F7F7F7__^00000044^F7F7F7_";
+		setd ".@numArr_4$[2]", "^F7F7F7_^000000444444^F7F7F7_";
+		setd ".@numArr_4$[3]", "^F7F7F7_____^00000044^F7F7F7_";
+		setd ".@numArr_4$[4]", "^F7F7F7_____^00000044^F7F7F7_";
+
+
+		setd ".@numArr_5$[0]", "^F7F7F7_^000000555555^F7F7F7_";
+		setd ".@numArr_5$[1]", "^F7F7F7_^00000055^F7F7F7_____";
+		setd ".@numArr_5$[2]", "^F7F7F7__^0000005555^F7F7F7__";
+		setd ".@numArr_5$[3]", "^F7F7F7_____^00000055^F7F7F7_";
+		setd ".@numArr_5$[4]", "^F7F7F7_^00000055555^F7F7F7__";
+
+
+		setd ".@numArr_6$[0]", "^F7F7F7___^00000066^F7F7F7___";
+		setd ".@numArr_6$[1]", "^F7F7F7__^00000066^F7F7F7____";
+		setd ".@numArr_6$[2]", "^F7F7F7_^00000066666^F7F7F7__";
+		setd ".@numArr_6$[3]", "^F7F7F7_^00000066^F7F7F7__^00000066^F7F7F7_";
+		setd ".@numArr_6$[4]", "^F7F7F7__^0000006666^F7F7F7__";
+
+
+		setd ".@numArr_7$[0]", "^F7F7F7_^000000777777^F7F7F7_";
+		setd ".@numArr_7$[1]", "^F7F7F7____^00000077^F7F7F7__";
+		setd ".@numArr_7$[2]", "^F7F7F7___^00000077^F7F7F7___";
+		setd ".@numArr_7$[3]", "^F7F7F7__^00000077^F7F7F7____";
+		setd ".@numArr_7$[4]", "^F7F7F7_^00000077^F7F7F7_____";
+
+
+		setd ".@numArr_8$[0]", "^F7F7F7__^0000008888^F7F7F7__";
+		setd ".@numArr_8$[1]", "^F7F7F7_^00000088^F7F7F7__^00000088^F7F7F7_";
+		setd ".@numArr_8$[2]", "^F7F7F7__^0000008888^F7F7F7__";
+		setd ".@numArr_8$[3]", "^F7F7F7_^00000088^F7F7F7__^00000088^F7F7F7_";
+		setd ".@numArr_8$[4]", "^F7F7F7__^0000008888^F7F7F7__";
+
+		setd ".@numArr_9$[0]", "^F7F7F7__^0000009999^F7F7F7__";
+		setd ".@numArr_9$[1]", "^F7F7F7_^00000099^F7F7F7__^00000099^F7F7F7_";
+		setd ".@numArr_9$[2]", "^F7F7F7__^0000009999^F7F7F7__";
+		setd ".@numArr_9$[3]", "^F7F7F7___^00000099^F7F7F7___";
+		setd ".@numArr_9$[4]", "^F7F7F7__^00000099^F7F7F7____";
+		
+		.@number$ = getarg(0) + "";
+		
+		for (set .@i, 0; .@i < getstrlen(.@number$); .@i++) {
+			for (set .@j, 0; .@j <= 4; .@j++) {
+				setd(".@line" + .@j + "$", getd(".@line" + .@j + "$") + getd(".@numArr_" + charat(.@number$, .@i) + "$[" + .@j + "]"));
+			}
+		}
+		for (set .@j, 0; .@j <= 4; .@j++) {
+			mes getd(".@line" + .@j + "$");
+		}
+	}
+	return;
+}
+
+//========================== TABELAS SQL =================================
+
+//	-- =====================================================
+//	-- Tabelas SQL para o Sistema de Banco
+//	-- Execute este script no seu banco de dados MySQL
+//	-- =====================================================
+//	
+//	-- Tabela principal do banco (armazena contas e saldos)
+//	CREATE TABLE IF NOT EXISTS `bank` (
+//	  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+//	  `account_id` INT(11) UNSIGNED NOT NULL,
+//	  `balance` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
+//	  `password` VARCHAR(255) DEFAULT NULL,
+//	  `created_at` DATETIME NOT NULL,
+//	  PRIMARY KEY (`id`),
+//	  UNIQUE KEY `account_id` (`account_id`)
+//	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+//	
+//	-- Tabela de logs do banco (histórico de transações)
+//	CREATE TABLE IF NOT EXISTS `banklog` (
+//	  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+//	  `from_account` INT(11) UNSIGNED NOT NULL,
+//	  `to_account` INT(11) UNSIGNED NOT NULL,
+//	  `from_character` INT(11) UNSIGNED DEFAULT NULL,
+//	  `to_character` INT(11) UNSIGNED DEFAULT NULL,
+//	  `amount` BIGINT(20) UNSIGNED NOT NULL,
+//	  `type` ENUM('deposit','withdrawal','transaction') NOT NULL,
+//	  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+//	  PRIMARY KEY (`id`),
+//	  KEY `from_account` (`from_account`),
+//	  KEY `to_account` (`to_account`),
+//	  KEY `type` (`type`),
+//	  KEY `created_at` (`created_at`)
+//	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+//	
+//	-- Adicionar índices para melhor performance
+//	ALTER TABLE `bank` ADD INDEX `idx_account_id` (`account_id`);
+//	ALTER TABLE `banklog` ADD INDEX `idx_from_account_type` (`from_account`, `type`);
+//	ALTER TABLE `banklog` ADD INDEX `idx_to_account_type` (`to_account`, `type`);

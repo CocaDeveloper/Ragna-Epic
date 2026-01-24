@@ -1,0 +1,74 @@
+prontera,145,160,5	script	Catálogo Ambulante	109,{
+
+	mes "[Catálogo Ambulante]";
+	mes "Olá, aventureiro! Procurando por pechinchas ou itens raros?";
+	mes "Eu sou o seu guia para o mundo das compras!";
+	next;
+	mes "[Catálogo Ambulante]";
+	mes "O que deseja fazer hoje?";
+	.@s = select("Abrir Catálogo de Vendas:Comprar um Catálogo:Ir para o Mapa de Comércio:Nada, obrigado");
+
+	switch (.@s) {
+		case 1:
+			mes "[Catálogo Ambulante]";
+			mes "Abrindo o catálogo... Prepare-se para as ofertas!";
+			close2;
+			searchstores 10, SEARCHSTORE_EFFECT_NORMAL;
+			end;
+
+		case 2:
+			mes "[Catálogo Ambulante]";
+			mes "Escolha o catálogo que deseja comprar:";
+			mes "^i[12591]^i[12580]^i[12581]";
+			.@s2 = select("Catálogo de Vendas Bronze (20.000 Zeny):Catálogo de Vendas Prata (40.000 Zeny):Catálogo de Vendas Ouro (60.000 Zeny):Cancelar");
+
+			switch (.@s2) {
+				case 1:
+					if (Zeny < 20000) {
+						mes "Você não tem Zeny suficiente!";
+						close;
+					}
+					Zeny -= 20000;
+					getitem 12591, 1;
+					mes "Você comprou o Catálogo de Vendas Bronze!";
+					break;
+
+				case 2:
+					if (Zeny < 40000) {
+						mes "Você não tem Zeny suficiente!";
+						close;
+					}
+					Zeny -= 40000;
+					getitem 12580, 1;
+					mes "Você comprou o Catálogo de Vendas Prata!";
+					break;
+
+				case 3:
+					if (Zeny < 60000) {
+						mes "Você não tem Zeny suficiente!";
+						close;
+					}
+					Zeny -= 60000;
+					getitem 12581, 1;
+					mes "Você comprou o Catálogo de Vendas Ouro!";
+					break;
+
+				default:
+					mes "Compra cancelada.";
+					break;
+			}
+			close;
+
+		case 3:
+			mes "[Catálogo Ambulante]";
+			mes "Teleportando você para o mapa de comércio...";
+			close2;
+			warp "prontera",150,150;
+			end;
+
+		default:
+			mes "[Catálogo Ambulante]";
+			mes "Tudo bem! Volte quando quiser explorar mais ofertas!";
+			close;
+	}
+}

@@ -1,0 +1,37 @@
+-	script	customwarps	-1,{
+
+	OnInit:
+		bindatcmd "eden", strnpcinfo(3) + "::OnEden";
+		bindatcmd "hall", strnpcinfo(3) + "::OnOffice";
+		bindatcmd "market", strnpcinfo(3) + "::OnMarket";
+		bindatcmd "eventos", strnpcinfo(3) + "::OnEvento";
+		end;
+
+	OnEden:
+		message strcharinfo(0), "Rumando ao Quartel do Grupo Éden — o caminho dos aspirantes ao poder...";
+		specialeffect2 1062;
+		sleep2 1000; // 1 segundo de delay
+		warp "moc_para01", 30, 14;
+		end;
+
+	OnOffice:
+		message strcharinfo(0), "Retornando ao Portal do 2º Herói...";
+		specialeffect2 1062;		sleep2 1000; // 1 segundo de delay
+		warp "hero_ent2", 90, 82;
+		end;
+
+	OnMarket:
+		message strcharinfo(0), "Viajando para o Mercado Central — onde cada zeny encontra seu destino...";
+		specialeffect2 1062;
+		sleep2 1000; // 1 segundo de delay
+		warp "prontera", 156, 162;
+		end;
+		
+	OnEvento:
+		message strcharinfo(0), "Teleportando para a Sala de Eventos...";
+		specialeffect2 1062;
+		sleep2 1000; // 1 segundo de delay
+		warp "new_evt", 160, 171;
+		end;
+
+}

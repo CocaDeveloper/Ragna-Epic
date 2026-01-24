@@ -1,0 +1,1850 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  Bandeira Sala GUILD
+//===============================================================
+
+// BANDEIRA COM BRASÃO DA GUILD
+//1@ge_st,93,52,6	script	Bandeira	722,{}
+//1@ge_st,93,44,6	script	Bandeira	722,{}
+//1@ge_st,125,44,10	script	Bandeira	722,{}
+//1@ge_st,125,52,10	script	Bandeira	722,{}
+
+//===== SISTEMA DE BANDEIRAS DAS GUILDS v2.5 =====
+//===============================================================
+//            Sistema de Bandeiras Automáticas
+//===============================================================
+// Adicione este código ao seu script existente
+//===============================================================
+
+//===== NPC: Bandeira Casa #01 =====
+guildmap_01,93,52,6	script	Bandeira da Guild#01	722,{
+		.@house_id = 1; // ID da casa
+	
+	// Verificar se a casa está ocupada
+	.@owner_id = getd("$house_owner_" + .@house_id);
+	.@expire_time = getd("$house_expire_" + .@house_id);
+	
+	if (.@owner_id <= 0 || .@expire_time <= gettimetick(2)) {
+		// Casa disponível
+		mes "[^00cc00Bandeira Disponível^000000]";
+		mes "Esta casa está ^00cc00DISPONÍVEL^000000 para aluguel.";
+		mes "^ffcc00Casa #" + .@house_id + "^000000";
+		mes " ";
+		mes "Fale com o ^339966Corretor de Imóveis^000000 para alugar!";
+		close;
+	}
+	
+	// Casa ocupada - mostrar informações da guild
+	.@guild_name$ = getguildname(.@owner_id);
+	.@color$ = getd("$house_color_" + .@house_id + "$");
+	if (.@color$ == "") .@color$ = "^339966";
+	.@guild_master$ = getguildmaster(.@owner_id);
+	.@days_left = (.@expire_time - gettimetick(2)) / 86400;
+	.@pvp_status = getd("$house_pvp_" + .@house_id);
+	
+	mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+	mes .@color$ + "--- " + .@guild_name$ + " ---^000000";
+	mes "^ffcc00Casa #" + .@house_id + "^000000";
+	mes "Guild Líder: ^00cc00" + .@guild_master$ + "^000000";
+	mes "Dias Restantes: ^ff6600" + .@days_left + "^000000";
+	mes "Status PvP: " + (.@pvp_status ? "^00cc00ATIVADO^000000" : "^ff0000DESATIVADO^000000");
+	
+	// Verificar se o jogador pertence à guild dona
+	if (getcharid(2) == .@owner_id) {
+		next;
+		mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+		mes "Bem-vindo de volta, ^ffa500"+strcharinfo(0)+"^000000.";
+		mes "Esta é a casa da sua Guild!";
+		mes " ";
+		if (getguildmaster(.@owner_id) == strcharinfo(0)) {
+			mes "^ff0000Você é o Guild Líder.^000000";
+		}
+	} else {
+		next;
+		mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+		mes "Você está visitando a casa da ^ff0000Guild " + .@guild_name$ + "^000000. Respeite as regras da casa!";
+	}
+	
+	close;
+
+OnInit:
+	// Atualizar emblema da guild na inicialização
+	callsub(UpdateGuildEmblem);
+	end;
+
+// Evento chamado quando uma casa é alugada/liberada
+OnUpdateFlag:
+	callsub(UpdateGuildEmblem);
+	end;
+
+UpdateGuildEmblem:
+	.@house_id = 1; // ID da casa
+	.@owner_id = getd("$house_owner_" + .@house_id);
+	.@expire_time = getd("$house_expire_" + .@house_id);
+	
+	if (.@owner_id > 0 && .@expire_time > gettimetick(2)) {
+		// Casa ocupada - definir emblema da guild
+		.@guild_name$ = getguildname(.@owner_id);
+		if (.@guild_name$ != "") {
+			// Definir emblema da guild (ID 722 = bandeira)
+			if (.@guild_name$ != "") {
+    flagemblem .@owner_id;
+} else {
+    flagemblem 0;
+}
+			
+			// Log da atualização
+			logmes "BANDEIRA v2.5 - Casa #" + .@house_id + " | Emblema atualizado para Guild: " + .@guild_name$;
+		}
+	} else {
+		// Casa disponível - remover emblema
+		flagemblem 0;
+		logmes "BANDEIRA v2.5 - Casa #" + .@house_id + " | Emblema removido (casa disponível)";
+	}
+	return;
+}
+
+//===== DUPLICATAS DAS BANDEIRAS =====
+guildmap_01,93,44,6	duplicate(Bandeira da Guild#01)	Bandeira da Guild#02	722
+guildmap_01,125,44,10	duplicate(Bandeira da Guild#01)	Bandeira da Guild#03	722
+guildmap_01,125,52,10	duplicate(Bandeira da Guild#01)	Bandeira da Guild#04	722
+
+//===== TEMPLATE PARA OUTRAS CASAS =====
+// Duplique este template para cada casa, alterando apenas:
+// 1. Coordenadas do mapa
+// 2. .@house_id = X (número da casa)
+// 3. Nome do script (Bandeira Casa #X)
+//======================================
+
+//===== NPC: Bandeira Casa #02 =====
+guildmap_02,93,52,6	script	Bandeira da Guild#05	722,{
+			.@house_id = 2; // ID da casa
+	
+	// Verificar se a casa está ocupada
+	.@owner_id = getd("$house_owner_" + .@house_id);
+	.@expire_time = getd("$house_expire_" + .@house_id);
+	
+	if (.@owner_id <= 0 || .@expire_time <= gettimetick(2)) {
+		// Casa disponível
+		mes "[^00cc00Bandeira Disponível^000000]";
+		mes "Esta casa está ^00cc00DISPONÍVEL^000000 para aluguel.";
+		mes "^ffcc00Casa #" + .@house_id + "^000000";
+		mes " ";
+		mes "Fale com o ^339966Corretor de Imóveis^000000 para alugar!";
+		close;
+	}
+	
+	// Casa ocupada - mostrar informações da guild
+	.@guild_name$ = getguildname(.@owner_id);
+	.@color$ = getd("$house_color_" + .@house_id + "$");
+	if (.@color$ == "") .@color$ = "^339966";
+	.@guild_master$ = getguildmaster(.@owner_id);
+	.@days_left = (.@expire_time - gettimetick(2)) / 86400;
+	.@pvp_status = getd("$house_pvp_" + .@house_id);
+	
+	mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+	mes .@color$ + "--- " + .@guild_name$ + " ---^000000";
+	mes "^ffcc00Casa #" + .@house_id + "^000000";
+	mes "Guild Líder: ^00cc00" + .@guild_master$ + "^000000";
+	mes "Dias Restantes: ^ff6600" + .@days_left + "^000000";
+	mes "Status PvP: " + (.@pvp_status ? "^00cc00ATIVADO^000000" : "^ff0000DESATIVADO^000000");
+	
+	// Verificar se o jogador pertence à guild dona
+	if (getcharid(2) == .@owner_id) {
+		next;
+		mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+		mes "Bem-vindo de volta, ^ffa500"+strcharinfo(0)+"^000000.";
+		mes "Esta é a casa da sua Guild!";
+		mes " ";
+		if (getguildmaster(.@owner_id) == strcharinfo(0)) {
+			mes "^ff0000Você é o Guild Líder.^000000";
+		}
+	} else {
+		next;
+		mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+		mes "Você está visitando a casa da ^ff0000Guild " + .@guild_name$ + "^000000. Respeite as regras da casa!";
+	}
+	
+	close;
+
+OnInit:
+	// Atualizar emblema da guild na inicialização
+	callsub(UpdateGuildEmblem);
+	end;
+
+// Evento chamado quando uma casa é alugada/liberada
+OnUpdateFlag:
+	callsub(UpdateGuildEmblem);
+	end;
+
+UpdateGuildEmblem:
+	.@house_id = 2; // ID da casa
+	.@owner_id = getd("$house_owner_" + .@house_id);
+	.@expire_time = getd("$house_expire_" + .@house_id);
+	
+	if (.@owner_id > 0 && .@expire_time > gettimetick(2)) {
+		// Casa ocupada - definir emblema da guild
+		.@guild_name$ = getguildname(.@owner_id);
+		if (.@guild_name$ != "") {
+			// Definir emblema da guild (ID 722 = bandeira)
+			flagemblem .@owner_id;
+			
+			// Log da atualização
+			logmes "BANDEIRA v2.5 - Casa #" + .@house_id + " | Emblema atualizado para Guild: " + .@guild_name$;
+		}
+	} else {
+		// Casa disponível - remover emblema
+		flagemblem 0;
+		logmes "BANDEIRA v2.5 - Casa #" + .@house_id + " | Emblema removido (casa disponível)";
+	}
+	return;
+}
+
+//===== DUPLICATAS DAS BANDEIRAS =====
+guildmap_02,93,44,6	duplicate(Bandeira da Guild#05)	Bandeira da Guild#06	722
+guildmap_02,125,44,10	duplicate(Bandeira da Guild#05)	Bandeira da Guild#07	722
+guildmap_02,125,52,10	duplicate(Bandeira da Guild#05)	Bandeira da Guild#08	722
+
+//===== TEMPLATE PARA OUTRAS CASAS =====
+// Duplique este template para cada casa, alterando apenas:
+// 1. Coordenadas do mapa
+// 2. .@house_id = X (número da casa)
+// 3. Nome do script (Bandeira Casa #X)
+//======================================
+
+//===== NPC: Bandeira Casa #03 =====
+guildmap_03,93,52,6	script	Bandeira da Guild#09	722,{
+			.@house_id = 3; // ID da casa
+	
+	// Verificar se a casa está ocupada
+	.@owner_id = getd("$house_owner_" + .@house_id);
+	.@expire_time = getd("$house_expire_" + .@house_id);
+	
+	if (.@owner_id <= 0 || .@expire_time <= gettimetick(2)) {
+		// Casa disponível
+		mes "[^00cc00Bandeira Disponível^000000]";
+		mes "Esta casa está ^00cc00DISPONÍVEL^000000 para aluguel.";
+		mes "^ffcc00Casa #" + .@house_id + "^000000";
+		mes " ";
+		mes "Fale com o ^339966Corretor de Imóveis^000000 para alugar!";
+		close;
+	}
+	
+	// Casa ocupada - mostrar informações da guild
+	.@guild_name$ = getguildname(.@owner_id);
+	.@color$ = getd("$house_color_" + .@house_id + "$");
+	if (.@color$ == "") .@color$ = "^339966";
+	.@guild_master$ = getguildmaster(.@owner_id);
+	.@days_left = (.@expire_time - gettimetick(2)) / 86400;
+	.@pvp_status = getd("$house_pvp_" + .@house_id);
+	
+	mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+	mes .@color$ + "--- " + .@guild_name$ + " ---^000000";
+	mes "^ffcc00Casa #" + .@house_id + "^000000";
+	mes "Guild Líder: ^00cc00" + .@guild_master$ + "^000000";
+	mes "Dias Restantes: ^ff6600" + .@days_left + "^000000";
+	mes "Status PvP: " + (.@pvp_status ? "^00cc00ATIVADO^000000" : "^ff0000DESATIVADO^000000");
+	
+	// Verificar se o jogador pertence à guild dona
+	if (getcharid(2) == .@owner_id) {
+		next;
+		mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+		mes "Bem-vindo de volta, ^ffa500"+strcharinfo(0)+"^000000.";
+		mes "Esta é a casa da sua Guild!";
+		mes " ";
+		if (getguildmaster(.@owner_id) == strcharinfo(0)) {
+			mes "^ff0000Você é o Guild Líder.^000000";
+		}
+	} else {
+		next;
+		mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+		mes "Você está visitando a casa da ^ff0000Guild " + .@guild_name$ + "^000000. Respeite as regras da casa!";
+	}
+	
+	close;
+
+OnInit:
+	// Atualizar emblema da guild na inicialização
+	callsub(UpdateGuildEmblem);
+	end;
+
+// Evento chamado quando uma casa é alugada/liberada
+OnUpdateFlag:
+	callsub(UpdateGuildEmblem);
+	end;
+
+UpdateGuildEmblem:
+	.@house_id = 3; // ID da casa
+	.@owner_id = getd("$house_owner_" + .@house_id);
+	.@expire_time = getd("$house_expire_" + .@house_id);
+	
+	if (.@owner_id > 0 && .@expire_time > gettimetick(2)) {
+		// Casa ocupada - definir emblema da guild
+		.@guild_name$ = getguildname(.@owner_id);
+		if (.@guild_name$ != "") {
+			// Definir emblema da guild (ID 722 = bandeira)
+			flagemblem .@owner_id;
+			
+			// Log da atualização
+			logmes "BANDEIRA v2.5 - Casa #" + .@house_id + " | Emblema atualizado para Guild: " + .@guild_name$;
+		}
+	} else {
+		// Casa disponível - remover emblema
+		flagemblem 0;
+		logmes "BANDEIRA v2.5 - Casa #" + .@house_id + " | Emblema removido (casa disponível)";
+	}
+	return;
+}
+
+//===== DUPLICATAS DAS BANDEIRAS =====
+guildmap_03,93,44,6	duplicate(Bandeira da Guild#09)	Bandeira da Guild#010	722
+guildmap_03,125,44,10	duplicate(Bandeira da Guild#09)	Bandeira da Guild#011	722
+guildmap_03,125,52,10	duplicate(Bandeira da Guild#09)	Bandeira da Guild#012	722
+
+//===== TEMPLATE PARA OUTRAS CASAS =====
+// Duplique este template para cada casa, alterando apenas:
+// 1. Coordenadas do mapa
+// 2. .@house_id = X (número da casa)
+// 3. Nome do script (Bandeira Casa #X)
+//======================================
+
+//===== NPC: Bandeira Casa #04 =====
+guildmap_04,93,52,6	script	Bandeira da Guild#013	722,{
+			.@house_id = 4; // ID da casa
+	
+	// Verificar se a casa está ocupada
+	.@owner_id = getd("$house_owner_" + .@house_id);
+	.@expire_time = getd("$house_expire_" + .@house_id);
+	
+	if (.@owner_id <= 0 || .@expire_time <= gettimetick(2)) {
+		// Casa disponível
+		mes "[^00cc00Bandeira Disponível^000000]";
+		mes "Esta casa está ^00cc00DISPONÍVEL^000000 para aluguel.";
+		mes "^ffcc00Casa #" + .@house_id + "^000000";
+		mes " ";
+		mes "Fale com o ^339966Corretor de Imóveis^000000 para alugar!";
+		close;
+	}
+	
+	// Casa ocupada - mostrar informações da guild
+	.@guild_name$ = getguildname(.@owner_id);
+	.@color$ = getd("$house_color_" + .@house_id + "$");
+	if (.@color$ == "") .@color$ = "^339966";
+	.@guild_master$ = getguildmaster(.@owner_id);
+	.@days_left = (.@expire_time - gettimetick(2)) / 86400;
+	.@pvp_status = getd("$house_pvp_" + .@house_id);
+	
+	mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+	mes .@color$ + "--- " + .@guild_name$ + " ---^000000";
+	mes "^ffcc00Casa #" + .@house_id + "^000000";
+	mes "Guild Líder: ^00cc00" + .@guild_master$ + "^000000";
+	mes "Dias Restantes: ^ff6600" + .@days_left + "^000000";
+	mes "Status PvP: " + (.@pvp_status ? "^00cc00ATIVADO^000000" : "^ff0000DESATIVADO^000000");
+	
+	// Verificar se o jogador pertence à guild dona
+	if (getcharid(2) == .@owner_id) {
+		next;
+		mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+		mes "Bem-vindo de volta, ^ffa500"+strcharinfo(0)+"^000000.";
+		mes "Esta é a casa da sua Guild!";
+		mes " ";
+		if (getguildmaster(.@owner_id) == strcharinfo(0)) {
+			mes "^ff0000Você é o Guild Líder.^000000";
+		}
+	} else {
+		next;
+		mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+		mes "Você está visitando a casa da ^ff0000Guild " + .@guild_name$ + "^000000. Respeite as regras da casa!";
+	}
+	
+	close;
+
+OnInit:
+	// Atualizar emblema da guild na inicialização
+	callsub(UpdateGuildEmblem);
+	end;
+
+// Evento chamado quando uma casa é alugada/liberada
+OnUpdateFlag:
+	callsub(UpdateGuildEmblem);
+	end;
+
+UpdateGuildEmblem:
+	.@house_id = 4; // ID da casa
+	.@owner_id = getd("$house_owner_" + .@house_id);
+	.@expire_time = getd("$house_expire_" + .@house_id);
+	
+	if (.@owner_id > 0 && .@expire_time > gettimetick(2)) {
+		// Casa ocupada - definir emblema da guild
+		.@guild_name$ = getguildname(.@owner_id);
+		if (.@guild_name$ != "") {
+			// Definir emblema da guild (ID 722 = bandeira)
+			flagemblem .@owner_id;
+			
+			// Log da atualização
+			logmes "BANDEIRA v2.5 - Casa #" + .@house_id + " | Emblema atualizado para Guild: " + .@guild_name$;
+		}
+	} else {
+		// Casa disponível - remover emblema
+		flagemblem 0;
+		logmes "BANDEIRA v2.5 - Casa #" + .@house_id + " | Emblema removido (casa disponível)";
+	}
+	return;
+}
+
+//===== DUPLICATAS DAS BANDEIRAS =====
+guildmap_04,93,44,6	duplicate(Bandeira da Guild#013)	Bandeira da Guild#014	722
+guildmap_04,125,44,10	duplicate(Bandeira da Guild#013)	Bandeira da Guild#015	722
+guildmap_04,125,52,10	duplicate(Bandeira da Guild#013)	Bandeira da Guild#016	722
+
+//===== TEMPLATE PARA OUTRAS CASAS =====
+// Duplique este template para cada casa, alterando apenas:
+// 1. Coordenadas do mapa
+// 2. .@house_id = X (número da casa)
+// 3. Nome do script (Bandeira Casa #X)
+//======================================
+
+//===== NPC: Bandeira Casa #05 =====
+guildmap_05,93,52,6	script	Bandeira da Guild#017	722,{
+			.@house_id = 5; // ID da casa
+	
+	// Verificar se a casa está ocupada
+	.@owner_id = getd("$house_owner_" + .@house_id);
+	.@expire_time = getd("$house_expire_" + .@house_id);
+	
+	if (.@owner_id <= 0 || .@expire_time <= gettimetick(2)) {
+		// Casa disponível
+		mes "[^00cc00Bandeira Disponível^000000]";
+		mes "Esta casa está ^00cc00DISPONÍVEL^000000 para aluguel.";
+		mes "^ffcc00Casa #" + .@house_id + "^000000";
+		mes " ";
+		mes "Fale com o ^339966Corretor de Imóveis^000000 para alugar!";
+		close;
+	}
+	
+	// Casa ocupada - mostrar informações da guild
+	.@guild_name$ = getguildname(.@owner_id);
+	.@color$ = getd("$house_color_" + .@house_id + "$");
+	if (.@color$ == "") .@color$ = "^339966";
+	.@guild_master$ = getguildmaster(.@owner_id);
+	.@days_left = (.@expire_time - gettimetick(2)) / 86400;
+	.@pvp_status = getd("$house_pvp_" + .@house_id);
+	
+	mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+	mes .@color$ + "--- " + .@guild_name$ + " ---^000000";
+	mes "^ffcc00Casa #" + .@house_id + "^000000";
+	mes "Guild Líder: ^00cc00" + .@guild_master$ + "^000000";
+	mes "Dias Restantes: ^ff6600" + .@days_left + "^000000";
+	mes "Status PvP: " + (.@pvp_status ? "^00cc00ATIVADO^000000" : "^ff0000DESATIVADO^000000");
+	
+	// Verificar se o jogador pertence à guild dona
+	if (getcharid(2) == .@owner_id) {
+		next;
+		mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+		mes "Bem-vindo de volta, ^ffa500"+strcharinfo(0)+"^000000.";
+		mes "Esta é a casa da sua Guild!";
+		mes " ";
+		if (getguildmaster(.@owner_id) == strcharinfo(0)) {
+			mes "^ff0000Você é o Guild Líder.^000000";
+		}
+	} else {
+		next;
+		mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+		mes "Você está visitando a casa da ^ff0000Guild " + .@guild_name$ + "^000000. Respeite as regras da casa!";
+	}
+	
+	close;
+
+OnInit:
+	// Atualizar emblema da guild na inicialização
+	callsub(UpdateGuildEmblem);
+	end;
+
+// Evento chamado quando uma casa é alugada/liberada
+OnUpdateFlag:
+	callsub(UpdateGuildEmblem);
+	end;
+
+UpdateGuildEmblem:
+	.@house_id = 5; // ID da casa
+	.@owner_id = getd("$house_owner_" + .@house_id);
+	.@expire_time = getd("$house_expire_" + .@house_id);
+	
+	if (.@owner_id > 0 && .@expire_time > gettimetick(2)) {
+		// Casa ocupada - definir emblema da guild
+		.@guild_name$ = getguildname(.@owner_id);
+		if (.@guild_name$ != "") {
+			// Definir emblema da guild (ID 722 = bandeira)
+			flagemblem .@owner_id;
+			
+			// Log da atualização
+			logmes "BANDEIRA v2.5 - Casa #" + .@house_id + " | Emblema atualizado para Guild: " + .@guild_name$;
+		}
+	} else {
+		// Casa disponível - remover emblema
+		flagemblem 0;
+		logmes "BANDEIRA v2.5 - Casa #" + .@house_id + " | Emblema removido (casa disponível)";
+	}
+	return;
+}
+
+//===== DUPLICATAS DAS BANDEIRAS =====
+guildmap_05,93,44,6	duplicate(Bandeira da Guild#017)	Bandeira da Guild#018	722
+guildmap_05,125,44,10	duplicate(Bandeira da Guild#017)	Bandeira da Guild#019	722
+guildmap_05,125,52,10	duplicate(Bandeira da Guild#017)	Bandeira da Guild#020	722
+
+//===== TEMPLATE PARA OUTRAS CASAS =====
+// Duplique este template para cada casa, alterando apenas:
+// 1. Coordenadas do mapa
+// 2. .@house_id = X (número da casa)
+// 3. Nome do script (Bandeira Casa #X)
+//======================================
+
+//===== NPC: Bandeira Casa #06 =====
+guildmap_06,93,52,6	script	Bandeira da Guild#021	722,{
+			.@house_id = 6; // ID da casa
+	
+	// Verificar se a casa está ocupada
+	.@owner_id = getd("$house_owner_" + .@house_id);
+	.@expire_time = getd("$house_expire_" + .@house_id);
+	
+	if (.@owner_id <= 0 || .@expire_time <= gettimetick(2)) {
+		// Casa disponível
+		mes "[^00cc00Bandeira Disponível^000000]";
+		mes "Esta casa está ^00cc00DISPONÍVEL^000000 para aluguel.";
+		mes "^ffcc00Casa #" + .@house_id + "^000000";
+		mes " ";
+		mes "Fale com o ^339966Corretor de Imóveis^000000 para alugar!";
+		close;
+	}
+	
+	// Casa ocupada - mostrar informações da guild
+	.@guild_name$ = getguildname(.@owner_id);
+	.@color$ = getd("$house_color_" + .@house_id + "$");
+	if (.@color$ == "") .@color$ = "^339966";
+	.@guild_master$ = getguildmaster(.@owner_id);
+	.@days_left = (.@expire_time - gettimetick(2)) / 86400;
+	.@pvp_status = getd("$house_pvp_" + .@house_id);
+	
+	mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+	mes .@color$ + "--- " + .@guild_name$ + " ---^000000";
+	mes "^ffcc00Casa #" + .@house_id + "^000000";
+	mes "Guild Líder: ^00cc00" + .@guild_master$ + "^000000";
+	mes "Dias Restantes: ^ff6600" + .@days_left + "^000000";
+	mes "Status PvP: " + (.@pvp_status ? "^00cc00ATIVADO^000000" : "^ff0000DESATIVADO^000000");
+	
+	// Verificar se o jogador pertence à guild dona
+	if (getcharid(2) == .@owner_id) {
+		next;
+		mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+		mes "Bem-vindo de volta, ^ffa500"+strcharinfo(0)+"^000000.";
+		mes "Esta é a casa da sua Guild!";
+		mes " ";
+		if (getguildmaster(.@owner_id) == strcharinfo(0)) {
+			mes "^ff0000Você é o Guild Líder.^000000";
+		}
+	} else {
+		next;
+		mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+		mes "Você está visitando a casa da ^ff0000Guild " + .@guild_name$ + "^000000. Respeite as regras da casa!";
+	}
+	
+	close;
+
+OnInit:
+	// Atualizar emblema da guild na inicialização
+	callsub(UpdateGuildEmblem);
+	end;
+
+// Evento chamado quando uma casa é alugada/liberada
+OnUpdateFlag:
+	callsub(UpdateGuildEmblem);
+	end;
+
+UpdateGuildEmblem:
+	.@house_id = 6; // ID da casa
+	.@owner_id = getd("$house_owner_" + .@house_id);
+	.@expire_time = getd("$house_expire_" + .@house_id);
+	
+	if (.@owner_id > 0 && .@expire_time > gettimetick(2)) {
+		// Casa ocupada - definir emblema da guild
+		.@guild_name$ = getguildname(.@owner_id);
+		if (.@guild_name$ != "") {
+			// Definir emblema da guild (ID 722 = bandeira)
+			flagemblem .@owner_id;
+			
+			// Log da atualização
+			logmes "BANDEIRA v2.5 - Casa #" + .@house_id + " | Emblema atualizado para Guild: " + .@guild_name$;
+		}
+	} else {
+		// Casa disponível - remover emblema
+		flagemblem 0;
+		logmes "BANDEIRA v2.5 - Casa #" + .@house_id + " | Emblema removido (casa disponível)";
+	}
+	return;
+}
+
+//===== DUPLICATAS DAS BANDEIRAS =====
+guildmap_06,93,44,6	duplicate(Bandeira da Guild#021)	Bandeira da Guild#022	722
+guildmap_06,125,44,10	duplicate(Bandeira da Guild#021)	Bandeira da Guild#023	722
+guildmap_06,125,52,10	duplicate(Bandeira da Guild#021)	Bandeira da Guild#024	722
+
+//===== TEMPLATE PARA OUTRAS CASAS =====
+// Duplique este template para cada casa, alterando apenas:
+// 1. Coordenadas do mapa
+// 2. .@house_id = X (número da casa)
+// 3. Nome do script (Bandeira Casa #X)
+//======================================
+
+//===== NPC: Bandeira Casa #07 =====
+guildmap_07,93,52,6	script	Bandeira da Guild#025	722,{
+			.@house_id = 7; // ID da casa
+	
+	// Verificar se a casa está ocupada
+	.@owner_id = getd("$house_owner_" + .@house_id);
+	.@expire_time = getd("$house_expire_" + .@house_id);
+	
+	if (.@owner_id <= 0 || .@expire_time <= gettimetick(2)) {
+		// Casa disponível
+		mes "[^00cc00Bandeira Disponível^000000]";
+		mes "Esta casa está ^00cc00DISPONÍVEL^000000 para aluguel.";
+		mes "^ffcc00Casa #" + .@house_id + "^000000";
+		mes " ";
+		mes "Fale com o ^339966Corretor de Imóveis^000000 para alugar!";
+		close;
+	}
+	
+	// Casa ocupada - mostrar informações da guild
+	.@guild_name$ = getguildname(.@owner_id);
+	.@color$ = getd("$house_color_" + .@house_id + "$");
+	if (.@color$ == "") .@color$ = "^339966";
+	.@guild_master$ = getguildmaster(.@owner_id);
+	.@days_left = (.@expire_time - gettimetick(2)) / 86400;
+	.@pvp_status = getd("$house_pvp_" + .@house_id);
+	
+	mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+	mes .@color$ + "--- " + .@guild_name$ + " ---^000000";
+	mes "^ffcc00Casa #" + .@house_id + "^000000";
+	mes "Guild Líder: ^00cc00" + .@guild_master$ + "^000000";
+	mes "Dias Restantes: ^ff6600" + .@days_left + "^000000";
+	mes "Status PvP: " + (.@pvp_status ? "^00cc00ATIVADO^000000" : "^ff0000DESATIVADO^000000");
+	
+	// Verificar se o jogador pertence à guild dona
+	if (getcharid(2) == .@owner_id) {
+		next;
+		mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+		mes "Bem-vindo de volta, ^ffa500"+strcharinfo(0)+"^000000.";
+		mes "Esta é a casa da sua Guild!";
+		mes " ";
+		if (getguildmaster(.@owner_id) == strcharinfo(0)) {
+			mes "^ff0000Você é o Guild Líder.^000000";
+		}
+	} else {
+		next;
+		mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+		mes "Você está visitando a casa da ^ff0000Guild " + .@guild_name$ + "^000000. Respeite as regras da casa!";
+	}
+	
+	close;
+
+OnInit:
+	// Atualizar emblema da guild na inicialização
+	callsub(UpdateGuildEmblem);
+	end;
+
+// Evento chamado quando uma casa é alugada/liberada
+OnUpdateFlag:
+	callsub(UpdateGuildEmblem);
+	end;
+
+UpdateGuildEmblem:
+	.@house_id = 7; // ID da casa
+	.@owner_id = getd("$house_owner_" + .@house_id);
+	.@expire_time = getd("$house_expire_" + .@house_id);
+	
+	if (.@owner_id > 0 && .@expire_time > gettimetick(2)) {
+		// Casa ocupada - definir emblema da guild
+		.@guild_name$ = getguildname(.@owner_id);
+		if (.@guild_name$ != "") {
+			// Definir emblema da guild (ID 722 = bandeira)
+			flagemblem .@owner_id;
+			
+			// Log da atualização
+			logmes "BANDEIRA v2.5 - Casa #" + .@house_id + " | Emblema atualizado para Guild: " + .@guild_name$;
+		}
+	} else {
+		// Casa disponível - remover emblema
+		flagemblem 0;
+		logmes "BANDEIRA v2.5 - Casa #" + .@house_id + " | Emblema removido (casa disponível)";
+	}
+	return;
+}
+
+//===== DUPLICATAS DAS BANDEIRAS =====
+guildmap_07,93,44,6	duplicate(Bandeira da Guild#025)	Bandeira da Guild#026	722
+guildmap_07,125,44,10	duplicate(Bandeira da Guild#025)	Bandeira da Guild#027	722
+guildmap_07,125,52,10	duplicate(Bandeira da Guild#025)	Bandeira da Guild#028	722
+
+//===== TEMPLATE PARA OUTRAS CASAS =====
+// Duplique este template para cada casa, alterando apenas:
+// 1. Coordenadas do mapa
+// 2. .@house_id = X (número da casa)
+// 3. Nome do script (Bandeira Casa #X)
+//======================================
+
+//===== NPC: Bandeira Casa #08 =====
+guildmap_08,93,52,6	script	Bandeira da Guild#029	722,{
+			.@house_id = 8; // ID da casa
+	
+	// Verificar se a casa está ocupada
+	.@owner_id = getd("$house_owner_" + .@house_id);
+	.@expire_time = getd("$house_expire_" + .@house_id);
+	
+	if (.@owner_id <= 0 || .@expire_time <= gettimetick(2)) {
+		// Casa disponível
+		mes "[^00cc00Bandeira Disponível^000000]";
+		mes "Esta casa está ^00cc00DISPONÍVEL^000000 para aluguel.";
+		mes "^ffcc00Casa #" + .@house_id + "^000000";
+		mes " ";
+		mes "Fale com o ^339966Corretor de Imóveis^000000 para alugar!";
+		close;
+	}
+	
+	// Casa ocupada - mostrar informações da guild
+	.@guild_name$ = getguildname(.@owner_id);
+	.@color$ = getd("$house_color_" + .@house_id + "$");
+	if (.@color$ == "") .@color$ = "^339966";
+	.@guild_master$ = getguildmaster(.@owner_id);
+	.@days_left = (.@expire_time - gettimetick(2)) / 86400;
+	.@pvp_status = getd("$house_pvp_" + .@house_id);
+	
+	mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+	mes .@color$ + "--- " + .@guild_name$ + " ---^000000";
+	mes "^ffcc00Casa #" + .@house_id + "^000000";
+	mes "Guild Líder: ^00cc00" + .@guild_master$ + "^000000";
+	mes "Dias Restantes: ^ff6600" + .@days_left + "^000000";
+	mes "Status PvP: " + (.@pvp_status ? "^00cc00ATIVADO^000000" : "^ff0000DESATIVADO^000000");
+	
+	// Verificar se o jogador pertence à guild dona
+	if (getcharid(2) == .@owner_id) {
+		next;
+		mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+		mes "Bem-vindo de volta, ^ffa500"+strcharinfo(0)+"^000000.";
+		mes "Esta é a casa da sua Guild!";
+		mes " ";
+		if (getguildmaster(.@owner_id) == strcharinfo(0)) {
+			mes "^ff0000Você é o Guild Líder.^000000";
+		}
+	} else {
+		next;
+		mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+		mes "Você está visitando a casa da ^ff0000Guild " + .@guild_name$ + "^000000. Respeite as regras da casa!";
+	}
+	
+	close;
+
+OnInit:
+	// Atualizar emblema da guild na inicialização
+	callsub(UpdateGuildEmblem);
+	end;
+
+// Evento chamado quando uma casa é alugada/liberada
+OnUpdateFlag:
+	callsub(UpdateGuildEmblem);
+	end;
+
+UpdateGuildEmblem:
+	.@house_id = 8; // ID da casa
+	.@owner_id = getd("$house_owner_" + .@house_id);
+	.@expire_time = getd("$house_expire_" + .@house_id);
+	
+	if (.@owner_id > 0 && .@expire_time > gettimetick(2)) {
+		// Casa ocupada - definir emblema da guild
+		.@guild_name$ = getguildname(.@owner_id);
+		if (.@guild_name$ != "") {
+			// Definir emblema da guild (ID 722 = bandeira)
+			flagemblem .@owner_id;
+			
+			// Log da atualização
+			logmes "BANDEIRA v2.5 - Casa #" + .@house_id + " | Emblema atualizado para Guild: " + .@guild_name$;
+		}
+	} else {
+		// Casa disponível - remover emblema
+		flagemblem 0;
+		logmes "BANDEIRA v2.5 - Casa #" + .@house_id + " | Emblema removido (casa disponível)";
+	}
+	return;
+}
+
+//===== DUPLICATAS DAS BANDEIRAS =====
+guildmap_08,93,44,6	duplicate(Bandeira da Guild#029)	Bandeira da Guild#030	722
+guildmap_08,125,44,10	duplicate(Bandeira da Guild#029)	Bandeira da Guild#031	722
+guildmap_08,125,52,10	duplicate(Bandeira da Guild#029)	Bandeira da Guild#032	722
+
+//===== TEMPLATE PARA OUTRAS CASAS =====
+// Duplique este template para cada casa, alterando apenas:
+// 1. Coordenadas do mapa
+// 2. .@house_id = X (número da casa)
+// 3. Nome do script (Bandeira Casa #X)
+//======================================
+
+//===== NPC: Bandeira Casa #09 =====
+guildmap_09,93,52,6	script	Bandeira da Guild#033	722,{
+			.@house_id = 9; // ID da casa
+	
+	// Verificar se a casa está ocupada
+	.@owner_id = getd("$house_owner_" + .@house_id);
+	.@expire_time = getd("$house_expire_" + .@house_id);
+	
+	if (.@owner_id <= 0 || .@expire_time <= gettimetick(2)) {
+		// Casa disponível
+		mes "[^00cc00Bandeira Disponível^000000]";
+		mes "Esta casa está ^00cc00DISPONÍVEL^000000 para aluguel.";
+		mes "^ffcc00Casa #" + .@house_id + "^000000";
+		mes " ";
+		mes "Fale com o ^339966Corretor de Imóveis^000000 para alugar!";
+		close;
+	}
+	
+	// Casa ocupada - mostrar informações da guild
+	.@guild_name$ = getguildname(.@owner_id);
+	.@color$ = getd("$house_color_" + .@house_id + "$");
+	if (.@color$ == "") .@color$ = "^339966";
+	.@guild_master$ = getguildmaster(.@owner_id);
+	.@days_left = (.@expire_time - gettimetick(2)) / 86400;
+	.@pvp_status = getd("$house_pvp_" + .@house_id);
+	
+	mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+	mes .@color$ + "--- " + .@guild_name$ + " ---^000000";
+	mes "^ffcc00Casa #" + .@house_id + "^000000";
+	mes "Guild Líder: ^00cc00" + .@guild_master$ + "^000000";
+	mes "Dias Restantes: ^ff6600" + .@days_left + "^000000";
+	mes "Status PvP: " + (.@pvp_status ? "^00cc00ATIVADO^000000" : "^ff0000DESATIVADO^000000");
+	
+	// Verificar se o jogador pertence à guild dona
+	if (getcharid(2) == .@owner_id) {
+		next;
+		mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+		mes "Bem-vindo de volta, ^ffa500"+strcharinfo(0)+"^000000.";
+		mes "Esta é a casa da sua Guild!";
+		mes " ";
+		if (getguildmaster(.@owner_id) == strcharinfo(0)) {
+			mes "^ff0000Você é o Guild Líder.^000000";
+		}
+	} else {
+		next;
+		mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+		mes "Você está visitando a casa da ^ff0000Guild " + .@guild_name$ + "^000000. Respeite as regras da casa!";
+	}
+	
+	close;
+
+OnInit:
+	// Atualizar emblema da guild na inicialização
+	callsub(UpdateGuildEmblem);
+	end;
+
+// Evento chamado quando uma casa é alugada/liberada
+OnUpdateFlag:
+	callsub(UpdateGuildEmblem);
+	end;
+
+UpdateGuildEmblem:
+	.@house_id = 9; // ID da casa
+	.@owner_id = getd("$house_owner_" + .@house_id);
+	.@expire_time = getd("$house_expire_" + .@house_id);
+	
+	if (.@owner_id > 0 && .@expire_time > gettimetick(2)) {
+		// Casa ocupada - definir emblema da guild
+		.@guild_name$ = getguildname(.@owner_id);
+		if (.@guild_name$ != "") {
+			// Definir emblema da guild (ID 722 = bandeira)
+			flagemblem .@owner_id;
+			
+			// Log da atualização
+			logmes "BANDEIRA v2.5 - Casa #" + .@house_id + " | Emblema atualizado para Guild: " + .@guild_name$;
+		}
+	} else {
+		// Casa disponível - remover emblema
+		flagemblem 0;
+		logmes "BANDEIRA v2.5 - Casa #" + .@house_id + " | Emblema removido (casa disponível)";
+	}
+	return;
+}
+
+//===== DUPLICATAS DAS BANDEIRAS =====
+guildmap_09,93,44,6	duplicate(Bandeira da Guild#033)	Bandeira da Guild#034	722
+guildmap_09,125,44,10	duplicate(Bandeira da Guild#033)	Bandeira da Guild#035	722
+guildmap_09,125,52,10	duplicate(Bandeira da Guild#033)	Bandeira da Guild#036	722
+
+//===== TEMPLATE PARA OUTRAS CASAS =====
+// Duplique este template para cada casa, alterando apenas:
+// 1. Coordenadas do mapa
+// 2. .@house_id = X (número da casa)
+// 3. Nome do script (Bandeira Casa #X)
+//======================================
+
+//===== NPC: Bandeira Casa #10 =====
+guildmap_10,93,52,6	script	Bandeira da Guild#037	722,{
+			.@house_id = 10; // ID da casa
+	
+	// Verificar se a casa está ocupada
+	.@owner_id = getd("$house_owner_" + .@house_id);
+	.@expire_time = getd("$house_expire_" + .@house_id);
+	
+	if (.@owner_id <= 0 || .@expire_time <= gettimetick(2)) {
+		// Casa disponível
+		mes "[^00cc00Bandeira Disponível^000000]";
+		mes "Esta casa está ^00cc00DISPONÍVEL^000000 para aluguel.";
+		mes "^ffcc00Casa #" + .@house_id + "^000000";
+		mes " ";
+		mes "Fale com o ^339966Corretor de Imóveis^000000 para alugar!";
+		close;
+	}
+	
+	// Casa ocupada - mostrar informações da guild
+	.@guild_name$ = getguildname(.@owner_id);
+	.@color$ = getd("$house_color_" + .@house_id + "$");
+	if (.@color$ == "") .@color$ = "^339966";
+	.@guild_master$ = getguildmaster(.@owner_id);
+	.@days_left = (.@expire_time - gettimetick(2)) / 86400;
+	.@pvp_status = getd("$house_pvp_" + .@house_id);
+	
+	mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+	mes .@color$ + "--- " + .@guild_name$ + " ---^000000";
+	mes "^ffcc00Casa #" + .@house_id + "^000000";
+	mes "Guild Líder: ^00cc00" + .@guild_master$ + "^000000";
+	mes "Dias Restantes: ^ff6600" + .@days_left + "^000000";
+	mes "Status PvP: " + (.@pvp_status ? "^00cc00ATIVADO^000000" : "^ff0000DESATIVADO^000000");
+	
+	// Verificar se o jogador pertence à guild dona
+	if (getcharid(2) == .@owner_id) {
+		next;
+		mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+		mes "Bem-vindo de volta, ^ffa500"+strcharinfo(0)+"^000000.";
+		mes "Esta é a casa da sua Guild!";
+		mes " ";
+		if (getguildmaster(.@owner_id) == strcharinfo(0)) {
+			mes "^ff0000Você é o Guild Líder.^000000";
+		}
+	} else {
+		next;
+		mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+		mes "Você está visitando a casa da ^ff0000Guild " + .@guild_name$ + "^000000. Respeite as regras da casa!";
+	}
+	
+	close;
+
+OnInit:
+	// Atualizar emblema da guild na inicialização
+	callsub(UpdateGuildEmblem);
+	end;
+
+// Evento chamado quando uma casa é alugada/liberada
+OnUpdateFlag:
+	callsub(UpdateGuildEmblem);
+	end;
+
+UpdateGuildEmblem:
+	.@house_id = 10; // ID da casa
+	.@owner_id = getd("$house_owner_" + .@house_id);
+	.@expire_time = getd("$house_expire_" + .@house_id);
+	
+	if (.@owner_id > 0 && .@expire_time > gettimetick(2)) {
+		// Casa ocupada - definir emblema da guild
+		.@guild_name$ = getguildname(.@owner_id);
+		if (.@guild_name$ != "") {
+			// Definir emblema da guild (ID 722 = bandeira)
+			flagemblem .@owner_id;
+			
+			// Log da atualização
+			logmes "BANDEIRA v2.5 - Casa #" + .@house_id + " | Emblema atualizado para Guild: " + .@guild_name$;
+		}
+	} else {
+		// Casa disponível - remover emblema
+		flagemblem 0;
+		logmes "BANDEIRA v2.5 - Casa #" + .@house_id + " | Emblema removido (casa disponível)";
+	}
+	return;
+}
+
+//===== DUPLICATAS DAS BANDEIRAS =====
+guildmap_10,93,44,6	duplicate(Bandeira da Guild#037)	Bandeira da Guild#038	722
+guildmap_10,125,44,10	duplicate(Bandeira da Guild#037)	Bandeira da Guild#039	722
+guildmap_10,125,52,10	duplicate(Bandeira da Guild#037)	Bandeira da Guild#040	722
+
+//===== TEMPLATE PARA OUTRAS CASAS =====
+// Duplique este template para cada casa, alterando apenas:
+// 1. Coordenadas do mapa
+// 2. .@house_id = X (número da casa)
+// 3. Nome do script (Bandeira Casa #X)
+//======================================
+
+//===== INTEGRAÇÃO COM O SISTEMA EXISTENTE =====
+// Adicione estas linhas nas funções apropriadas do seu script original:
+
+/*
+=== MODIFICAÇÕES NECESSÁRIAS NO SCRIPT ORIGINAL ===
+
+1. Na função AlugarCasa (após processar o aluguel):
+   // Atualizar bandeira da casa
+   donpcevent "FlagManager::OnUpdateSingleFlag(" + .@house_id + ")";
+
+2. Na função CancelarAluguel (após limpar dados):
+   // Resetar bandeira da casa
+   donpcevent "FlagManager::OnUpdateSingleFlag(" + .@house_id + ")";
+
+3. Na função CheckDissolvedGuilds (após liberar uma casa):
+   // Resetar bandeira da casa
+   donpcevent "FlagManager::OnUpdateSingleFlag(" + .@i + ")";
+
+4. No comando OnHouseReset (após reset completo):
+   // Resetar todas as bandeiras
+   donpcevent "FlagManager::OnResetAllFlags";
+
+5. No comando OnHouseForce (após liberar casa):
+   // Resetar bandeira específica
+   donpcevent "FlagManager::OnUpdateSingleFlag(" + .@house_id + ")";
+
+6. Na função CleanupExpiredHouses (após limpar uma casa):
+   // Resetar bandeira da casa
+   donpcevent "FlagManager::OnUpdateSingleFlag(" + .@i + ")";
+
+*/
+
+//===== COMANDO ADMINISTRATIVO PARA BANDEIRAS =====
+-	script	FlagAdminCommands	FAKE_NPC,{
+OnInit:
+	bindatcmd "flagupdate", strnpcinfo(3) + "::OnFlagUpdate", 99, 100;
+	bindatcmd "flagreset", strnpcinfo(3) + "::OnFlagReset", 99, 100;
+	bindatcmd "flagstatus", strnpcinfo(3) + "::OnFlagStatus", 99, 100;
+	end;
+
+OnFlagUpdate:
+	if (getgmlevel() < 99) {
+		dispbottom "Comando disponível apenas para GMs.";
+		end;
+	}
+	
+	if (!getarg(0)) {
+		// Atualizar todas as bandeiras
+		donpcevent "FlagManager::OnUpdateAllFlags";
+		dispbottom "Todas as bandeiras foram atualizadas.";
+	} else {
+		// Atualizar bandeira específica
+		.@house_id = atoi(getarg(0));
+		.@max_houses = getvariableofnpc(.max_houses, "Corretor de Imóveis");
+		
+		if (.@house_id < 1 || .@house_id > .@max_houses) {
+			dispbottom "Casa ID inválido. Use de 1 a " + .@max_houses;
+			end;
+		}
+		
+		donpcevent "FlagManager::OnUpdateSingleFlag(" + .@house_id + ")";
+		dispbottom "Bandeira da Casa #" + .@house_id + " foi atualizada.";
+	}
+	end;
+
+OnFlagReset:
+	if (getgmlevel() < 99) {
+		dispbottom "Comando disponível apenas para GMs.";
+		end;
+	}
+	
+	donpcevent "FlagManager::OnResetAllFlags";
+	dispbottom "Todas as bandeiras foram resetadas.";
+	end;
+
+OnFlagStatus:
+	if (getgmlevel() < 99) {
+		dispbottom "Comando disponível apenas para GMs.";
+		end;
+	}
+	
+	.@max_houses = getvariableofnpc(.max_houses, "Corretor de Imóveis");
+	
+	dispbottom "=== STATUS DAS BANDEIRAS v2.5 ===";
+	
+	for (.@i = 1; .@i <= .@max_houses; .@i++) {
+		.@owner_id = getd("$house_owner_" + .@i);
+		.@expire_time = getd("$house_expire_" + .@i);
+		
+		if (.@owner_id > 0 && .@expire_time > gettimetick(2)) {
+			.@guild_name$ = getguildname(.@owner_id);
+			.@color$ = getd("$house_color_" + .@i + "$");
+			if (.@color$ == "") .@color$ = "^339966";
+			
+			dispbottom "Casa #" + .@i + ": " + .@color$ + "Clã " + .@guild_name$ + "^000000 (OCUPADA)";
+		} else {
+			dispbottom "Casa #" + .@i + ": ^00cc00DISPONÍVEL^000000";
+		}
+	}
+	end;
+}
+
+//===== TEMPLATE COMPLETO PARA CRIAR BANDEIRAS =====
+/*
+Para cada casa adicional, use este template:
+
+mapa_da_casa,x,y,4	script	Bandeira Casa #N	722,{
+	.@house_id = N; // Altere N para o número da casa
+	
+	.@owner_id = getd("$house_owner_" + .@house_id);
+	.@expire_time = getd("$house_expire_" + .@house_id);
+	
+	if (.@owner_id <= 0 || .@expire_time <= gettimetick(2)) {
+		mes "[^00cc00Bandeira Disponível^000000]";
+		mes "Esta casa está ^00cc00DISPONÍVEL^000000 para aluguel.";
+		mes "^ffcc00Casa #" + .@house_id + "^000000";
+		mes " ";
+		mes "Fale com o ^339966Corretor de Imóveis^000000 para alugar!";
+		close;
+	}
+	
+	.@guild_name$ = getguildname(.@owner_id);
+	.@color$ = getd("$house_color_" + .@house_id + "$");
+	if (.@color$ == "") .@color$ = "^339966";
+	.@guild_master$ = getguildmaster(.@owner_id);
+	.@days_left = (.@expire_time - gettimetick(2)) / 86400;
+	.@pvp_status = getd("$house_pvp_" + .@house_id);
+	
+	mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+	mes .@color$ + "--- " + .@guild_name$ + " ---^000000";
+	mes "^ffcc00Casa #" + .@house_id + "^000000";
+	mes " ";
+	mes "Guild Líder: ^00cc00" + .@guild_master$ + "^000000";
+	mes "Dias Restantes: ^ff6600" + .@days_left + "^000000";
+	mes "Status PvP: " + (.@pvp_status ? "^ff0000ATIVADO^000000" : "^00cc00DESATIVADO^000000");
+	
+	if (getcharid(2) == .@owner_id) {
+		next;
+		mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+		mes "^00cc00Bem-vindo de volta, membro do clã!^000000";
+		mes " ";
+		mes "Esta é a casa da sua guild.";
+		if (getguildmaster(.@owner_id) == strcharinfo(0)) {
+			mes "^ffcc00Você é o Guild Líder.^000000";
+		}
+	} else {
+		next;
+		mes "[" + .@color$ + "Bandeira do Clã " + .@guild_name$ + "^000000]";
+		mes "Você está visitando a casa do ^ffcc00Clã " + .@guild_name$ + "^000000.";
+		mes " ";
+		mes "^999999Respeite as regras da casa.^000000";
+	}
+	close;
+
+OnInit:
+	callsub(UpdateGuildEmblem);
+	end;
+
+OnUpdateFlag:
+	callsub(UpdateGuildEmblem);
+	end;
+
+UpdateGuildEmblem:
+	.@house_id = N; // Altere N para o número da casa
+	.@owner_id = getd("$house_owner_" + .@house_id);
+	.@expire_time = getd("$house_expire_" + .@house_id);
+	
+	if (.@owner_id > 0 && .@expire_time > gettimetick(2)) {
+		.@guild_name$ = getguildname(.@owner_id);
+		if (.@guild_name$ != "") {
+			flagemblem .@owner_id;
+			logmes "BANDEIRA v2.5 - Casa #" + .@house_id + " | Emblema atualizado para Guild: " + .@guild_name$;
+		}
+	} else {
+		flagemblem 0;
+		logmes "BANDEIRA v2.5 - Casa #" + .@house_id + " | Emblema removido (casa disponível)";
+	}
+	return;
+}
+*/
+
+// CORRETOR DE IMÓVEIS
+guildmap_01,97,56,13	duplicate(Corretor de Imóveis)	Corretor de Imóveis#Guild01	853
+guildmap_02,97,56,13	duplicate(Corretor de Imóveis)	Corretor de Imóveis#Guild02	853
+guildmap_03,97,56,13	duplicate(Corretor de Imóveis)	Corretor de Imóveis#Guild03	853
+guildmap_04,97,56,13	duplicate(Corretor de Imóveis)	Corretor de Imóveis#Guild04	853
+guildmap_05,97,56,13	duplicate(Corretor de Imóveis)	Corretor de Imóveis#Guild05	853
+guildmap_06,97,56,13	duplicate(Corretor de Imóveis)	Corretor de Imóveis#Guild06	853
+guildmap_07,97,56,13	duplicate(Corretor de Imóveis)	Corretor de Imóveis#Guild07	853
+guildmap_08,97,56,13	duplicate(Corretor de Imóveis)	Corretor de Imóveis#Guild08	853
+guildmap_09,97,56,13	duplicate(Corretor de Imóveis)	Corretor de Imóveis#Guild09	853
+guildmap_10,97,56,13	duplicate(Corretor de Imóveis)	Corretor de Imóveis#Guild010	853
+
+// GUARDIÕES DA GUILD
+guildmap_01,92,40,7	script	Guarda da Guild#01	417,{}
+guildmap_01,92,56,5	script	Guarda da Guild#02	417,{}
+guildmap_01,126,56,11	script	Guarda da Guild#03	417,{}
+guildmap_01,126,40,9	script	Guarda da Guild#04	417,{}
+
+guildmap_02,92,40,7	script	Guarda da Guild#05	417,{}
+guildmap_02,92,56,5	script	Guarda da Guild#06	417,{}
+guildmap_02,126,56,11	script	Guarda da Guild#07	417,{}
+guildmap_02,126,40,9	script	Guarda da Guild#08	417,{}
+
+guildmap_03,92,40,7	script	Guarda da Guild#09	417,{}
+guildmap_03,92,56,5	script	Guarda da Guild#010	417,{}
+guildmap_03,126,56,11	script	Guarda da Guild#011	417,{}
+guildmap_03,126,40,9	script	Guarda da Guild#012	417,{}
+
+guildmap_04,92,40,7	script	Guarda da Guild#013	417,{}
+guildmap_04,92,56,5	script	Guarda da Guild#014	417,{}
+guildmap_04,126,56,11	script	Guarda da Guild#015	417,{}
+guildmap_04,126,40,9	script	Guarda da Guild#016	417,{}
+
+guildmap_05,92,40,7	script	Guarda da Guild#017	417,{}
+guildmap_05,92,56,5	script	Guarda da Guild#018	417,{}
+guildmap_05,126,56,11	script	Guarda da Guild#019	417,{}
+guildmap_05,126,40,9	script	Guarda da Guild#020	417,{}
+
+guildmap_06,92,40,7	script	Guarda da Guild#021	417,{}
+guildmap_06,92,56,5	script	Guarda da Guild#022	417,{}
+guildmap_06,126,56,11	script	Guarda da Guild#023	417,{}
+guildmap_06,126,40,9	script	Guarda da Guild#024	417,{}
+
+guildmap_07,92,40,7	script	Guarda da Guild#025	417,{}
+guildmap_07,92,56,5	script	Guarda da Guild#026	417,{}
+guildmap_07,126,56,11	script	Guarda da Guild#027	417,{}
+guildmap_07,126,40,9	script	Guarda da Guild#028	417,{}
+
+guildmap_08,92,40,7	script	Guarda da Guild#029	417,{}
+guildmap_08,92,56,5	script	Guarda da Guild#030	417,{}
+guildmap_08,126,56,11	script	Guarda da Guild#031	417,{}
+guildmap_08,126,40,9	script	Guarda da Guild#032	417,{}
+
+guildmap_09,92,40,7	script	Guarda da Guild#033	417,{}
+guildmap_09,92,56,5	script	Guarda da Guild#034	417,{}
+guildmap_09,126,56,11	script	Guarda da Guild#035	417,{}
+guildmap_09,126,40,9	script	Guarda da Guild#036	417,{}
+
+guildmap_10,92,40,7	script	Guarda da Guild#037	417,{}
+guildmap_10,92,56,5	script	Guarda da Guild#038	417,{}
+guildmap_10,126,56,11	script	Guarda da Guild#039	417,{}
+guildmap_10,126,40,9	script	Guarda da Guild#040	417,{}
+
+// PLACA CENTRAL - NOME DA CASA (GUILD)
+guildmap_01,109,56,12	script	Casa do Clã#01	835,{}
+guildmap_02,109,56,12	script	Casa do Clã#02	835,{}
+guildmap_03,109,56,12	script	Casa do Clã#03	835,{}
+guildmap_04,109,56,12	script	Casa do Clã#04	835,{}
+guildmap_05,109,56,12	script	Casa do Clã#05	835,{}
+guildmap_06,109,56,12	script	Casa do Clã#06	835,{}
+guildmap_07,109,56,12	script	Casa do Clã#07	835,{}
+guildmap_08,109,56,12	script	Casa do Clã#08	835,{}
+guildmap_09,109,56,12	script	Casa do Clã#09	835,{}
+guildmap_10,109,56,12	script	Casa do Clã#010	835,{}
+
+// LADO ESQUERO - ÂNGULO 13
+guildmap_01,105,56,13	duplicate(Curandeira)	Curandeira#Guild01	936
+guildmap_02,105,56,13	duplicate(Curandeira)	Curandeira#Guild02	936
+guildmap_03,105,56,13	duplicate(Curandeira)	Curandeira#Guild03	936
+guildmap_04,105,56,13	duplicate(Curandeira)	Curandeira#Guild04	936
+guildmap_05,105,56,13	duplicate(Curandeira)	Curandeira#Guild05	936
+guildmap_06,105,56,13	duplicate(Curandeira)	Curandeira#Guild06	936
+guildmap_07,105,56,13	duplicate(Curandeira)	Curandeira#Guild07	936
+guildmap_08,105,56,13	duplicate(Curandeira)	Curandeira#Guild08	936
+guildmap_09,105,56,13	duplicate(Curandeira)	Curandeira#Guild09	936
+guildmap_10,105,56,13	duplicate(Curandeira)	Curandeira#Guild10	936
+
+// O PORTAL PARA ARENA ESTÁ NO SCRIPT DO PVP ARENA
+
+//guildmap_01,101,56,13	duplicate(Arena de Batalha)	Arena de Batalha#001	10593
+//guildmap_02,101,56,13	duplicate(Arena de Batalha)	Arena de Batalha#002	10593
+//guildmap_03,101,56,13	duplicate(Arena de Batalha)	Arena de Batalha#003	10593
+//guildmap_04,101,56,13	duplicate(Arena de Batalha)	Arena de Batalha#004	10593
+//guildmap_05,101,56,13	duplicate(Arena de Batalha)	Arena de Batalha#005	10593
+//guildmap_06,101,56,13	duplicate(Arena de Batalha)	Arena de Batalha#006	10593
+//guildmap_07,101,56,13	duplicate(Arena de Batalha)	Arena de Batalha#007	10593
+//guildmap_08,101,56,13	duplicate(Arena de Batalha)	Arena de Batalha#008	10593
+//guildmap_09,101,56,13	duplicate(Arena de Batalha)	Arena de Batalha#009	10593
+//guildmap_10,101,56,13	duplicate(Arena de Batalha)	Arena de Batalha#010	10593
+
+// LADO DIREITO - ÂNGULO 12
+guildmap_01,113,56,12	script	Kafra da Guild#01	894,{}
+guildmap_02,113,56,12	script	Kafra da Guild#02	894,{}
+guildmap_03,113,56,12	script	Kafra da Guild#03	894,{}
+guildmap_04,113,56,12	script	Kafra da Guild#04	894,{}
+guildmap_05,113,56,12	script	Kafra da Guild#05	894,{}
+guildmap_06,113,56,12	script	Kafra da Guild#06	894,{}
+guildmap_07,113,56,12	script	Kafra da Guild#07	894,{}
+guildmap_08,113,56,12	script	Kafra da Guild#08	894,{}
+guildmap_09,113,56,12	script	Kafra da Guild#09	894,{}
+guildmap_10,113,56,12	script	Kafra da Guild#010	894,{}
+
+guildmap_01,117,56,12	duplicate(Porteiro VIP)	Porteiro VIP#GUILD01	10529
+guildmap_02,117,56,12	duplicate(Porteiro VIP)	Porteiro VIP#GUILD02	10529
+guildmap_03,117,56,12	duplicate(Porteiro VIP)	Porteiro VIP#GUILD03	10529
+guildmap_04,117,56,12	duplicate(Porteiro VIP)	Porteiro VIP#GUILD04	10529
+guildmap_05,117,56,12	duplicate(Porteiro VIP)	Porteiro VIP#GUILD05	10529
+guildmap_06,117,56,12	duplicate(Porteiro VIP)	Porteiro VIP#GUILD06	10529
+guildmap_07,117,56,12	duplicate(Porteiro VIP)	Porteiro VIP#GUILD07	10529
+guildmap_08,117,56,12	duplicate(Porteiro VIP)	Porteiro VIP#GUILD08	10529
+guildmap_09,117,56,12	duplicate(Porteiro VIP)	Porteiro VIP#GUILD09	10529
+guildmap_10,117,56,12	duplicate(Porteiro VIP)	Porteiro VIP#GUILD10	10529
+
+// SUBSTITUA TODAS AS LINHAS DE DUPLICATE DO PROMOTOR DE EVENTOS POR ESTAS:
+
+guildmap_01,121,56,12	script	Sala de Eventos#GUILD01	503,{
+	mes "^339966[Promotor de Eventos]^000000";
+	mes "Deseja se teleportar para a ^FF0000Sala de Eventos^000000?";
+	next;
+	if (select("^3CB371[>]^000000 Ir para Sala de Eventos:^ff0000[>] Sair^000000") == 1) {
+		mes "^339966[Promotor de Eventos]^000000";
+		mes "Teleportando...";
+		close2;
+		specialeffect2 1022;
+		specialeffect2 1029;
+		specialeffect2 1034;
+		specialeffect2 1036;
+		sleep2 800;
+		warp "new_evt",159,171;
+		end;
+	}
+	close;
+}
+
+guildmap_02,121,56,12	script	Sala de Eventos#GUILD02	503,{
+	mes "^339966[Promotor de Eventos]^000000";
+	mes "Deseja se teleportar para a ^FF0000Sala de Eventos^000000?";
+	next;
+	if (select("^3CB371[>]^000000 Ir para Sala de Eventos:^ff0000[>] Sair^000000") == 1) {
+		mes "^339966[Promotor de Eventos]^000000";
+		mes "Teleportando...";
+		close2;
+		specialeffect2 1022;
+		specialeffect2 1029;
+		specialeffect2 1034;
+		specialeffect2 1036;
+		sleep2 800;
+		warp "new_evt",159,171;
+		end;
+	}
+	close;
+}
+
+guildmap_03,121,56,12	script	Sala de Eventos#GUILD03	503,{
+	mes "^339966[Promotor de Eventos]^000000";
+	mes "Deseja se teleportar para a ^FF0000Sala de Eventos^000000?";
+	next;
+	if (select("^3CB371[>]^000000 Ir para Sala de Eventos:^ff0000[>] Sair^000000") == 1) {
+		mes "^339966[Promotor de Eventos]^000000";
+		mes "Teleportando...";
+		close2;
+		specialeffect2 1022;
+		specialeffect2 1029;
+		specialeffect2 1034;
+		specialeffect2 1036;
+		sleep2 800;
+		warp "new_evt",159,171;
+		end;
+	}
+	close;
+}
+
+guildmap_04,121,56,12	script	Sala de Eventos#GUILD04	503,{
+	mes "^339966[Promotor de Eventos]^000000";
+	mes "Deseja se teleportar para a ^FF0000Sala de Eventos^000000?";
+	next;
+	if (select("^3CB371[>]^000000 Ir para Sala de Eventos:^ff0000[>] Sair^000000") == 1) {
+		mes "^339966[Promotor de Eventos]^000000";
+		mes "Teleportando...";
+		close2;
+		specialeffect2 1022;
+		specialeffect2 1029;
+		specialeffect2 1034;
+		specialeffect2 1036;
+		sleep2 800;
+		warp "new_evt",159,171;
+		end;
+	}
+	close;
+}
+
+guildmap_05,121,56,12	script	Sala de Eventos#GUILD05	503,{
+	mes "^339966[Promotor de Eventos]^000000";
+	mes "Deseja se teleportar para a ^FF0000Sala de Eventos^000000?";
+	next;
+	if (select("^3CB371[>]^000000 Ir para Sala de Eventos:^ff0000[>] Sair^000000") == 1) {
+		mes "^339966[Promotor de Eventos]^000000";
+		mes "Teleportando...";
+		close2;
+		specialeffect2 1022;
+		specialeffect2 1029;
+		specialeffect2 1034;
+		specialeffect2 1036;
+		sleep2 800;
+		warp "new_evt",159,171;
+		end;
+	}
+	close;
+}
+
+guildmap_06,121,56,12	script	Sala de Eventos#GUILD06	503,{
+	mes "^339966[Promotor de Eventos]^000000";
+	mes "Deseja se teleportar para a ^FF0000Sala de Eventos^000000?";
+	next;
+	if (select("^3CB371[>]^000000 Ir para Sala de Eventos:^ff0000[>] Sair^000000") == 1) {
+		mes "^339966[Promotor de Eventos]^000000";
+		mes "Teleportando...";
+		close2;
+		specialeffect2 1022;
+		specialeffect2 1029;
+		specialeffect2 1034;
+		specialeffect2 1036;
+		sleep2 800;
+		warp "new_evt",159,171;
+		end;
+	}
+	close;
+}
+
+guildmap_07,121,56,12	script	Sala de Eventos#GUILD07	503,{
+	mes "^339966[Promotor de Eventos]^000000";
+	mes "Deseja se teleportar para a ^FF0000Sala de Eventos^000000?";
+	next;
+	if (select("^3CB371[>]^000000 Ir para Sala de Eventos:^ff0000[>] Sair^000000") == 1) {
+		mes "^339966[Promotor de Eventos]^000000";
+		mes "Teleportando...";
+		close2;
+		specialeffect2 1022;
+		specialeffect2 1029;
+		specialeffect2 1034;
+		specialeffect2 1036;
+		sleep2 800;
+		warp "new_evt",159,171;
+		end;
+	}
+	close;
+}
+
+guildmap_08,121,56,12	script	Sala de Eventos#GUILD08	503,{
+	mes "^339966[Promotor de Eventos]^000000";
+	mes "Deseja se teleportar para a ^FF0000Sala de Eventos^000000?";
+	next;
+	if (select("^3CB371[>]^000000 Ir para Sala de Eventos:^ff0000[>] Sair^000000") == 1) {
+		mes "^339966[Promotor de Eventos]^000000";
+		mes "Teleportando...";
+		close2;
+		specialeffect2 1022;
+		specialeffect2 1029;
+		specialeffect2 1034;
+		specialeffect2 1036;
+		sleep2 800;
+		warp "new_evt",159,171;
+		end;
+	}
+	close;
+}
+
+guildmap_09,121,56,12	script	Sala de Eventos#GUILD09	503,{
+	mes "^339966[Promotor de Eventos]^000000";
+	mes "Deseja se teleportar para a ^FF0000Sala de Eventos^000000?";
+	next;
+	if (select("^3CB371[»]^000000 Ir para Sala de Eventos:^ff0000[»] Sair^000000") == 1) {
+		mes "^339966[Promotor de Eventos]^000000";
+		mes "Teleportando...";
+		close2;
+		specialeffect2 1022;
+		specialeffect2 1029;
+		specialeffect2 1034;
+		specialeffect2 1036;
+		sleep2 800;
+		warp "new_evt",159,171;
+		end;
+	}
+	close;
+}
+
+guildmap_10,121,56,12	script	Sala de Eventos#GUILD10	503,{
+	mes "^339966[Promotor de Eventos]^000000";
+	mes "Deseja se teleportar para a ^FF0000Sala de Eventos^000000?";
+	next;
+	if (select("^3CB371[>]^000000 Ir para Sala de Eventos:^ff0000[>] Sair^000000") == 1) {
+		mes "^339966[Promotor de Eventos]^000000";
+		mes "Teleportando...";
+		close2;
+		specialeffect2 1022;
+		specialeffect2 1029;
+		specialeffect2 1034;
+		specialeffect2 1036;
+		sleep2 800;
+		warp "new_evt",159,171;
+		end;
+	}
+	close;
+}
+
+// Continue este padrão para as outras 7 casas (guildmap_04 até guildmap_10)
+
+// PORTAIS
+guildmap_01,93,48,12	warp	prt0101	2,2,prontera,155,179,0
+guildmap_01,125,48,12	warp	prt0102	2,2,prontera,155,179,0
+
+guildmap_02,93,48,12	warp	prt0103	2,2,prontera,155,179,0
+guildmap_02,125,48,12	warp	prt0104	2,2,prontera,155,179,0
+
+guildmap_03,93,48,12	warp	prt0105	2,2,prontera,155,179,0
+guildmap_03,125,48,12	warp	prt0106	2,2,prontera,155,179,0
+
+guildmap_04,93,48,12	warp	prt0107	2,2,prontera,155,179,0
+guildmap_04,125,48,12	warp	prt0108	2,2,prontera,155,179,0
+
+guildmap_05,93,48,12	warp	prt0109	2,2,prontera,155,179,0
+guildmap_05,125,48,12	warp	prt0110	2,2,prontera,155,179,0
+
+guildmap_06,93,48,12	warp	prt0111	2,2,prontera,155,179,0
+guildmap_06,125,48,12	warp	prt0112	2,2,prontera,155,179,0
+
+guildmap_07,93,48,12	warp	prt0113	2,2,prontera,155,179,0
+guildmap_07,125,48,12	warp	prt0114	2,2,prontera,155,179,0
+
+guildmap_08,93,48,12	warp	prt0115	2,2,prontera,155,179,0
+guildmap_08,125,48,12	warp	prt0116	2,2,prontera,155,179,0
+
+guildmap_09,93,48,12	warp	prt0117	2,2,prontera,155,179,0
+guildmap_09,125,48,12	warp	prt0118	2,2,prontera,155,179,0
+
+guildmap_10,93,48,12	warp	prt0119	2,2,prontera,155,179,0
+guildmap_10,125,48,12	warp	prt0120	2,2,prontera,155,179,0
+
+// TESTE DE DANO
+guildmap_01,122,37,12	duplicate(Set Parameters#0)	Definir ParâmetrosGUILD#01	858
+guildmap_02,122,37,12	duplicate(Set Parameters#0)	Definir ParâmetrosGUILD#02	858
+guildmap_03,122,37,12	duplicate(Set Parameters#0)	Definir ParâmetrosGUILD#03	858
+guildmap_04,122,37,12	duplicate(Set Parameters#0)	Definir ParâmetrosGUILD#04	858
+guildmap_05,122,37,12	duplicate(Set Parameters#0)	Definir ParâmetrosGUILD#05	858
+guildmap_06,122,37,12	duplicate(Set Parameters#0)	Definir ParâmetrosGUILD#06	858
+guildmap_07,122,37,12	duplicate(Set Parameters#0)	Definir ParâmetrosGUILD#07	858
+guildmap_08,122,37,12	duplicate(Set Parameters#0)	Definir ParâmetrosGUILD#08	858
+guildmap_09,122,37,12	duplicate(Set Parameters#0)	Definir ParâmetrosGUILD#09	858
+guildmap_10,122,37,12	duplicate(Set Parameters#0)	Definir ParâmetrosGUILD#010	858
+
+// ACESSO WOE
+guildmap_01,94,39,12	duplicate(Guerra do Emperium)	Guerra do Emperium#guild01	1288
+guildmap_02,94,39,12	duplicate(Guerra do Emperium)	Guerra do Emperium#guild02	1288
+guildmap_03,94,39,12	duplicate(Guerra do Emperium)	Guerra do Emperium#guild03	1288
+guildmap_04,94,39,12	duplicate(Guerra do Emperium)	Guerra do Emperium#guild04	1288
+guildmap_05,94,39,12	duplicate(Guerra do Emperium)	Guerra do Emperium#guild05	1288
+guildmap_06,94,39,12	duplicate(Guerra do Emperium)	Guerra do Emperium#guild06	1288
+guildmap_07,94,39,12	duplicate(Guerra do Emperium)	Guerra do Emperium#guild07	1288
+guildmap_08,94,39,12	duplicate(Guerra do Emperium)	Guerra do Emperium#guild08	1288
+guildmap_09,94,39,12	duplicate(Guerra do Emperium)	Guerra do Emperium#guild09	1288
+guildmap_10,94,39,12	duplicate(Guerra do Emperium)	Guerra do Emperium#guild010	1288
+
+// ACESSO WOE - SALA VIP
+1@herbs,263,65,12	duplicate(Guerra do Emperium)	Guerra do Emperium#VIP1	1288
+
+//===== MONITORES DE GUILD DAS CASAS =====
+
+// Monitor Casa #1
+guildmap_01,109,56,12	script	#GuildMonitor1	111,{
+OnInit:
+	.house_id = 1;
+	while(1) {
+		.@owner_id = getd("$house_owner_" + .house_id);
+		.@expire_time = getd("$house_expire_" + .house_id);
+		
+		if (.@owner_id <= 0 || .@expire_time <= gettimetick(2)) {
+			showscript "[ DISPONÍVEL ]", getnpcid(0), 0;
+		} else {
+			.@guild_name$ = getguildname(.@owner_id);
+			if (.@guild_name$ != "") {
+				showscript "[ CLÃ " + .@guild_name$ + " ]", getnpcid(0), 0;
+			} else {
+				showscript "[ DISPONÍVEL ]", getnpcid(0), 0;
+			}
+		}
+		sleep 100;
+	}
+}
+
+// Monitor Casa #2
+guildmap_02,109,56,12	script	#GuildMonitor2	111,{
+OnInit:
+	.house_id = 2;
+	while(1) {
+		.@owner_id = getd("$house_owner_" + .house_id);
+		.@expire_time = getd("$house_expire_" + .house_id);
+		
+		if (.@owner_id <= 0 || .@expire_time <= gettimetick(2)) {
+			showscript "[ DISPONÍVEL ]", getnpcid(0), 0;
+		} else {
+			.@guild_name$ = getguildname(.@owner_id);
+			if (.@guild_name$ != "") {
+				showscript "[ CLÃ " + .@guild_name$ + " ]", getnpcid(0), 0;
+			} else {
+				showscript "[ DISPONÍVEL ]", getnpcid(0), 0;
+			}
+		}
+		sleep 100;
+	}
+}
+
+// Monitor Casa #3
+guildmap_03,109,56,12	script	#GuildMonitor3	111,{
+OnInit:
+	.house_id = 3;
+	while(1) {
+		.@owner_id = getd("$house_owner_" + .house_id);
+		.@expire_time = getd("$house_expire_" + .house_id);
+		
+		if (.@owner_id <= 0 || .@expire_time <= gettimetick(2)) {
+			showscript "[ DISPONÍVEL ]", getnpcid(0), 0;
+		} else {
+			.@guild_name$ = getguildname(.@owner_id);
+			if (.@guild_name$ != "") {
+				showscript "[ CLÃ " + .@guild_name$ + " ]", getnpcid(0), 0;
+			} else {
+				showscript "[ DISPONÍVEL ]", getnpcid(0), 0;
+			}
+		}
+		sleep 100;
+	}
+}
+
+// Monitor Casa #4
+guildmap_04,109,56,12	script	#GuildMonitor4	111,{
+OnInit:
+	.house_id = 4;
+	while(1) {
+		.@owner_id = getd("$house_owner_" + .house_id);
+		.@expire_time = getd("$house_expire_" + .house_id);
+		
+		if (.@owner_id <= 0 || .@expire_time <= gettimetick(2)) {
+			showscript "[ DISPONÍVEL ]", getnpcid(0), 0;
+		} else {
+			.@guild_name$ = getguildname(.@owner_id);
+			if (.@guild_name$ != "") {
+				showscript "[ CLÃ " + .@guild_name$ + " ]", getnpcid(0), 0;
+			} else {
+				showscript "[ DISPONÍVEL ]", getnpcid(0), 0;
+			}
+		}
+		sleep 100;
+	}
+}
+
+// Monitor Casa #5
+guildmap_05,109,56,12	script	#GuildMonitor5	111,{
+OnInit:
+	.house_id = 5;
+	while(1) {
+		.@owner_id = getd("$house_owner_" + .house_id);
+		.@expire_time = getd("$house_expire_" + .house_id);
+		
+		if (.@owner_id <= 0 || .@expire_time <= gettimetick(2)) {
+			showscript "[ DISPONÍVEL ]", getnpcid(0), 0;
+		} else {
+			.@guild_name$ = getguildname(.@owner_id);
+			if (.@guild_name$ != "") {
+				showscript "[ CLÃ " + .@guild_name$ + " ]", getnpcid(0), 0;
+			} else {
+				showscript "[ DISPONÍVEL ]", getnpcid(0), 0;
+			}
+		}
+		sleep 100;
+	}
+}
+
+// Monitor Casa #6
+guildmap_06,109,56,12	script	#GuildMonitor6	111,{
+OnInit:
+	.house_id = 6;
+	while(1) {
+		.@owner_id = getd("$house_owner_" + .house_id);
+		.@expire_time = getd("$house_expire_" + .house_id);
+		
+		if (.@owner_id <= 0 || .@expire_time <= gettimetick(2)) {
+			showscript "[ DISPONÍVEL ]", getnpcid(0), 0;
+		} else {
+			.@guild_name$ = getguildname(.@owner_id);
+			if (.@guild_name$ != "") {
+				showscript "[ CLÃ " + .@guild_name$ + " ]", getnpcid(0), 0;
+			} else {
+				showscript "[ DISPONÍVEL ]", getnpcid(0), 0;
+			}
+		}
+		sleep 100;
+	}
+}
+
+// Monitor Casa #7
+guildmap_07,109,56,12	script	#GuildMonitor7	111,{
+OnInit:
+	.house_id = 7;
+	while(1) {
+		.@owner_id = getd("$house_owner_" + .house_id);
+		.@expire_time = getd("$house_expire_" + .house_id);
+		
+		if (.@owner_id <= 0 || .@expire_time <= gettimetick(2)) {
+			showscript "[ DISPONÍVEL ]", getnpcid(0), 0;
+		} else {
+			.@guild_name$ = getguildname(.@owner_id);
+			if (.@guild_name$ != "") {
+				showscript "[ CLÃ " + .@guild_name$ + " ]", getnpcid(0), 0;
+			} else {
+				showscript "[ DISPONÍVEL ]", getnpcid(0), 0;
+			}
+		}
+		sleep 100;
+	}
+}
+
+// Monitor Casa #8
+guildmap_08,109,56,12	script	#GuildMonitor8	111,{
+OnInit:
+	.house_id = 8;
+	while(1) {
+		.@owner_id = getd("$house_owner_" + .house_id);
+		.@expire_time = getd("$house_expire_" + .house_id);
+		
+		if (.@owner_id <= 0 || .@expire_time <= gettimetick(2)) {
+			showscript "[ DISPONÍVEL ]", getnpcid(0), 0;
+		} else {
+			.@guild_name$ = getguildname(.@owner_id);
+			if (.@guild_name$ != "") {
+				showscript "[ CLÃ " + .@guild_name$ + " ]", getnpcid(0), 0;
+			} else {
+				showscript "[ DISPONÍVEL ]", getnpcid(0), 0;
+			}
+		}
+		sleep 100;
+	}
+}
+
+// Monitor Casa #9
+guildmap_09,109,56,12	script	#GuildMonitor9	111,{
+OnInit:
+	.house_id = 9;
+	while(1) {
+		.@owner_id = getd("$house_owner_" + .house_id);
+		.@expire_time = getd("$house_expire_" + .house_id);
+		
+		if (.@owner_id <= 0 || .@expire_time <= gettimetick(2)) {
+			showscript "[ DISPONÍVEL ]", getnpcid(0), 0;
+		} else {
+			.@guild_name$ = getguildname(.@owner_id);
+			if (.@guild_name$ != "") {
+				showscript "[ CLÃ " + .@guild_name$ + " ]", getnpcid(0), 0;
+			} else {
+				showscript "[ DISPONÍVEL ]", getnpcid(0), 0;
+			}
+		}
+		sleep 100;
+	}
+}
+
+// Monitor Casa #10
+guildmap_10,109,56,12	script	#GuildMonitor10	111,{
+OnInit:
+	.house_id = 10;
+	while(1) {
+		.@owner_id = getd("$house_owner_" + .house_id);
+		.@expire_time = getd("$house_expire_" + .house_id);
+		
+		if (.@owner_id <= 0 || .@expire_time <= gettimetick(2)) {
+			showscript "[ DISPONÍVEL ]", getnpcid(0), 0;
+		} else {
+			.@guild_name$ = getguildname(.@owner_id);
+			if (.@guild_name$ != "") {
+				showscript "[ CLÃ " + .@guild_name$ + " ]", getnpcid(0), 0;
+			} else {
+				showscript "[ DISPONÍVEL ]", getnpcid(0), 0;
+			}
+		}
+		sleep 100;
+	}
+}
+
+//======================================================================================
+//                                    MAPFLAGS
+//======================================================================================
+
+guildmap_01	mapflag	nosave	SavePoint
+guildmap_01	mapflag	noteleport
+guildmap_01	mapflag	nomemo
+guildmap_01	mapflag	nowarpto
+guildmap_01	mapflag	nowarp
+guildmap_01	mapflag	noloot
+guildmap_01	mapflag	pvp_noguild
+
+guildmap_02	mapflag	nosave	SavePoint
+guildmap_02	mapflag	noteleport
+guildmap_02	mapflag	nomemo
+guildmap_02	mapflag	nowarpto
+guildmap_02	mapflag	nowarp
+guildmap_02	mapflag	noloot
+guildmap_02	mapflag	pvp_noguild
+
+guildmap_03	mapflag	nosave	SavePoint
+guildmap_03	mapflag	noteleport
+guildmap_03	mapflag	nomemo
+guildmap_03	mapflag	nowarpto
+guildmap_03	mapflag	nowarp
+guildmap_03	mapflag	noloot
+guildmap_03	mapflag	pvp_noguild
+
+guildmap_04	mapflag	nosave	SavePoint
+guildmap_04	mapflag	noteleport
+guildmap_04	mapflag	nomemo
+guildmap_04	mapflag	nowarpto
+guildmap_04	mapflag	nowarp
+guildmap_04	mapflag	noloot
+guildmap_04	mapflag	pvp_noguild
+
+guildmap_05	mapflag	nosave	SavePoint
+guildmap_05	mapflag	noteleport
+guildmap_05	mapflag	nomemo
+guildmap_05	mapflag	nowarpto
+guildmap_05	mapflag	nowarp
+guildmap_05	mapflag	noloot
+guildmap_05	mapflag	pvp_noguild
+
+guildmap_06	mapflag	nosave	SavePoint
+guildmap_06	mapflag	noteleport
+guildmap_06	mapflag	nomemo
+guildmap_06	mapflag	nowarpto
+guildmap_06	mapflag	nowarp
+guildmap_06	mapflag	noloot
+guildmap_06	mapflag	pvp_noguild
+
+guildmap_07	mapflag	nosave	SavePoint
+guildmap_07	mapflag	noteleport
+guildmap_07	mapflag	nomemo
+guildmap_07	mapflag	nowarpto
+guildmap_07	mapflag	nowarp
+guildmap_07	mapflag	noloot
+guildmap_07	mapflag	pvp_noguild
+
+guildmap_08	mapflag	nosave	SavePoint
+guildmap_08	mapflag	noteleport
+guildmap_08	mapflag	nomemo
+guildmap_08	mapflag	nowarpto
+guildmap_08	mapflag	nowarp
+guildmap_08	mapflag	noloot
+guildmap_08	mapflag	pvp_noguild
+
+guildmap_09	mapflag	nosave	SavePoint
+guildmap_09	mapflag	noteleport
+guildmap_09	mapflag	nomemo
+guildmap_09	mapflag	nowarpto
+guildmap_09	mapflag	nowarp
+guildmap_09	mapflag	noloot
+guildmap_09	mapflag	pvp_noguild
+
+guildmap_10	mapflag	nosave	SavePoint
+guildmap_10	mapflag	noteleport
+guildmap_10	mapflag	nomemo
+guildmap_10	mapflag	nowarpto
+guildmap_10	mapflag	nowarp
+guildmap_10	mapflag	noloot
+guildmap_10	mapflag	pvp_noguild

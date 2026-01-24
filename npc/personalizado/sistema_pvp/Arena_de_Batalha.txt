@@ -1,0 +1,893 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//= Arena PvP Normal, Arena 1x1 e GVG
+//= Ranking Top 10 PvP, 1x1 e GvG
+//= Reset Automático todo dia 1 ou Manualmente
+//= Entrega premiação por RoDEX
+//= Os jogadores ganham 1 ponto por kill
+//= Possui loja para trocar pontos por itens
+//= Narrador PVP (Sons ao matar)
+//= Tabelas SQL com registro total
+//= Mostra a quantidade de jogadores nas arenas
+//= Mapa customizado EXCLUSIVO
+//= Remove Buffs selecionados pelo administrador
+//= Adicionado Delay de pontuação entre kills
+//= Adicionado restrição de kill consecutivo do mesmo jogador
+//= Adicionado horário para contabilizar os pontos de kill
+//= Auto-registro na Arena 1x1
+//==================== Importante: =============================
+//= Observação: NÃO ALTERE O NOME NO NPC
+//= Observação: Altere manualmente o mapa do Arena_Porteiro.txt
+//==================== Créditos: ===============================
+//= Bruxão BR - Modificado para Arena 1x1
+//================== Versao do NPC: ============================
+//= 2.2
+//==================== Loja PVP: ===============================
+
+//-	pointshop	pontospvp	-1,#PONTOS_PVP,31803:200,31804:200,31885:200
+
+//==============================================================
+
+//prontera,188,198,9	script	Guauda da Arena	417,{}
+prontera,163,184,7	script	Arena de Batalha	801,{	
+	callsub(NPC_PVP_SUB);
+	close;
+
+//================== Configurações: =============================
+
+OnInit:
+
+//=================== Nome do NPC: ==============================
+
+	set .np$,"^339966["+strnpcinfo(1)+"]^000000";
+	set .np2$,"["+strnpcinfo(1)+"]";
+
+//==============================================================
+// Configuração de Level Minimo
+	set .lvlenter, 99;
+	
+//==============================================================
+// Configuração de Horário de Kill (Formato 24h)
+// Obs: Só vai contar kill nessa faixa de horário
+	setarray .horarioStart, 07;
+	setarray .horarioEnd,   02;
+
+//==============================================================
+// Configuração de Delay para Contabilizar Kill (Em Segundos)
+// Obs: O jogador só ganha pontos após este delay. 0 = desabilita
+	set .delaykill, 25;
+	
+//==============================================================
+// Configurações de MAPA
+	set .servername$, "YoYoRO";	// Nome do Servidor
+	set .pvpnormal$, "arena_pvp";	// PvP Normal
+	set .arena1x1$, "arena_x1-1";	// Arena 1x1
+	set .gvgnormal$, "arena_gvg";	// GvG Normal
+
+//====================================================================================
+//                            Remoção de Buffs
+//============================= Instruções: ==========================================
+// Para permitir entrar com buffs nas arenas defina: set .removebuff = 0
+// Para adicionar novos efeitos a serem removidos, adicione seu nome.
+// Documentação: https://github.com/rathena/rathena/blob/master/doc/status_change.txt
+	set .removebuff,1;	// 0 = Desativado | 1 = Ativado
+	setarray .endbuff[0],	//SC_KYRIE,		// Kyrie Eleison
+							//SC_ASSUMPTIO,	// Assumptio
+							SC_SPIRIT,		// Remove Espíritos do Soul Linker
+							SC_SAVAGE_STEAK,			// Consumível de STR +20
+							SC_DROCERA_HERB_STEAMED,	// Consumível de AGI +20
+							SC_MINOR_BBQ,				// Consumível de VIT +20
+							SC_COCKTAIL_WARG_BLOOD,		// Consumível de INT +20
+							SC_SIROMA_ICE_TEA,			// Consumível de DEX +20
+							SC_PUTTI_TAILS_NOODLES,		// Consumível de STR +20
+							SC_ALL;		// Remove Todos os Buffs
+
+//==============================================================
+// Remover FP de classes que não Alquimistas e Evoluções?
+// 1 = Sim | 0 = Não
+	set .removefp, 1;
+							
+//==============================================================
+// Configurações de Premiação
+
+// Premiação PVP
+	setarray .mailitem_pvp[0],  501, 502, 503;	// Item
+	setarray .mailamount_pvp[0],  5,   1,   1;	// Quantidade
+
+// Premiação 1x1
+	setarray .mailitem_1x1[0],  507, 508, 509;	// Item
+	setarray .mailamount_1x1[0],  3,   2,   1;	// Quantidade
+	
+// Premiação GVG
+	setarray .mailitem_gvg[0],  504, 505, 506;	// Item
+	setarray .mailamount_gvg[0],  5,   1,   1;	// Quantidade
+	
+//==============================================================
+//== Comando
+
+	bindatcmd("gopvp",strnpcinfo(3)+"::OnPvP",0,99);
+	
+//==============================================================
+//== Mapflag
+
+		setmapflag .pvpnormal$,MF_NOBRANCH;
+		setmapflag .pvpnormal$,MF_NOMEMO;
+		setmapflag .pvpnormal$,MF_NORETURN;
+		setmapflag .pvpnormal$,MF_NOTELEPORT;
+		setmapflag .pvpnormal$,MF_NOWARP;
+		setmapflag .pvpnormal$,MF_NOWARPTO;
+		setmapflag .pvpnormal$,MF_PVP_NOGUILD;
+		setmapflag .pvpnormal$,MF_NOSAVE;
+		setmapflag .pvpnormal$,MF_PVP;
+
+		setmapflag .arena1x1$,MF_NOBRANCH;
+		setmapflag .arena1x1$,MF_NOMEMO;
+		setmapflag .arena1x1$,MF_NORETURN;
+		setmapflag .arena1x1$,MF_NOTELEPORT;
+		setmapflag .arena1x1$,MF_NOWARP;
+		setmapflag .arena1x1$,MF_NOWARPTO;
+		setmapflag .arena1x1$,MF_PVP_NOGUILD;
+		setmapflag .arena1x1$,MF_NOSAVE;
+		setmapflag .arena1x1$,MF_PVP;
+	
+		setmapflag .gvgnormal$,MF_NOBRANCH;
+		setmapflag .gvgnormal$,MF_NOMEMO;
+		setmapflag .gvgnormal$,MF_NORETURN;
+		setmapflag .gvgnormal$,MF_NOTELEPORT;
+		setmapflag .gvgnormal$,MF_NOWARP;
+		setmapflag .gvgnormal$,MF_NOWARPTO;
+		setmapflag .gvgnormal$,MF_PVP_NOGUILD;
+		setmapflag .gvgnormal$,MF_NOSAVE;
+		setmapflag .gvgnormal$,MF_GVG;
+
+//==============================================================
+//== Não Mexer
+//==============================================================
+	set .GMAccess,99;	// Acesso ADM
+	set .maxmailitem_pvp, getarraysize(.mailitem_pvp);
+	set .maxmailitem_1x1, getarraysize(.mailitem_1x1);
+	set .maxmailitem_gvg, getarraysize(.mailitem_gvg);
+	set .maxhorariostart, getarraysize(.horarioStart);
+	set .maxhorarioend, getarraysize(.horarioEnd);
+	
+//==============================================================
+// Safe Zone Arena PvP Normal
+//==============================================================
+
+	setcell .pvpnormal$,44,80,55,87,cell_basilica,1;
+	setcell .pvpnormal$,44,12,55,19,cell_basilica,1;
+	setcell .pvpnormal$,12,44,19,55,cell_basilica,1;
+	setcell .pvpnormal$,80,44,87,55,cell_basilica,1;
+
+//==============================================================
+// Configuração Arena 1x1
+//==============================================================
+
+	// Safe Zone - Área fora da arena central
+	setcell .arena1x1$,3,3,10,44,cell_basilica,1;    // Esquerda
+	setcell .arena1x1$,37,3,44,44,cell_basilica,1;   // Direita
+	setcell .arena1x1$,10,3,37,10,cell_basilica,1;   // Baixo
+	setcell .arena1x1$,10,37,37,44,cell_basilica,1;  // Cima
+	
+	// Barreira invisível ao redor da arena central
+	setcell .arena1x1$,10,10,37,10,cell_walkable,0;  // Baixo
+	setcell .arena1x1$,10,37,37,37,cell_walkable,0;  // Cima
+	setcell .arena1x1$,10,10,10,37,cell_walkable,0;  // Esquerda
+	setcell .arena1x1$,37,10,37,37,cell_walkable,0;  // Direita
+	
+//==============================================================
+// ADICIONE AQUI - Inicializar variáveis globais Arena 1x1
+//==============================================================
+	
+// Garantir que variáveis 1x1 estejam limpas ao iniciar servidor
+	$arena1x1_player1$ = "";
+	$arena1x1_player2$ = "";
+	$arena1x1_player1_id = 0;
+	$arena1x1_player2_id = 0;
+	
+//==============================================================
+// NOME NO NPC
+//==============================================================
+	
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 51;	
+	setunittitle getnpcid(0), "[Portão da Morte]";
+	
+	while(1) {
+		showscript "[ Arena de Batalha ]", getnpcid(0);
+		sleep 100;
+	}
+	
+	end;
+
+// Fim das Configurações
+//==============================================================
+// Script
+
+OnPvP:
+	if(!playerattached()) {
+		dispbottom "Erro: Comando @gopvp deve ser usado por um jogador conectado.";
+		end;
+	}
+	
+	getmapxy(.@maps$, .@x, .@y, BL_PC);
+	if(getmapflag(.@maps$, MF_PVP) || getmapflag(.@maps$, MF_GVG) || getmapflag(.@maps$, MF_BATTLEGROUND)) {
+		dispbottom .np2$+" : O comando @gopvp não pode ser usado neste mapa.";
+		end;
+	}
+	callsub(NPC_PVP_SUB);
+	end;
+
+NPC_PVP_SUB:
+	mes .np$;
+	mes (gettime(3)>= 6&&gettime(3)<= 12?"Bom dia":(gettime(3)>=13&&gettime(3)<=18?"Boa tarde":"Boa noite"))+", ^FFA500"+strcharinfo(0)+"^000000! Você possui: ^FF0000"+#PONTOS_PVP+"^000000 Pontos PvP, o que deseja fazer?";
+	
+	query_sql "SELECT `char_name` FROM `ranking_pvp` ORDER BY `Total` DESC, `Matou` DESC LIMIT 1",@nome$;
+	query_sql "SELECT `char_name` FROM `ranking_1x1` ORDER BY `Total` DESC, `Matou` DESC LIMIT 1",@nome1x1$;
+	query_sql "SELECT `guild_name` FROM `ranking_gvg` ORDER BY `Matou` DESC LIMIT 1",@nomeg$;
+	
+	mes " ";
+	mes "- Líder PvP: ^ff0000["+@nome$+"]^000000";
+	mes "- Líder 1x1: ^ff0000["+@nome1x1$+"]^000000";
+	mes "- Líder GvG: ^FF0000["+@nomeg$+"]^000000";
+	switch(select("^339966[»]^000000 Entrar na Arena:^339966[»]^000000 Ver Ranking:^339966[»]^000000 Loja PvP:^ff0000[»] Sair^000000:"+((getgmlevel()<.GMAccess || !getgmlevel())?"":"^ff0000[»] Resetar Ranking^000000")+"")) {
+		
+//==============================================================
+//== Arenas
+//==============================================================
+
+	case 1: 
+		next;
+		mes .np$;
+		mes "Qual arena você deseja entrar?";
+		mes " ";
+		callsub(check_lvl);
+		mes "^ff0000Ao ingressar nas Arenas de Batalha seus buffs serão removidos.^000000";
+		next;
+
+		switch(select(
+			"^339966[»]^000000 Arena PvP ^ff0000["+getmapusers(.pvpnormal$)+"]^000000",
+			"^339966[»]^000000 Arena 1x1 ^ff0000["+getmapusers(.arena1x1$)+"]^000000",
+			"^339966[»]^000000 Arena GvG ^ff0000["+getmapusers(.gvgnormal$)+"]^000000",
+			"^FF0000[»] Sair^000000"
+		)){
+
+//==============================================================
+//== Arena PvP com escolha de spots
+
+		case 1:
+			next;
+			mes .np$;
+			mes "Escolha o Spot de entrada na ^FF0000Arena PvP^000000:";
+			next;
+
+			switch(select(
+				"^339966[»]^000000 Spot 1",
+				"^339966[»]^000000 Spot 2",
+				"^339966[»]^000000 Spot 3",
+				"^339966[»]^000000 Spot 4",
+				"^FF0000[»] Sair^000000"
+			)) {
+				case 1:
+					mes "^339966[Spot 1]^000000";
+					mes "Você escolheu o Spot 1. Local: ^FFA500Norte^000000.";
+					announce .np2$ +" : O jogador "+strcharinfo(0)+" entrou na Arena PvP!",bc_all,0xFF0000;
+					if(.removebuff){
+						for(.@i=0;.@i<getarraysize(.endbuff);.@i++)
+							sc_end .endbuff[.@i];
+					}
+					if (.removefp) callsub(check_fp);
+					warp .pvpnormal$, 50, 87;
+					close;
+				case 2:
+					mes "^339966[Spot 2]^000000";
+					mes "Você escolheu o Spot 2. Local: ^FFA500Leste^000000.";
+					announce .np2$ +" : O jogador "+strcharinfo(0)+" entrou na Arena PvP!",bc_all,0xFF0000;
+					if(.removebuff){
+						for(.@i=0;.@i<getarraysize(.endbuff);.@i++)
+							sc_end .endbuff[.@i];
+					}
+					if (.removefp) callsub(check_fp);
+					warp .pvpnormal$, 87, 50;
+					close;
+				case 3:
+					mes "^339966[Spot 3]^000000";
+					mes "Você escolheu o Spot 3. Local: ^FFA500Sul^000000.";
+					announce .np2$ +" : O jogador "+strcharinfo(0)+" entrou na Arena PvP!",bc_all,0xFF0000;
+					if(.removebuff){
+						for(.@i=0;.@i<getarraysize(.endbuff);.@i++)
+							sc_end .endbuff[.@i];
+					}
+					if (.removefp) callsub(check_fp);
+					warp .pvpnormal$, 50, 12;
+					close;
+				case 4:
+					mes "^339966[Spot 4]^000000";
+					mes "Você escolheu o Spot 4. Local: ^FFA500Oeste^000000.";
+					announce .np2$ +" : O jogador "+strcharinfo(0)+" entrou na Arena PvP!",bc_all,0xFF0000;
+					if(.removebuff){
+						for(.@i=0;.@i<getarraysize(.endbuff);.@i++)
+							sc_end .endbuff[.@i];
+					}
+					if (.removefp) callsub(check_fp);
+					warp .pvpnormal$, 12, 50;
+					close;
+				case 5:
+					mes "^339966[Arena de Batalha]^000000";
+					mes "Operação cancelada.";
+					close;
+			}
+
+//==============================================================
+//== Arena 1x1 - SISTEMA AUTO-REGISTRO
+
+	// SUBSTITUA a seção Arena 1x1 no Arena_de_Batalha.txt (caso 2):
+
+		case 2:
+			next;
+			mes .np$;
+			mes "Você escolheu a Arena 1x1.";
+			mes " ";
+			
+			// Verificar status da arena
+			if($arena1x1_player1$ == "" && $arena1x1_player2$ == "") {
+				mes "^00FF00Arena disponível^000000 - Você será registrado automaticamente!";
+				next;
+				
+				// Registrar como jogador 1
+				$arena1x1_player1$ = strcharinfo(0);
+				$arena1x1_player1_id = getcharid(0);
+				
+				mes .np$;
+				mes "Você foi registrado na Arena 1x1!";
+				mes "Aguardando outro jogador...";
+				
+				announce "[Arena de Batalha]: O jogador " + strcharinfo(0) + " entrou na Arena 1x1!", bc_all, 0xFF0000;
+				
+				if(.removebuff){
+					for(.@i=0;.@i<getarraysize(.endbuff);.@i++)
+						sc_end .endbuff[.@i];
+				}
+				if (.removefp) callsub(check_fp);
+				
+				close2;
+				warp .arena1x1$, 24, 24;  // Arena central
+				end;
+				
+			} else if($arena1x1_player1$ != "" && $arena1x1_player2$ == "") {
+				mes "^3399661 jogador já registrado^000000 - Você será o segundo jogador!";
+				next;
+				
+				// Verificar se não é o mesmo jogador
+				if($arena1x1_player1$ == strcharinfo(0)) {
+					mes .np$;
+					mes "^ff0000Você já está registrado nesta arena!^000000";
+					close;
+				}
+				
+				// Registrar como jogador 2
+				$arena1x1_player2$ = strcharinfo(0);
+				$arena1x1_player2_id = getcharid(0);
+				
+				mes .np$;
+				mes "Duelo iniciado!";
+				mes "^ff0000" + $arena1x1_player1$ + " VS " + $arena1x1_player2$ + "^000000";
+				
+				announce "[Arena de Batalha]: O duelo entre " + $arena1x1_player1$ + " VS " + $arena1x1_player2$ + " começou!", bc_all, 0xFF0000;
+				
+				if(.removebuff){
+					for(.@i=0;.@i<getarraysize(.endbuff);.@i++)
+						sc_end .endbuff[.@i];
+				}
+				if (.removefp) callsub(check_fp);
+				
+				close2;
+				warp .arena1x1$, 24, 24;  // Arena central
+				end;
+				
+			} else {
+				// Arena ocupada - ir para zona de espera
+				mes "^FF0000Arena ocupada^000000 (" + $arena1x1_player1$ + " VS " + $arena1x1_player2$ + ")";
+				mes "Você será enviado para a zona de espera.";
+				next;
+				
+				mes .np$;
+				mes "Aguarde na zona segura até que a arena seja liberada.";
+				
+				announce "[Arena de Batalha]: O jogador " + strcharinfo(0) + " está aguardando na Arena 1x1!", bc_all, 0xFF0000;
+				
+				if(.removebuff){
+					for(.@i=0;.@i<getarraysize(.endbuff);.@i++)
+						sc_end .endbuff[.@i];
+				}
+				if (.removefp) callsub(check_fp);
+				
+				close2;
+				warp .arena1x1$, 23, 6;  // Zona de espera
+				end;
+			}
+
+//==============================================================
+//== Arena GvG com escolha de spots
+
+		case 3:
+			next;
+			if(!getcharid(2)) {
+				mes .np$;
+				mes "Desculpe, mas você precisa estar em uma guild para entrar na Arena GvG.";
+				close;
+			}
+			mes .np$;
+			mes "Você pertence atualmente à guild: ^00FF00\"" + getguildname(getcharid(2)) + "\"^000000.";
+			mes "Escolha o spot de entrada na ^FF0000Arena GvG^000000:";
+			next;
+			switch(select(
+				"^339966[»]^000000 Spot 1",
+				"^339966[»]^000000 Spot 2",
+				"^339966[»]^000000 Spot 3",
+				"^339966[»]^000000 Spot 4",
+				"^FF0000[»] Sair^000000"
+			)) {
+				case 1:
+					announce .np2$+" : "+strcharinfo(0)+" ["+getguildname(getcharid(2))+"] entrou na Arena GvG!",bc_all,0xFF0000;
+					if(.removebuff) {
+						for (.@i = 0; .@i < getarraysize(.endbuff); .@i++)
+							sc_end .endbuff[.@i];
+					}
+					if (.removefp) callsub(check_fp);
+					warp .gvgnormal$,49,91;
+					close;
+				case 2:
+					announce .np2$+" : "+strcharinfo(0)+" ["+getguildname(getcharid(2))+"] entrou na Arena GvG!",bc_all,0xFF0000;
+					if(.removebuff) {
+						for (.@i = 0; .@i < getarraysize(.endbuff); .@i++)
+							sc_end .endbuff[.@i];
+					}
+					if (.removefp) callsub(check_fp);
+					warp .gvgnormal$,91,49;
+					close;
+				case 3:
+					announce .np2$+" : "+strcharinfo(0)+" ["+getguildname(getcharid(2))+"] entrou na Arena GvG!",bc_all,0xFF0000;
+					if(.removebuff) {
+						for (.@i = 0; .@i < getarraysize(.endbuff); .@i++)
+							sc_end .endbuff[.@i];
+					}
+					if (.removefp) callsub(check_fp);
+					warp .gvgnormal$,49,10;
+					close;
+				case 4:
+					announce .np2$+" : "+strcharinfo(0)+" ["+getguildname(getcharid(2))+"] entrou na Arena GvG!",bc_all,0xFF0000;
+					if(.removebuff) {
+						for (.@i = 0; .@i < getarraysize(.endbuff); .@i++)
+							sc_end .endbuff[.@i];
+					}
+					if (.removefp) callsub(check_fp);
+					warp .gvgnormal$,10,49;
+					close;
+				case 5:
+					mes .np$;
+					mes "Tudo bem, volte quando desejar.";
+					close;
+			}
+
+//==============================================================
+//== Sair
+
+		case 4:
+			mes .np$;
+			mes "Tudo bem! Volte quando quiser participar das Arenas.";
+			close;
+		}
+		
+//==============================================================
+//= Ranking
+		
+	case 2:	
+		next;
+		mes .np$;
+		mes "Selecione qual ranking deseja visualizar.";
+		switch(select("^339966[»]^000000 Ranking PvP:^339966[»]^000000 Ranking 1x1:^339966[»]^000000 Ranking GvG:^339966[»]^000000 Ranking Pessoal:^339966[»]^000000 Informações:^ff0000[»] Sair^000000")){
+		
+			// ========== RANKING PVP ==========
+		
+			case 1:
+			next;
+			query_sql "SELECT `char_name`, `Matou`, `Morreu`, `Total` FROM `ranking_pvp` ORDER BY `Total` DESC, `Matou` DESC, `Morreu` ASC, `char_name` ASC LIMIT 10",.@nome$,.@matou,.@morreu,.@pontos;
+			mes .np$;
+			mes "Posição - ^228B22Matou^000000 - ^EE0000Morreu^000000 - ^00B2EEPontos^000000";
+			for (set .@i, 0; .@i < 10; set .@i, .@i +1)
+				mes (.@i+1)+"º^000000 - ^FF8C00"+.@nome$[.@i]+"^000000 - ^228B22"+.@matou[.@i]+"^000000 - ^EE0000"+.@morreu[.@i]+"^000000 - ^00B2EE"+.@pontos[.@i]+"^000000";
+			close;
+					
+			// ========== RANKING 1X1 ==========
+		
+			case 2:
+			next;
+			query_sql "SELECT `char_name`, `Matou`, `Morreu`, `Total` FROM `ranking_1x1` ORDER BY `Total` DESC, `Matou` DESC, `Morreu` ASC, `char_name` ASC LIMIT 10",.@nome$,.@matou,.@morreu,.@pontos;
+			mes .np$;
+			mes "Posição - ^228B22Matou^000000 - ^EE0000Morreu^000000 - ^00B2EEPontos^000000";
+			for (set .@i, 0; .@i < 10; set .@i, .@i +1)
+				mes (.@i+1)+"º^000000 - ^FF8C00"+.@nome$[.@i]+"^000000 - ^228B22"+.@matou[.@i]+"^000000 - ^EE0000"+.@morreu[.@i]+"^000000 - ^00B2EE"+.@pontos[.@i]+"^000000";
+			close;
+					
+			// ========== RANKING GVG ==========
+		
+			case 3:
+			next;
+			query_sql "SELECT `guild_name`, `Matou`, `Morreu`, `Total`  FROM `ranking_gvg` ORDER BY `Matou` DESC LIMIT 10",.@nomeg$,.@matoug,.@morreug,.@pontosg;
+			mes .np$;
+			mes "Posição - Matou - Morreu - Pontos";
+			for (set .@i, 0; .@i < 10; set .@i, .@i +1)
+				mes (.@i+1)+"º^000000 - ^FF8C00"+.@nomeg$[.@i]+"^000000 - ^228B22"+.@matoug[.@i]+"^000000 - ^EE0000"+.@morreug[.@i]+"^000000 - ^00B2EE"+.@pontosg[.@i]+"^000000";
+			close;
+					
+			// ========== RANKING PESSOAL ==========
+		
+			case 4:
+			next;
+			mes .np$;
+			query_sql "SELECT `char_id`,`char_name`, `Matou`, `Morreu`, `Total` FROM `ranking_pvp` ORDER BY `Total` DESC, `Matou` DESC",.@char_id,.@nome$,.@matou,.@morreu,.@pontos;
+			.@num = inarray(.@char_id,getcharid(0));
+			if(.@num < 0)
+				mes "Você ainda não esta rankeado.";
+			else{
+				mes "Posição - ^228B22Matou^000000 - ^EE0000Morreu^000000 - ^00B2EEPontos^000000";
+				mes (.@num+1)+"º^000000 - ^FF8C00"+.@nome$[.@num]+"^000000 - ^228B22"+.@matou[.@num]+"^000000 - ^EE0000"+.@morreu[.@num]+"^000000 - ^00B2EE"+.@pontos[.@num]+"^000000";
+			}
+			close;
+				
+			// ========== INFORMAÇÕES ==========
+		
+			case 5:
+				next;
+				
+				mes .np$;
+				mes "^00B2EE== Sistema de Pontos ==^000000";
+				mes "• Cada eliminação no PvP rende ^228B221 Ponto PvP^000000.";
+				mes "• Cada eliminação no 1x1 rende ^228B221 Ponto PvP^000000.";
+				mes "• Os pontos podem ser trocados por itens na loja.";
+				mes "• Apenas eliminações em arenas PvP e 1x1 geram pontos.";
+				next;
+				
+				mes .np$;
+				mes "^00B2EE== Premiações ==^000000";
+				mes "^FFD700PvP:^000000 Os 3 primeiros do ranking recebem premiação.";
+				mes "^FFD7001x1:^000000 Os 3 primeiros do ranking recebem premiação.";
+				mes "^FFD700GvG:^000000 Apenas o 1º lugar (líder da guild) é premiado.";
+				mes "^ff0000Importante:^000000 Rankings são resetados mensalmente.";
+				next;
+				
+				mes .np$;
+				mes "Selecione de qual Ranking você deseja ver as premiações:";
+				switch(select("^339966[»]^000000 Premiação PvP:^339966[»]^000000 Premiação 1x1:^339966[»]^000000 Premiação GvG:^ff0000[»] Voltar^000000")) {
+			
+					case 1:
+						next;
+						mes .np$;
+						mes "^00B2EE== Premiação PvP ==^000000";
+						if(getarraysize(.mailitem_pvp) == 0) {
+							mes "^ff0000Nenhuma premiação configurada.^000000";
+						} else {
+							for(.@i = 0; .@i < getarraysize(.mailitem_pvp); .@i++) {
+								mes "^228B22• " + .mailamount_pvp[.@i] + "x^000000 <ITEM>" + getitemname(.mailitem_pvp[.@i]) + "<INFO>" + .mailitem_pvp[.@i] + "</INFO></ITEM>";
+							}
+						}
+						close;
+
+					case 2:
+						next;
+						mes .np$;
+						mes "^00B2EE== Premiação 1x1 ==^000000";
+						if(getarraysize(.mailitem_1x1) == 0) {
+							mes "^ff0000Nenhuma premiação configurada.^000000";
+						} else {
+							for(.@i = 0; .@i < getarraysize(.mailitem_1x1); .@i++) {
+								mes "^228B22• " + .mailamount_1x1[.@i] + "x^000000 <ITEM>" + getitemname(.mailitem_1x1[.@i]) + "<INFO>" + .mailitem_1x1[.@i] + "</INFO></ITEM>";
+							}
+						}
+						close;
+			
+					case 3:
+						next;
+						mes .np$;
+						mes "^00B2EE== Premiação GvG ==^000000";
+						if(getarraysize(.mailitem_gvg) == 0) {
+							mes "^ff0000Nenhuma premiação configurada.^000000";
+						} else {
+							for(.@i = 0; .@i < getarraysize(.mailitem_gvg); .@i++) {
+								mes "^228B22• " + .mailamount_gvg[.@i] + "x^000000 <ITEM>" + getitemname(.mailitem_gvg[.@i]) + "<INFO>" + .mailitem_gvg[.@i] + "</INFO></ITEM>";
+							}
+						}
+						close;
+						
+					case 4:
+						callsub(NPC_PVP_SUB);
+						return;
+				}
+						
+			// ========== SAIR ==========
+		
+			case 6:
+				next;
+				mes .np$;
+				mes "Ok, volte quando precisar dos meus serviços.";
+				close;
+		}
+		
+//==============================================================
+// Loja PvP
+		
+	case 3:
+		close2;
+		callfunc "lojapvp";
+		end;
+		
+//=================================================================
+//== Sair
+		
+	case 4: 
+		next;
+		mes .np$;
+		mes "Ok, volte quando precisar dos meus serviços.";
+		close;
+		
+//=================================================================
+//== Resetar Ranking
+		
+	case 5: 
+		next;
+		mes .np$;
+		mes "Olá ^FFA500"+strcharinfo(0)+"^000000. Qual ranking você deseja resetar?";
+		switch(select("^339966[»]^000000 Ranking PvP:^339966[»]^000000 Ranking 1x1:^339966[»]^000000 Ranking GvG:^ff0000[»] Sair^000000")) {
+			
+//=================================================================
+//== Resetar Ranking PvP
+			
+			case 1:
+				next;
+				mes .np$;
+				mes "Deseja entregar a premiação dos 3 primeiros colocados do ranking antes de resetar?";
+				if (select("^339966[»]^000000 Sim:^ff0000[»] Não^000000") == 2) {	
+					next;	
+					mes .np$;
+					mes "Ranking PvP resetado com sucesso! Não houve entrega de premiação para nenhum jogador.";
+					close2;
+					announce .np2$+" : Ranking PvP resetado por: "+strcharinfo(0)+". Não houve premiação para nenhum jogador.",bc_map,0xFF10FF;
+					query_sql "INSERT INTO `ranking_pvp_reset` (`account_id`, `char_id`, `Data`, `Premio`) VALUES ('"+ getcharid(3) +"', '"+ getcharid(0) +"', '"+gettimestr("%d/%m/%Y - %H:%M:%S", 25)+"', 'Não')";
+					query_sql "TRUNCATE TABLE `ranking_pvp`";
+					end;
+				}
+				
+				next;
+				mes .np$;
+				mes "Ranking PvP resetado com sucesso! Premiação entregue para os jogadores:";
+				query_sql "SELECT `char_id`, `char_name` FROM `ranking_pvp` ORDER BY `Total` DESC, `Matou` DESC LIMIT 3",.@char_id, .@nome$;
+				.@sender$ = .servername$;
+				.@title$ = "Prêmio Ranking PvP";
+				.@body$ = "Você está recebendo sua premiação por estar entre os três melhores jogadores do Ranking PvP deste mês!";
+				.@zeny = 0;
+				.@maxmailitem_pvp = getvariableofnpc(.maxmailitem_pvp,"Arena de Batalha");
+				
+				for(.@e = 0; .@e < .@maxmailitem_pvp; .@e++){
+					.@mailitem_pvp[.@e] = getvariableofnpc(.mailitem_pvp[.@e],"Arena de Batalha");
+					.@mailamount_pvp[.@e] = getvariableofnpc(.mailamount_pvp[.@e],"Arena de Batalha");
+				}
+				
+				for (.@i = 0; .@i < 3; .@i++) { 
+					mes (.@i+1)+"º^000000 - ^FF8C00"+.@nome$[.@i]+"^000000";
+					mail .@char_id[.@i], .@sender$, .@title$, .@body$, .@zeny, .@mailitem_pvp, .@mailamount_pvp;
+				}
+				
+				close2;
+				announce .np2$+" : Ranking PvP resetado por: "+strcharinfo(0)+". Premiação entregue automaticamente para os jogadores: "+.@nome$[0]+", "+.@nome$[1]+" e "+.@nome$[2]+".",bc_map,0xFF10FF;
+				query_sql "INSERT INTO `ranking_pvp_reset` (`account_id`, `char_id`, `Data`, `Premio`) VALUES ('"+ getcharid(3) +"', '"+ getcharid(0) +"', '"+gettimestr("%d/%m/%Y - %H:%M:%S", 25)+"', 'Sim')";
+				query_sql "TRUNCATE TABLE `ranking_pvp`";
+				end;
+				
+//=================================================================
+//== Resetar Ranking 1x1
+				
+			case 2:
+				next;
+				mes .np$;
+				mes "Deseja entregar a premiação dos 3 primeiros colocados do ranking 1x1 antes de resetar?";
+				if (select("^339966[»]^000000 Sim:^ff0000[»] Não^000000") == 2) {	
+					next;	
+					mes .np$;
+					mes "Ranking 1x1 resetado com sucesso! Não houve entrega de premiação para nenhum jogador.";
+					close2;
+					announce .np2$+" : Ranking 1x1 resetado por: "+strcharinfo(0)+". Não houve premiação para nenhum jogador.",bc_map,0xFF10FF;
+					query_sql "INSERT INTO `ranking_1x1_reset` (`account_id`, `char_id`, `Data`, `Premio`) VALUES ('"+ getcharid(3) +"', '"+ getcharid(0) +"', '"+gettimestr("%d/%m/%Y - %H:%M:%S", 25)+"', 'Não')";
+					query_sql "TRUNCATE TABLE `ranking_1x1`";
+					end;
+				}
+				
+				next;
+				mes .np$;
+				mes "Ranking 1x1 resetado com sucesso! Premiação entregue para os jogadores:";
+				query_sql "SELECT `char_id`, `char_name` FROM `ranking_1x1` ORDER BY `Total` DESC, `Matou` DESC LIMIT 3",.@char_id_1x1, .@nome1x1$;
+				.@sender$ = .servername$;
+				.@title$ = "Prêmio Ranking 1x1";
+				.@body$ = "Você está recebendo sua premiação por estar entre os três melhores jogadores do Ranking 1x1 deste mês!";
+				.@zeny = 0;
+				.@maxmailitem_1x1 = getvariableofnpc(.maxmailitem_1x1,"Arena de Batalha");
+				
+				for(.@e = 0; .@e < .@maxmailitem_1x1; .@e++){
+					.@mailitem_1x1[.@e] = getvariableofnpc(.mailitem_1x1[.@e],"Arena de Batalha");
+					.@mailamount_1x1[.@e] = getvariableofnpc(.mailamount_1x1[.@e],"Arena de Batalha");
+				}
+				
+				for (.@i = 0; .@i < 3; .@i++) { 
+					mes (.@i+1)+"º^000000 - ^FF8C00"+.@nome1x1$[.@i]+"^000000";
+					mail .@char_id_1x1[.@i], .@sender$, .@title$, .@body$, .@zeny, .@mailitem_1x1, .@mailamount_1x1;
+				}
+				
+				close2;
+				announce .np2$+" : Ranking 1x1 resetado por: "+strcharinfo(0)+". Premiação entregue automaticamente para os jogadores: "+.@nome1x1$[0]+", "+.@nome1x1$[1]+" e "+.@nome1x1$[2]+".",bc_map,0xFF10FF;
+				query_sql "INSERT INTO `ranking_1x1_reset` (`account_id`, `char_id`, `Data`, `Premio`) VALUES ('"+ getcharid(3) +"', '"+ getcharid(0) +"', '"+gettimestr("%d/%m/%Y - %H:%M:%S", 25)+"', 'Sim')";
+				query_sql "TRUNCATE TABLE `ranking_1x1`";
+				end;
+				
+//=================================================================
+//== Resetar Ranking GvG
+				
+			case 3:
+				next;
+				mes .np$;
+				mes "Deseja entregar a premiação da Guilda vencedora do ranking GvG antes de resetar?";
+				if (select("^339966[»]^000000 Sim:^ff0000[»] Não^000000") == 2) {	
+					next;	
+					mes .np$;
+					mes "Ranking GvG resetado com sucesso! Não houve entrega de premiação para nenhuma guilda.";
+					close2;
+					announce .np2$+" : Ranking GvG resetado por: "+strcharinfo(0)+". Não houve premiação para nenhuma guilda.",bc_map,0xFF10FF;
+					query_sql "INSERT INTO `ranking_gvg_reset`  (`account_id`, `char_id`, `Data`, `Premio`) VALUES ('"+ getcharid(3) +"', '"+ getcharid(0) +"', '"+gettimestr("%d/%m/%Y - %H:%M:%S", 25)+"', 'Não')";
+					query_sql "TRUNCATE TABLE `ranking_gvg`";
+					end;
+				}
+				
+				next;
+				mes .np$;
+				mes "Ranking GvG resetado com sucesso! Premiação entregue para a guilda:";
+				query_sql "SELECT `guild_id`, `guild_name` FROM `ranking_gvg` ORDER BY `Total` DESC, `Matou` DESC LIMIT 1",.@guild_id, .@nome$;	
+				.@char_id = getguildmasterid(.@guild_id[0]);
+				.@name_guildm$ = getguildmaster(.@guild_id[0]);
+				.@sender$ = .servername$;
+				.@title$ = "Prêmio Ranking GvG";
+				.@body$ = "Você está recebendo essa premiação por sua Guilda ser a melhor posicionada no Ranking GvG deste mês!";
+				.@zeny = 0;
+				.@maxmailitem_gvg = getvariableofnpc(.maxmailitem_gvg,"Arena de Batalha");
+				
+				for(.@e = 0; .@e < .@maxmailitem_gvg; .@e++){
+					.@mailitem_gvg[.@e] = getvariableofnpc(.mailitem_gvg[.@e],"Arena de Batalha");
+					.@mailamount_gvg[.@e] = getvariableofnpc(.mailamount_gvg[.@e],"Arena de Batalha");
+				}
+				
+				mes (.@i+1)+"º^000000 - ^FF8C00"+.@nome$[0]+"^000000";
+				mail .@char_id, .@sender$, .@title$, .@body$, .@zeny, .@mailitem_gvg, .@mailamount_gvg;
+				
+				close2;	
+				announce .np2$+" : Ranking GvG resetado por: "+strcharinfo(0)+". Premiação entregue automaticamente para o Guild Líder do clã: "+.@name_guildm$+".",bc_map,0xFF10FF;
+				query_sql "INSERT INTO `ranking_gvg_reset`  (`account_id`, `char_id`, `Data`, `Premio`) VALUES ('"+ getcharid(3) +"', '"+ getcharid(0) +"', '"+gettimestr("%d/%m/%Y - %H:%M:%S", 25)+"', 'Sim')";
+				query_sql "TRUNCATE TABLE `ranking_gvg`";
+				end;
+				
+//=================================================================
+//== Sair
+					
+			case 4:
+				close;
+				
+		}
+	}
+	return;
+
+//=================================================================
+//== Verificação de Nível
+
+check_lvl:
+	if (BaseLevel < .lvlenter) {
+		mes "Desculpe, o level necessário para entrar na arena é ^ff0000"+.lvlenter+"^000000.";
+		close;
+	}
+	return;	
+	
+//=================================================================
+//== Verificação de FP
+	
+check_fp:
+    if (Class != 18 && Class != 4019 && Class != 4041 && Class != 4071 && Class != 4078 && Class != 4107){
+        sc_end SC_CP_WEAPON;
+        sc_end SC_CP_SHIELD;
+        sc_end SC_CP_ARMOR;
+        sc_end SC_CP_HELM;
+    } 
+    return;
+	
+//=================================================================
+//== Gerenciar Desconexão na Arena 1x1
+
+OnPCLogoutEvent:
+    // Pegar o mapa da arena 1x1
+    .@mapa$ = getvariableofnpc(.arena1x1$,"Arena de Batalha");
+    getmapxy .@map$,.@x,.@y,BL_PC;
+    
+    // Se o jogador está na arena 1x1 ao desconectar
+    if(.@map$ == .@mapa$) {
+        
+        // Se era o jogador 1
+        if($arena1x1_player1$ == strcharinfo(0)) {
+            // E existe um jogador 2
+            if($arena1x1_player2$ != "") {
+                // Promover jogador 2 para jogador 1
+                $arena1x1_player1$ = $arena1x1_player2$;
+                $arena1x1_player1_id = $arena1x1_player2_id;
+                // Limpar slot 2
+                $arena1x1_player2$ = "";
+                $arena1x1_player2_id = 0;
+            } else {
+                // Arena ficou vazia
+                $arena1x1_player1$ = "";
+                $arena1x1_player1_id = 0;
+            }
+        } 
+        // Se era o jogador 2
+        else if($arena1x1_player2$ == strcharinfo(0)) {
+            $arena1x1_player2$ = "";
+            $arena1x1_player2_id = 0;
+        }
+    }
+    end;
+	
+}
+
+//============================================================
+// Duplicates (Cidades)
+
+//morocc,166,93,4	duplicate(Arena de Batalha)	Arena de Batalha#2	10593
+//geffen,124,73,4	duplicate(Arena de Batalha)	Arena de Batalha#3	10593
+//payon,170,222,4	duplicate(Arena de Batalha)	Arena de Batalha#4	10593
+//alberta,121,60,4	duplicate(Arena de Batalha)	Arena de Batalha#5	10593
+//izlude,135,123,4	duplicate(Arena de Batalha)	Arena de Batalha#6	10593
+//aldebaran,194,141,4	duplicate(Arena de Batalha)	Arena de Batalha#7	10593
+//xmas,141,132,4	duplicate(Arena de Batalha)	Arena de Batalha#8	10593
+//comodo,202,142,4	duplicate(Arena de Batalha)	Arena de Batalha#9	10593
+//yuno,153,53,1	duplicate(Arena de Batalha)	Arena de Batalha#10	10593
+//amatsu,203,93,4	duplicate(Arena de Batalha)	Arena de Batalha#11	10593
+//umbala,88,155,4	duplicate(Arena de Batalha)	Arena de Batalha#12	10593
+//niflheim,200,185,4	duplicate(Arena de Batalha)	Arena de Batalha#13	10593
+//louyang,212,52,1	duplicate(Arena de Batalha)	Arena de Batalha#14	10593
+//jawaii,246,142,4	duplicate(Arena de Batalha)	Arena de Batalha#15	10593
+//ayothaya,154,117,4	duplicate(Arena de Batalha)	Arena de Batalha#16	10593
+//einbroch,55,200,4	duplicate(Arena de Batalha)	Arena de Batalha#17	10593
+//lighthalzen,164,85,4	duplicate(Arena de Batalha)	Arena de Batalha#18	10593
+//einbech,77,108,4	duplicate(Arena de Batalha)	Arena de Batalha#19	10593
+//hugel,102,151,4	duplicate(Arena de Batalha)	Arena de Batalha#20	10593
+//rachel,137,110,4	duplicate(Arena de Batalha)	Arena de Batalha#21	10593
+//veins,209,130,4	duplicate(Arena de Batalha)	Arena de Batalha#22	10593
+//moscovia,229,198,4	duplicate(Arena de Batalha)	Arena de Batalha#23	10593
+//mid_camp,220,286,4	duplicate(Arena de Batalha)	Arena de Batalha#24	10593
+//brasilis,201,224,4	duplicate(Arena de Batalha)	Arena de Batalha#25	10593
+//gonryun,155,121,4	duplicate(Arena de Batalha)	Arena de Batalha#26	10593
+//splendide,209,153,4	duplicate(Arena de Batalha)	Arena de Batalha#27	10593
+//manuk,297,241,4	duplicate(Arena de Batalha)	Arena de Batalha#28	10593
+//dicastes01,205,203,4	duplicate(Arena de Batalha)	Arena de Batalha#29	10593
+//prontera,162,182,3	duplicate(Arena de Batalha)	Arena de Batalha#30	10593
+1@herbs,281,58,9	duplicate(Arena de Batalha)	Arena de Batalha#30	801
+
+guildmap_01,101,56,13	duplicate(Arena de Batalha)	Arena de Batalha#GUILD01	10593
+guildmap_02,101,56,13	duplicate(Arena de Batalha)	Arena de Batalha#GUILD02	10593
+guildmap_03,101,56,13	duplicate(Arena de Batalha)	Arena de Batalha#GUILD03	10593
+guildmap_04,101,56,13	duplicate(Arena de Batalha)	Arena de Batalha#GUILD04	10593
+guildmap_05,101,56,13	duplicate(Arena de Batalha)	Arena de Batalha#GUILD05	10593
+guildmap_06,101,56,13	duplicate(Arena de Batalha)	Arena de Batalha#GUILD06	10593
+guildmap_07,101,56,13	duplicate(Arena de Batalha)	Arena de Batalha#GUILD07	10593
+guildmap_08,101,56,13	duplicate(Arena de Batalha)	Arena de Batalha#GUILD08	10593
+guildmap_09,101,56,13	duplicate(Arena de Batalha)	Arena de Batalha#GUILD09	10593
+guildmap_10,101,56,13	duplicate(Arena de Batalha)	Arena de Batalha#GUILD10	10593

@@ -1,0 +1,31 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  NPC - Porteiro VIP
+//===============================================================
+// Vers?o: 1.1 - Acesso para GM
+//
+// Altera??o v1.1:
+// - Adicionado acesso para GMs de n?vel 99.
+// - GMs recebem os mesmos benef?cios de um Super VIP.
+//===============================================================
+
+1@herbs,281,63,5	script	Loja de Cash	504,{
+
+OnInit:
+
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 46;	
+		setunittitle getnpcid(0), "[Rune-Midgard]";
+
+		while(1) {
+		showscript "[ Loja Cash ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}

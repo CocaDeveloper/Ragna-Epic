@@ -1,0 +1,150 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//= Reset e Premiação Automática do Ranking PvP, 1x1 e GvG
+//= Executado todo dia 1 de cada mês
+//= Entrega prêmios via RoDEX e limpa as tabelas
+//= Usa dados do NPC "Arena de Batalha"
+//===== Créditos: ==============================================
+//= Base: Bruxão BR - 2.1 (Modificado para Arena 1x1)
+//==============================================================
+
+-	script	auto_pvp_reset	-1,{
+
+// Executa todo dia 1 de cada mês
+OnDay0101:
+OnDay0201:
+OnDay0301:
+OnDay0401:
+OnDay0501:
+OnDay0601:
+OnDay0701:
+OnDay0801:
+OnDay0901:
+OnDay1001:
+OnDay1101:
+OnDay1201:
+
+	// Obtem nome do servidor (configurado no NPC "Arena de Batalha")
+	.nomeserver$ = getvariableofnpc(.servername$, "Arena de Batalha");
+
+	//------------------------------------------------------------
+	// RANKING PvP - Premiação TOP 3
+	//------------------------------------------------------------
+
+	query_sql "SELECT `char_id`, `char_name` FROM `ranking_pvp` ORDER BY `Total` DESC LIMIT 3", .@char_id, .@nome$;
+
+	if (getarraysize(.@char_id) > 0) {
+
+		// Anúncio
+		announce "[Arena de Batalha] : Ranking PvP resetado automaticamente. Premiação entregue para os jogadores: "
+			+.@nome$[0]+", "+.@nome$[1]+", "+.@nome$[2]+".", bc_all, 0xFF10FF;
+
+		// Enviar log do reset
+		for (.@i = 0; .@i < getarraysize(.@char_id); .@i++) {
+			query_sql "INSERT INTO `ranking_pvp_reset` (`account_id`, `char_id`, `Data`, `Premio`) VALUES ('2000000', '"+.@char_id[.@i]+"', '"+gettimestr("%d/%m/%Y - %H:%M:%S", 25)+"', 'Sim')";
+		}
+
+		// Preparar envio de RoDEX
+		.@sender$ = .nomeserver$ + " (PVP)";
+		.@title$  = "Prêmio Ranking PvP";
+		.@body$   = "Você está recebendo sua premiação por estar entre os três melhores jogadores do Ranking PvP deste mês!";
+		.@zeny    = 0;
+
+		.@maxmailitem_pvp = getvariableofnpc(.maxmailitem_pvp,"Arena de Batalha");
+		for (.@e = 0; .@e < .@maxmailitem_pvp; .@e++) {
+			.@mailitem_pvp[.@e]   = getvariableofnpc(.mailitem_pvp[.@e], "Arena de Batalha");
+			.@mailamount_pvp[.@e] = getvariableofnpc(.mailamount_pvp[.@e], "Arena de Batalha");
+		}
+
+		// Enviar mail para Top 3
+		for (.@i = 0; .@i < 3; .@i++) {
+			mail .@char_id[.@i], .@sender$, .@title$, .@body$, .@zeny, .@mailitem_pvp, .@mailamount_pvp;
+		}
+
+		// Limpa ranking PvP
+		query_sql "TRUNCATE TABLE `ranking_pvp`";
+	}
+
+	//------------------------------------------------------------
+	// RANKING 1x1 - Premiação TOP 3 (NOVO)
+	//------------------------------------------------------------
+
+	query_sql "SELECT `char_id`, `char_name` FROM `ranking_1x1` ORDER BY `Total` DESC LIMIT 3", .@char_id_1x1, .@nome_1x1$;
+
+	if (getarraysize(.@char_id_1x1) > 0) {
+
+		// Anúncio
+		announce "[Arena 1x1] : Ranking 1x1 resetado automaticamente. Premiação entregue para os jogadores: "
+			+.@nome_1x1$[0]+", "+.@nome_1x1$[1]+", "+.@nome_1x1$[2]+".", bc_all, 0xFF8C00;
+
+		// Enviar log do reset
+		for (.@i = 0; .@i < getarraysize(.@char_id_1x1); .@i++) {
+			query_sql "INSERT INTO `ranking_1x1_reset` (`account_id`, `char_id`, `Data`, `Premio`) VALUES ('2000000', '"+.@char_id_1x1[.@i]+"', '"+gettimestr("%d/%m/%Y - %H:%M:%S", 25)+"', 'Sim')";
+		}
+
+		// Preparar envio de RoDEX
+		.@sender$ = .nomeserver$ + " (1x1)";
+		.@title$  = "Prêmio Ranking 1x1";
+		.@body$   = "Você está recebendo sua premiação por estar entre os três melhores jogadores do Ranking 1x1 deste mês!";
+		.@zeny    = 0;
+
+		.@maxmailitem_1x1 = getvariableofnpc(.maxmailitem_1x1,"Arena de Batalha");
+		for (.@e = 0; .@e < .@maxmailitem_1x1; .@e++) {
+			.@mailitem_1x1[.@e]   = getvariableofnpc(.mailitem_1x1[.@e], "Arena de Batalha");
+			.@mailamount_1x1[.@e] = getvariableofnpc(.mailamount_1x1[.@e], "Arena de Batalha");
+		}
+
+		// Enviar mail para Top 3
+		for (.@i = 0; .@i < 3; .@i++) {
+			mail .@char_id_1x1[.@i], .@sender$, .@title$, .@body$, .@zeny, .@mailitem_1x1, .@mailamount_1x1;
+		}
+
+		// Limpa ranking 1x1
+		query_sql "TRUNCATE TABLE `ranking_1x1`";
+	}
+
+	//------------------------------------------------------------
+	// RANKING GvG - Premiação para Guilda TOP 1
+	//------------------------------------------------------------
+
+	query_sql "SELECT `guild_id`, `guild_name` FROM `ranking_gvg` ORDER BY `Total` DESC LIMIT 1", .@guild_id, .@guild_name$;
+
+	if (getarraysize(.@guild_id) > 0) {
+
+		.@char_id_gvg = getguildmasterid(.@guild_id[0]);
+		.@name_guildm$ = getguildmaster(.@guild_id[0]);
+
+		announce "[Arena de Batalha] : Ranking GvG resetado automaticamente. Premiação entregue ao Líder da Guilda: "+.@name_guildm$+".", bc_all, 0xFF10FF;
+
+		// Log de reset GvG
+		query_sql "INSERT INTO `ranking_gvg_reset` (`account_id`, `char_id`, `Data`, `Premio`) VALUES ('2000000', '"+.@char_id_gvg+"', '"+gettimestr("%d/%m/%Y - %H:%M:%S", 25)+"', 'Sim')";
+
+		// Preparar envio de RoDEX
+		.@sender$ = .nomeserver$ + " (GvG)";
+		.@title$  = "Prêmio Ranking GvG";
+		.@body$   = "Você está recebendo essa premiação por sua Guilda ser a melhor posicionada no Ranking GvG deste mês!";
+		.@zeny    = 0;
+
+		.@maxmailitem_gvg = getvariableofnpc(.maxmailitem_gvg,"Arena de Batalha");
+		for (.@e = 0; .@e < .@maxmailitem_gvg; .@e++) {
+			.@mailitem_gvg[.@e]   = getvariableofnpc(.mailitem_gvg[.@e], "Arena de Batalha");
+			.@mailamount_gvg[.@e] = getvariableofnpc(.mailamount_gvg[.@e], "Arena de Batalha");
+		}
+
+		// Enviar mail ao líder da guilda vencedora
+		mail .@char_id_gvg, .@sender$, .@title$, .@body$, .@zeny, .@mailitem_gvg, .@mailamount_gvg;
+
+		// Limpa ranking GvG
+		query_sql "TRUNCATE TABLE `ranking_gvg`";
+	}
+
+	atcommand "@refreshall";
+	end;
+}

@@ -1,0 +1,359 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  EVENTO TESOURO PERDIDO
+// ===================== Descrição: =============================
+// Um baú tesouro spawna aleatoriamente em uma cidade
+// O jogador que encontrar ganha prêmios + 3 pontos de evento
+//===============================================================
+
+-	script	CoreTesouroPerdido	-1,{
+
+OnInit:
+	// Arrays com mapas das cidades e suas coordenadas possíveis
+	setarray .@mapas$[0],"prontera","geffen","payon","morocc","aldebaran","comodo","umbala","brasilis","xmas","ayothaya","lighthalzen","hugel","rachel","moscovia","dewata","lasagna";
+	setarray .@nomes_cidades$[0],"Prontera","Geffen","Payon","Morocc","Aldebaran","Comodo","Umbala","Brasilis","Xmas","Ayothaya","Lighthalzen","Hugel","Rachel","Moscovia","Dewata","Lasagna";
+	
+	copyarray .mapas_cidades$[0], .@mapas$[0], getarraysize(.@mapas$);
+	copyarray .nomes_cidades$[0], .@nomes_cidades$[0], getarraysize(.@nomes_cidades$);
+	
+	set $tesouro_ativo, 0;
+	set $mapa_tesouro$, "";
+	set $cidade_tesouro$, "";
+	end;
+
+// Labels administrativos
+OnAdminStart:
+	if($tesouro_ativo == 1) {
+		// Remove tesouro anterior se ainda existir
+		killmonster $mapa_tesouro$, "TesouroPerdido::OnTesouroPego";
+		announce "[Tesouro Perdido]: O tesouro anterior foi removido... Um novo está sendo preparado!", bc_all | bc_yellow;
+		sleep 3000;
+	}
+	goto SpawnTesouro;
+
+OnAdminStop:
+	if($tesouro_ativo == 1) {
+		killmonster $mapa_tesouro$, "TesouroPerdido::OnTesouroPego";
+		set $tesouro_ativo, 0;
+		announce "[Tesouro Perdido]: Um ADM removeu o tesouro perdido.", bc_all | bc_yellow;
+	}
+	end;
+
+// Horários do evento - pode adicionar mais horários aqui
+OnClock0600:
+OnClock1000:
+OnClock1600:
+OnClock1800:
+OnClock2100:
+	if($tesouro_ativo == 1) {
+		// Remove tesouro anterior se ainda existir
+		killmonster $mapa_tesouro$, "TesouroPerdido::OnTesouroPego";
+		announce "[Tesouro Perdido]: O tesouro anterior desapareceu... Um novo está sendo preparado!", bc_all | bc_yellow;
+		sleep 3000;
+	}
+
+SpawnTesouro:
+	// Escolhe cidade aleatória
+	set .@cidade_rand, rand(getarraysize(.mapas_cidades$));
+	set $mapa_tesouro$, .mapas_cidades$[.@cidade_rand];
+	set $cidade_tesouro$, .nomes_cidades$[.@cidade_rand];
+	
+	// Define coordenadas seguras baseadas na cidade escolhida
+	switch(.@cidade_rand) {
+		case 0: // Prontera - Área central segura
+			setarray .@coords[0],100,250,100,250;
+			break;
+		case 1: // Geffen - Centro da cidade
+			setarray .@coords[0],100,180,100,180;
+			break;
+		case 2: // Payon - Área segura central
+			setarray .@coords[0],150,250,150,250;
+			break;
+		case 3: // Morocc - Área central (evitando crateras)
+			setarray .@coords[0],150,250,120,180;
+			break;
+		case 4: // Aldebaran - Centro da cidade
+			setarray .@coords[0],120,180,120,180;
+			break;
+		case 5: // Comodo - Área da praia e centro
+			setarray .@coords[0],150,250,120,180;
+			break;
+		case 6: // Umbala - Vila central
+			setarray .@coords[0],120,180,120,180;
+			break;
+		case 7: // Brasilis - Centro da cidade
+			setarray .@coords[0],150,220,150,200;
+			break;
+		case 8: // Xmas - Área da aldeia
+			setarray .@coords[0],140,200,140,200;
+			break;
+		case 9: // Ayothaya - Centro seguro
+			setarray .@coords[0],150,220,150,200;
+			break;
+		case 10: // Lighthalzen - Área comercial central
+			setarray .@coords[0],150,220,150,220;
+			break;
+		case 11: // Hugel - Centro da cidade
+			setarray .@coords[0],100,180,120,180;
+			break;
+		case 12: // Rachel - Área central
+			setarray .@coords[0],120,180,120,160;
+			break;
+		case 13: // Moscovia - Centro da cidade
+			setarray .@coords[0],120,180,150,200;
+			break;
+		case 14: // Dewata - Área tribal central
+			setarray .@coords[0],180,220,160,200;
+			break;
+		case 15: // Lasagna - Centro da cidade
+			setarray .@coords[0],120,180,120,160;
+			break;
+		default:
+			setarray .@coords[0],150,200,150,200;
+			break;
+	}
+	
+	// Gera coordenadas aleatórias dentro da área segura da cidade
+	set .@x, rand(.@coords[0], .@coords[1]);
+	set .@y, rand(.@coords[2], .@coords[3]);
+	
+	// Verifica se a célula é acessível antes de spawnar
+	set .@tentativas, 0;
+	while(.@tentativas < 10) {
+		if(checkcell($mapa_tesouro$, .@x, .@y, cell_chkpass)) {
+			break;
+		}
+		set .@x, rand(.@coords[0], .@coords[1]);
+		set .@y, rand(.@coords[2], .@coords[3]);
+		set .@tentativas, .@tentativas + 1;
+	}
+	
+	// Se não encontrou uma célula válida após 10 tentativas, usa coordenadas padrão seguras
+	if(.@tentativas >= 10) {
+		switch(.@cidade_rand) {
+			case 0: // Prontera
+				set .@x, 155; set .@y, 183;
+				break;
+			case 1: // Geffen
+				set .@x, 119; set .@y, 59;
+				break;
+			case 2: // Payon
+				set .@x, 152; set .@y, 75;
+				break;
+			case 3: // Morocc
+				set .@x, 156; set .@y, 93;
+				break;
+			case 4: // Aldebaran
+				set .@x, 140; set .@y, 131;
+				break;
+			case 5: // Comodo
+				set .@x, 209; set .@y, 143;
+				break;
+			case 6: // Umbala
+				set .@x, 126; set .@y, 131;
+				break;
+			case 7: // Brasilis
+				set .@x, 196; set .@y, 217;
+				break;
+			case 8: // Xmas
+				set .@x, 147; set .@y, 134;
+				break;
+			case 9: // Ayothaya
+				set .@x, 208; set .@y, 166;
+				break;
+			case 10: // Lighthalzen
+				set .@x, 158; set .@y, 92;
+				break;
+			case 11: // Hugel
+				set .@x, 126; set .@y, 151;
+				break;
+			case 12: // Rachel
+				set .@x, 130; set .@y, 110;
+				break;
+			case 13: // Moscovia
+				set .@x, 223; set .@y, 184;
+				break;
+			case 14: // Dewata
+				set .@x, 200; set .@y, 180;
+				break;
+			case 15: // Lasagna
+				set .@x, 193; set .@y, 182;
+				break;
+			default:
+				set .@x, 155; set .@y, 183; // Prontera como fallback
+				set $mapa_tesouro$, "prontera";
+				set $cidade_tesouro$, "Prontera";
+				break;
+		}
+	}
+	
+	// Spawna o baú tesouro
+	monster $mapa_tesouro$, .@x, .@y, "Tesouro Perdido", 1324, 1, "TesouroPerdido::OnTesouroPego";
+	
+	set $tesouro_ativo, 1;
+	
+	// Anuncia o evento
+	announce "[Tesouro Perdido]: Atenção: Um tesouro perdido acaba de aparecer em " + $cidade_tesouro$ + ". Corra para encontrá-lo!!", bc_all | bc_yellow;
+	
+	// Timer para remover o tesouro após 15 minutos se não for encontrado
+	sleep 1800000; // 30 minutos
+	if($tesouro_ativo == 1) {
+		killmonster $mapa_tesouro$, "TesouroPerdido::OnTesouroPego";
+		set $tesouro_ativo, 0;
+		announce "[Tesouro Perdido]: O tesouro perdido desapareceu... Ninguém conseguiu encontrá-lo a tempo!", bc_all | bc_yellow;
+	}
+	end;
+}
+
+-	script	TesouroPerdido	-1,{
+OnTesouroPego:
+	// Array de possíveis prêmios
+	setarray .@premios_id[0], 607, 14232, 7621, 1001007, 7721; // IDs dos itens
+	setarray .@premios_qtd[0], 20, 10, 5, 10, 1; // Quantidades
+	setarray .@premios_nome$[0], "Yggdrasil Berry", "Caixa de Fruto de Yggdrasil", "Amuleto de Ziegfried", "Moedas de Evento", "Baú de Tesouro";
+	
+	// Escolhe prêmio aleatório
+	set .@premio_rand, rand(getarraysize(.@premios_id));
+	set .@item_id, .@premios_id[.@premio_rand];
+	set .@item_qtd, .@premios_qtd[.@premio_rand];
+	set .@item_nome$, .@premios_nome$[.@premio_rand];
+	
+	// Chance adicional de Zeny (50% de chance)
+	set .@zeny_bonus, 0;
+	if(rand(100) < 50) {
+		set .@zeny_bonus, rand(5000000, 20000000);
+		set Zeny, Zeny + .@zeny_bonus;
+	}
+	
+	// Dá o prêmio ao jogador
+	getitem .@item_id, .@item_qtd;
+	set pontosevento, pontosevento + 3;
+	
+	// Constrói a mensagem do anúncio
+	set .@mensagem$, "[Tesouro Perdido]: O jogador " + strcharinfo(0) + " encontrou o tesouro perdido e ganhou " + .@item_qtd + "x " + .@item_nome$;
+	
+	if(.@zeny_bonus > 0) {
+		set .@mensagem$, .@mensagem$ + " + " + .@zeny_bonus + " de Zenys";
+	}
+	
+	set .@mensagem$, .@mensagem$ + " e 3 pontos de evento!";
+	
+	// Anuncia globalmente
+	announce .@mensagem$, bc_all | bc_yellow;
+	
+	// Desativa o evento
+	set $tesouro_ativo, 0;
+	set $mapa_tesouro$, "";
+	set $cidade_tesouro$, "";
+	end;
+}
+
+// NPC informativo com painel administrativo
+new_evt,173,173,4	script	Tesouro Perdido	1324,{
+	set .@GMLevel,60;	// Nível GM necessário para acessar o painel admin
+	set .@n$,"^FF1493[Tesouro Perdido]^000000";
+
+	// Painel Administrativo
+	if (getgmlevel()>=.@GMLevel) {
+		mes .@n$;
+		mes "Painel Administrativo";
+		mes "Status: " + ($tesouro_ativo ? "^00FF00ATIVO^000000" : "^FF0000INATIVO^000000");
+		if($tesouro_ativo) {
+			mes "Localização: ^0000FF" + $cidade_tesouro$ + "^000000";
+		}
+		next;
+		switch(select("^339966[»]^000000 Iniciar Evento:^339966[»]^000000 Parar Evento:^339966[»]^000000 Menu Jogador")) {
+		case 1:
+			mes .@n$;
+			if ($tesouro_ativo) {
+				mes "Já existe um tesouro ativo em: ^0000FF" + $cidade_tesouro$ + "^000000";
+				mes "Deseja substituí-lo por um novo?";
+			} else {
+				mes "Deseja spawnar um tesouro perdido?";
+				mes "Ele aparecerá em uma cidade aleatória.";
+			}
+			if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+			
+			donpcevent "CoreTesouroPerdido::OnAdminStart";
+			next;
+			mes .@n$;
+			mes "Tesouro perdido spawnou em: ^0000FF" + $cidade_tesouro$ + "^000000!";
+			close;
+		case 2:
+			mes .@n$;
+			if (!$tesouro_ativo) {
+				mes "Não há tesouro ativo no momento!";
+				close;
+			}
+			mes "Deseja remover o tesouro ativo de: ^0000FF" + $cidade_tesouro$ + "^000000?";
+			if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+			
+			donpcevent "CoreTesouroPerdido::OnAdminStop";
+			next;
+			mes .@n$;
+			mes "Tesouro removido com sucesso!";
+			close;
+		case 3:
+			// Continua para o menu normal do jogador
+			break;
+		}
+	}
+
+	// Menu normal para jogadores
+	mes .@n$;
+	mes "Olá, ^ffa500" + strcharinfo(0) + "^000000!";
+	mes "^0000FFSobre o Evento Tesouro Perdido:^000000";
+	mes "• Os baús aparecem aleatoriamente nas cidades.";
+	mes "• Horários: ^ff000006:00, 10:00, 16:00, 18:00, 22:00.^000000";
+	mes "• Os prêmios variam entre: ^ff0000Yggs e Caixas de Yggs, Amuletos de Ziegfried, Moedas de Evento, Baú de Tesouro, Zenys^000000 e muito mais...";
+	mes "• Cada baú premia o jogador com ^ff0000+3 pontos de evento.^000000";
+	next;
+	mes .@n$;
+	mes "^0000FFStatus Atual:^000000";
+	if($tesouro_ativo) {
+		mes "• ^00FF00Tesouro ATIVO^000000 em: ^0000FF" + $cidade_tesouro$ + "^000000";
+		mes "• Corra para lá e encontre-o!";
+	} else {
+		mes "• ^FF0000Nenhum tesouro ativo no momento.^000000";
+		mes "• Aguarde o próximo horário!";
+	}
+	mes "^0000FFSeu Score:^000000 Você possui ^FF0000" + pontosevento + "^000000 pontos de evento.";
+	close;
+	
+OnInit:
+
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 1009;	
+	setunittitle getnpcid(0), "[Rune-Midgard]";
+	end;	
+}
+
+1@herbs,323,57,4	duplicate(Tesouro Perdido)	Tesouro Perdido#Vip	1324
+
+new_evt,173,173,4	script	#newevt	111,{
+
+OnInit:
+
+	while(1) {
+	showscript "[ Tesouro Perdido ]", getnpcid(0);
+	sleep 100;
+	}
+	end;
+}
+
+1@herbs,323,57,4	script	#newvip	111,{
+
+OnInit:
+
+	while(1) {
+	showscript "[ Tesouro Perdido ]", getnpcid(0);
+	sleep 100;
+	}
+	end;
+}

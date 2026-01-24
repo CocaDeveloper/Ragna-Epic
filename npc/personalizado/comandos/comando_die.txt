@@ -1,0 +1,17 @@
+//===============================================================
+//                 Comando @die - Mata o Personagem
+//===============================================================
+// Versão: 1.0 - Mata o personagem instantaneamente
+//===============================================================
+
+-	script	die_cmd	FAKE_NPC,{
+
+OnInit:
+	bindatcmd "die", "die_cmd::OnDie";
+	end;
+
+OnDie:
+	dispbottom "Você morreu.";
+	percentheal -100, -100;
+	end;
+}

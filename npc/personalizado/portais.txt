@@ -1,0 +1,629 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+// -               Portais BRUXAO BR                            -
+//===============================================================
+
+prontera,132,184,0	warp	prtt03	2,2,prt_in,50,105
+prt_in,172,33,0	warp	prt187	2,1,prontera,208,151
+prontera,219,171,0	warp	prt100	2,2,prontera,155,191
+prontera,217,183,0	warp	prt101	2,2,prontera,155,191
+prontera,144,153,0	warp	ayo102	2,2,ayothaya,151,165
+ayothaya,151,171,0	warp	ayo103	2,2,prontera,155,191
+prontera,170,137,0	warp	prt103	2,2,prontera,155,191
+prontera,125,143,0	warp	prt104	2,2,prontera,155,191
+prontera,106,144,0	warp	prt105	2,2,prontera,155,191
+prontera,96,154,0	warp	prt106	2,2,prontera,155,191
+prontera,94,181,0	warp	prt107	2,2,prontera,155,191
+prontera,218,225,0	warp	prt108	2,2,prontera,155,191
+prontera,217,247,0	warp	prt109	2,2,prontera,155,191
+prontera,204,267,0	warp	prt110	2,2,prontera,155,191
+prontera,167,256,0	warp	prt111	2,2,prontera,155,191
+prontera,145,254,0	warp	prt112	2,2,prontera,155,191
+prontera,101,258,0	warp	prt113	2,2,prontera,155,191
+prontera,95,231,0	warp	prt114	2,2,prontera,155,191
+prontera,274,240,0	warp	prt115	2,2,prontera,155,191
+prontera,272,262,0	warp	prt116	2,2,prontera,155,191
+prontera,241,267,0	warp	prt117	2,2,prontera,155,191
+prontera,227,282,0	warp	prt118	2,2,prontera,155,191
+prontera,234,289,0	warp	prt119	2,2,prontera,155,191
+prontera,259,221,0	warp	prt120	2,2,prontera,155,191
+prontera,250,186,0	warp	prt121	2,2,prontera,155,191
+prontera,273,162,0	warp	prt122	2,2,prontera,155,191
+prontera,273,144,0	warp	prt123	2,2,prontera,155,191
+prontera,247,134,0	warp	prt124	2,2,prontera,155,191
+prontera,240,141,0	warp	prt125	2,2,prontera,155,191
+prontera,271,116,0	warp	prt126	2,2,prontera,155,191
+prontera,272,100,0	warp	prt127	2,2,prontera,155,191
+prontera,259,90,0	warp	prt128	2,2,prontera,155,191
+prontera,226,116,0	warp	prt129	2,2,prontera,155,191
+prontera,244,101,0	warp	prt130	2,2,prontera,155,191
+prontera,274,58,0	warp	prt131	2,2,prontera,155,191
+prontera,271,40,0	warp	prt132	2,2,prontera,155,191
+prontera,251,35,0	warp	prt133	2,2,prontera,155,191
+prontera,238,41,0	warp	prt134	2,2,prontera,155,191
+prontera,169,46,0	warp	prt135	2,2,prontera,155,191
+prontera,216,34,0	warp	prt136	2,2,prontera,155,191
+prontera,206,35,0	warp	prt137	2,2,prontera,155,191
+prontera,196,37,0	warp	prt138	2,2,prontera,155,191
+prontera,206,57,0	warp	prt139	2,2,prontera,155,191
+prontera,179,46,0	warp	prt140	2,2,prontera,155,191
+prontera,204,71,0	warp	prt141	2,2,prontera,155,191
+prontera,206,95,0	warp	prt142	2,2,prontera,155,191
+prontera,213,102,0	warp	prt143	2,2,prontera,155,191
+prontera,170,69,0	warp	prt144	2,2,prontera,155,191
+prontera,168,82,0	warp	prt145	2,2,prontera,155,191
+prontera,169,100,0	warp	prt146	2,2,prontera,155,191
+prontera,193,105,0	warp	prt147	2,2,prontera,155,191
+prontera,195,229,0	warp	prt148	2,2,prontera,155,191
+prontera,207,215,0	warp	prt149	2,2,prontera,155,191
+							
+1@herbs,286,46,0	warp	prt150	2,2,prontera,155,191
+1@herbs,241,79,0	warp	prt151	2,2,prontera,155,191
+1@herbs,285,113,0	warp	prt152	2,2,prontera,155,191
+							
+prontera,138,96,0	warp	prt153	2,2,prontera,155,191
+prontera,141,83,0	warp	prt154	2,2,prontera,155,191
+prontera,141,64,0	warp	prt155	2,2,prontera,155,191
+prontera,139,44,0	warp	prt156	2,2,prontera,155,191
+prontera,123,34,0	warp	prt157	2,2,prontera,155,191
+prontera,113,34,0	warp	prt158	2,2,prontera,155,191
+prontera,90,39,0	warp	prt159	2,2,prontera,155,191
+prontera,75,36,0	warp	prt160	2,2,prontera,155,191
+prontera,88,70,0	warp	prt161	2,2,prontera,155,191
+prontera,78,70,0	warp	prt162	2,2,prontera,155,191
+prontera,52,35,0	warp	prt163	2,2,prontera,155,191
+prontera,37,45,0	warp	prt164	2,2,prontera,155,191
+prontera,39,81,0	warp	prt165	2,2,prontera,155,191
+prontera,58,87,0	warp	prt166	2,2,prontera,155,191
+prontera,37,100,0	warp	prt167	2,2,prontera,155,191
+prontera,40,120,0	warp	prt168	2,2,prontera,155,191
+prontera,37,141,0	warp	prt169	2,2,prontera,155,191
+prontera,79,127,0	warp	prt170	2,2,prontera,155,191
+prontera,49,153,0	warp	prt171	2,2,prontera,155,191
+prontera,36,162,0	warp	prt172	2,2,prontera,155,191
+							
+prontera,52,218,0	warp	prt173	2,2,prontera,155,191
+prontera,38,242,0	warp	prt174	2,2,prontera,155,191
+prontera,39,260,0	warp	prt175	2,2,prontera,155,191
+prontera,64,248,0	warp	prt176	2,2,prontera,155,191
+prontera,62,270,0	warp	prt177	2,2,prontera,155,191
+prontera,37,277,0	warp	prt178	2,2,prontera,155,191
+prontera,84,290,0	warp	prt179	2,2,prontera,155,191
+prontera,53,306,0	warp	prt180	2,2,prontera,155,191
+prontera,40,307,0	warp	prt181	2,2,prontera,155,191
+prontera,81,351,0	warp	prt182	2,2,prontera,155,191
+prontera,94,333,0	warp	prt183	2,2,prontera,155,191
+							
+prontera,105,192,0	warp	prt184	2,2,prt_in,240,139
+prontera,120,197,0	warp	prt185	2,2,prt_in,240,139
+prontera,120,210,0	warp	prt186	2,2,prt_in,240,139
+
+new_evt,156,171,0	warp	prt190	2,2,prontera,155,191
+
+//========================================================================================
+//entrada do eden
+//========================================================================================
+prontera,170,168,0	warp	Hall	2,2,hero_ent2,90,82
+moc_para01,30,10,0	warp	eden2	2,3,prontera,161,167
+
+/*prontera,160,186,3	script	Eden#1	10584,{
+
+	OnTouch:
+		mes "[Guia do Éden]";
+		mes "O Quartel do Grupo Éden acolhe aventureiros sedentos por crescimento...";
+		mes "Lá você encontrará missões, aliados e recompensas valiosas.";
+		mes " ";
+		mes "Deseja viajar agora para o Quartel do Grupo Éden?";
+		next;
+		if(select("Sim, estou a caminho!:Não, preciso me preparar mais.") == 1) {
+			close2;
+			specialeffect2 1062;
+			sleep2 1000;
+			warp "moc_para01", 30, 14;
+			end;
+		}
+		mes "[Guia do Éden]";
+		mes "Muito bem. Retorne quando estiver pronto para subir mais um degrau.";
+		close;
+}
+/
+//========================================================================================
+//mapa main
+//========================================================================================
+prontera,148,186,5	script	Grande Salão#1	651,{
+
+	OnTouch:
+		mes "^339966[Guardião do Portal]^000000";
+		mes "O Portal do 2º Herói não é um lugar comum...";
+		mes "É onde os corajosos se reúnem para desafiar o impossível.";
+		mes " ";
+		mes "Deseja mesmo atravessar os portões e seguir para Herosria?";
+		next;
+		if(select("^3CB371[>]^000000 Sim, estou pronto!:^ff0000[>]^000000 Não, ainda não.") == 1) {
+			close2;
+			specialeffect2 1062;
+			sleep2 1000;
+			warp "hero_ent2", 90, 81;
+			end;
+		}
+		mes "^339966[Guardião do Portal]^000000";
+		mes "Volte quando seu coração estiver decidido.";
+		close;
+}
+
+moc_para01,25,44,4	duplicate(Eden#1)	Main Office#1#eden	10584
+
+hero_ent2,99,91,0	script	Cheffenia#2	844,{
+	OnTouch:
+		warp "hero_ent2",146,106;
+		end;
+}
+
+hero_ent2,80,91,0	script	Laboratorio das Almas#3	844,{
+	OnTouch:
+		warp "hero_ent2",34,106;
+		end;
+}
+
+hero_ent2,80,72,0	script	Minas Especiais#4	844,{
+	OnTouch:
+		warp "hero_ent2",55,34;
+		end;
+}
+
+hero_ent2,99,72,0	script	Mapa Sombrio#5	844,{
+	OnTouch:
+		warp "hero_ent2",123,34;
+		end;
+}
+
+hero_ent2,89,96,4	script	Instancias#6	10096,{
+	OnTouch:
+		warp "hero_ent2",89,149;
+		end;
+}
+
+//========================================================================================
+// Portal mapa sombrio sombrio
+//========================================================================================
+hero_ent2,132,25,4	script	Portal da Escuridão#1	844,{
+
+	mes "^5F04B4[Guardião do Véu Sombrio]^000000";
+	mes "Você sente um arrepio na espinha...";
+	mes "Este portal pulsa com energia obscura, como se algo estivesse tentando atravessá-lo.";
+	mes "Além dele, jaz a ^FF0000Dimensão da Escuridão^000000 — um lugar onde a luz não alcança.";
+
+	mes "Criaturas sombrias, corrompidas pelo esquecimento, vagam por esse mundo esquecido.";
+	mes "Dizem que aqueles que sobrevivem podem obter ^8800C6equipamentos sombrios únicos forjados nas trevas.";
+
+	mes "^000000^i[24320]^i[24321]^i[24322]^i[24326]^i[24327]^i[24328]";
+
+	mes "Mas ninguém entra de graça...";
+	mes "Será necessário um tributo de ^8B0000500.000 Zeny^000000 para manter o portal estável por tempo suficiente.";
+	setdialogalign(DIALOG_ALIGN_MIDDLE);
+	setdialogalign(DIALOG_ALIGN_CENTER);
+	setdialogsize(400,350);
+
+	if (select("Pagar e atravessar:Desistir") == 2) close;
+
+	if (Zeny < 500000) {
+		mes "^FF0000Você não possui Zeny suficiente.^000000";
+		close;
+	}
+
+	Zeny -= 500000;
+
+	specialeffect2 EF_SPHERE;
+	specialeffect2 EF_DARKBREATH;
+	specialeffect 1062;
+	specialeffect2 1062;
+	mes "Que as sombras o acompanhem...";
+
+	sleep2 1000;
+
+	warp "1@bamn",197,279;
+	end;
+}
+
+hero_ent2,122,33,4	script	Fantasma Sussurrante#escuridao	10029,{
+
+	mes "^777777[Sussurro nas Sombras]^000000";
+	mes "Você sente... uma presença.";
+	mes "Não física. Algo além deste mundo — olhando diretamente para sua alma.";
+
+	next;
+	mes "Eu observei você.";
+	mes "Vejo coragem... ou talvez apenas tolice.";
+	mes "Há algo que dorme neste mapa, algo moldado pelas trevas mais profundas.";
+
+	next;
+	mes "Seu nome foi esquecido.";
+	mes "Mas sua fome por vida ainda queima.";
+	mes "Você deseja despertá-lo? Deseja testá-lo... e ser testado?";
+
+	next;
+	mes "^8800C6Se conseguir derrotá-lo,^000000";
+	mes "eu abrirei um caminho daqui mesmo...";
+	mes "Um véu ainda mais denso de trevas, onde apenas os obstinados podem entrar.";
+
+	next;
+	mes "Lá, jazem relíquias adormecidas — ^i[23720]^00FFFFcaixas seladas que podem encantar equipamentos corrompidos pelas sombras^000000.";
+	mes "Mas saiba: nem todo eco que você ouvir será o seu...";
+
+	close;
+}
+
+1@bamn,0,0	monster	Evil Shadow#1	2939,115,60000,30000
+1@bamn,0,0	monster	Evil Shadow#2	2940,115,60000,30000
+1@bamn,0,0	monster	Evil Shadow#3	2941,115,60000,30000
+1@bamn,0,0	monster	Evil Shadow#4	2942,115,60000,30000
+1@bamn,0,0	monster	Evil Shadow#5	3481,115,60000,30000
+1@bamn,0,0	monster	Evil Shadow#6	3482,115,60000,30000
+1@bamn,0,0	monster	Evil Shadow#7	3483,115,60000,30000
+
+//========================================================================================
+//Portal Cheffenia
+//========================================================================================
+hero_ent2,159,105,4	script	Portal da Cheffenia	844,3,3,{
+
+	OnTouch:
+		mes "^FF0000[Portal da Cheffenia]^000000";
+		mes "O ar treme... você sente presenças olhando através do véu.";
+		mes "Este é o limiar da ^FF0000Cheffenia^000000 — uma dimensão feita de batalha e repetição eterna.";
+		mes "A entrada requer um tributo: ^i[25000] ou 50.000.000 Zeny.";
+		mes "Deseja atravessar?";
+		setdialogalign(DIALOG_ALIGN_MIDDLE);
+		setdialogalign(DIALOG_ALIGN_CENTER);
+		setdialogsize(400,300);
+
+		.@option = select("Usar Pedra Dimensional (ID 25000):Pagar 50.000.000 Zeny:Cancelar");
+		if (.@option == 3) close;
+
+		if (.@option == 1) {
+			if (countitem(25000) < 1) {
+				mes "Você não possui uma Pedra Dimensional.";
+				close;
+			}
+			delitem 25000, 1;
+			specialeffect EF_BASH;
+			specialeffect2 EF_STORMGUST;
+			sleep2 1000;
+		} else {
+			if (Zeny < 50000000) {
+				mes "Você não possui Zeny suficiente.";
+				close;
+			}
+			Zeny -= 50000000;
+			specialeffect 1062;
+			specialeffect2 1062;
+			sleep2 1000;
+		}
+
+		mes "Boa sorte em sua caçada... você tem 1 hora!";
+		specialeffect2 EF_TELEPORT;
+		set @map_farm$, "ba_lost";
+		warp @map_farm$, 161, 317;
+
+		// Timer para expulsar após 1 hora (3600000 ms)
+		addtimer 3600000, strnpcinfo(3)+"::OnKickOut";
+		close;
+
+	OnKickOut:
+		if (strcharinfo(3) == @map_farm$) {
+			warp "SavePoint", 0, 0;
+			dispbottom "Seu tempo em Cheffenia terminou. Você foi removido.";
+		}
+		end;
+}
+
+-	script	BaLost_Walls	-1,{
+	OnInit:
+		// Paredes verticais em ba_lost
+		setcell "ba_lost", 142,313, 142,321, cell_walkable, 0;
+		setcell "ba_lost", 181,313, 181,321, cell_walkable, 0;
+		end;
+}
+
+ba_lost,180,317,0	warp	chefenia1	1,1,ba_lost,188,317
+ba_lost,144,317,0	warp	chefenia2	1,2,ba_lost,136,317
+ba_lost,184,317,0	warp	chefenia3	1,3,ba_lost,176,317
+ba_lost,140,317,0	warp	chefenia4	1,4,ba_lost,148,317
+ba_lost,156,313,0	warp	chefenia5	1,5,ba_lost,149,289
+ba_lost,152,293,0	warp	chefenia6	1,6,ba_lost,160,313
+ba_lost,167,313,0	warp	chefenia7	1,7,ba_lost,178,284
+ba_lost,174,290,0	warp	chefenia8	1,8,ba_lost,163,313
+
+//========================================================================================
+//NPCs Cheffenia
+//========================================================================================
+hero_ent2,157,101,2	script	Cavaleiro Veterano#cheffenia	10582,{
+
+	mes "^1E90FF[Cavaleiro da Última Vigília]^000000";
+	mes "Você vai entrar na Cheffenia?";
+	mes "Então ouça minhas palavras — pois eu estive lá.";
+
+	next;
+	mes "Estive... e retornei.";
+	mes "Poucos podem dizer o mesmo.";
+
+	next;
+	mes "Lá dentro, o tempo não existe.";
+	mes "É um campo de guerra eterno, onde os maiores MVPs que já caminharam por Midgard travam batalhas sem fim.";
+
+	next;
+	mes "Não é apenas força o que você enfrentará, mas a memória viva do poder.";
+	mes "Se cair, cairá entre lendas.";
+
+	next;
+	mes "Mas se vencer... poderá conquistar aquilo que todo aventureiro deseja:";
+	mes "^FFD700Cartas lendárias.^000000";
+	mes "^i[4399]^i[4147]^i[4407]^i[4430]^i[4367]^i[4374]^i[4135]";
+	mes "^FF6347Energias raras, forjadas do combate eterno.^000000";
+	mes "^00CED1Recursos que só existem onde o tempo sangra.^000000";
+
+	next;
+	mes "Se sua lâmina não vacilar e sua alma não quebrar...";
+	mes "Então entre, e prove que merece ser lembrado.";
+
+	close;
+}
+
+malangdo,227,256,4	script	Spawn Andável Teste	123,{
+	mes "Iniciando spawn com delay aleatório em ^0000FFmalangdo^000000...";
+	if (!.spawn_running) {
+		.spawn_running = true;
+		.SpawnCount = 0;
+		.MaxSpawn = 10;
+		donpcevent strnpcinfo(3) + "::OnSpawnTick";
+	} else {
+		mes "O sistema já está rodando.";
+	}
+	close;
+
+OnSpawnTick:
+	if (.SpawnCount >= .MaxSpawn) end;
+
+	set .@tries, 0;
+	set .@found, 0;
+	while (.@tries < 100 && !.@found) {
+		.@x = rand(0, 299);
+		.@y = rand(0, 299);
+		if (checkcell("malangdo", .@x, .@y, cell_walkable) == 0) {
+			.@found = 1;
+			monster "malangdo", .@x, .@y, "Poring Livre", 1002, 1, strnpcinfo(3)+"::OnMobDie";
+			.SpawnCount++;
+		}
+		.@tries++;
+	}
+
+	if (.@found) {
+		setnpctimer rand(100, 5000); // 1 a 10 segundos
+		initnpctimer;
+	}
+	end;
+
+OnTimer100:
+	donpcevent strnpcinfo(3) + "::OnSpawnTick";
+	end;
+
+OnMobDie:
+	if (.SpawnCount > 0) {
+		.SpawnCount--;
+	}
+	end;
+
+OnResetCount:
+	.SpawnCount = 0;
+	end;
+}
+
+//========================================================================================
+//BIO4
+//========================================================================================
+hero_ent2,22,105,4	script	Portal do Laboratorio	844,3,3,{
+
+	OnTouch:
+	mes "^800000[Portal para o Abismo de Lighthalzen]^000000";
+	mes "O ar aqui vibra... como se o próprio tempo hesitasse em continuar.";
+	mes "Dizem que este é o último resquício de sanidade antes da queda.";
+
+	mes "Atrás deste véu, jaz o ^FF0000Laboratório de Bioengenharia^000000.";
+	mes "Uma ruína viva, onde a ciência ignorou a alma e a ambição moldou horrores.";
+
+	mes "Heróis clonados, corrompidos por experimentos... eles vivem, lutam, ^8800C6e lembram^000000.";
+	mes "Entrar ali é assinar um pacto com o desconhecido.";
+
+	mes "Deseja mesmo atravessar?";
+	mes "Será necessário ^i[25000] ou ^8B000050.000.000 Zeny^000000 para estabilizar a fissura temporal.";
+	setdialogalign(DIALOG_ALIGN_MIDDLE);
+	setdialogalign(DIALOG_ALIGN_CENTER);
+	setdialogsize(400,350);
+
+	switch(select("Entrar com Pedra Dimensional:Pagar com Zeny:Voltar atrás")) {
+		case 1:
+			if (countitem(25000) < 1) {
+				mes "Você não possui uma Pedra Dimensional.";
+				close;
+			}
+			delitem 25000, 1;
+			break;
+		case 2:
+			if (Zeny < 50000000) {
+				mes "Você não possui Zeny suficiente.";
+				close;
+			}
+			Zeny -= 50000000;
+			break;
+		case 3:
+			mes "A prudência pode salvar mais vidas que uma espada.";
+			close;
+	}
+
+	specialeffect 1062;
+	specialeffect2 1062;
+	specialeffect 1025;
+	sleep2 2000;
+	mes "Boa sorte, viajante... e que os ecos não o reconheçam.";
+	warp "lhz_dun04",245,62;
+	end;
+}
+
+//========================================================================================
+// lhz_dun04 - sobrevivente
+//========================================================================================
+hero_ent2,22,100,4	script	Sobrevivente do BioLab#1	10594,{
+
+	mes "^B22222[Sobrevivente de Lighthalzen]^000000";
+	mes "*ofegante...*";
+	mes "Você não... deveria estar aqui perto desse portal.";
+
+	next;
+	mes "Lá dentro...";
+	mes "Lá dentro é o lugar mais ^FF0000aterrorizante, antinatural e amaldiçoado^000000 que já vi.";
+	mes "Eu estive lá. Mas... eu não deveria ter voltado.";
+
+	next;
+	mes "Eles não são monstros.";
+	mes "São ^8800C6reflexos distorcidos de heróis^000000... cópias que sangram, que gritam, que lembram...";
+
+	next;
+	mes "Vi com meus próprios olhos ^00CED1fragmentos mágicos^000000 — pedras pulsando com memórias de combate.";
+	mes "Dizem que contêm as almas... as experiências...";
+
+	next;
+	mes "Alguém insano o bastante poderia tentar absorver esse poder.";
+	mes "^FF8800Você é um deles?^000000";
+	mes "Se for, reze para que os ecos não te reconheçam.";
+
+	close;
+}
+
+//========================================================================================
+// lhz_dun04 - Bio-life Labs 4F
+//========================================================================================
+lhz_dun04,0,0	monster	Randel	2221,42,5000
+lhz_dun04,0,0	monster	Flamel	2222,42,5000
+lhz_dun04,0,0	monster	Celia	2223,81,5000
+lhz_dun04,0,0	monster	Chen	2224,42,5000
+lhz_dun04,0,0	monster	Gertie	2225,57,5000
+lhz_dun04,0,0	monster	Alphoccio	2226,42,5000
+lhz_dun04,0,0	monster	Trentini	2227,42,5000
+lhz_dun04,0,0	monster	Paladin Randel	2228,1,3300000,3000000
+lhz_dun04,0,0	monster	Creator Flamel	2229,1,3300000,3000000
+lhz_dun04,0,0	monster	Professor Celia	2230,1,3300000,3000000
+lhz_dun04,0,0	monster	Champion Chen	2231,1,3300000,3000000
+lhz_dun04,0,0	monster	Stalker Gertie	2232,1,3300000,3000000
+lhz_dun04,0,0	monster	Clown Alphoccio	2233,1,3300000,3000000
+lhz_dun04,0,0	monster	Gypsy Trentini	2234,1,3300000,3000000
+
+lhz_dun04,0,0,0	script	mvp_lhz_dun04	-1,{
+OnTimer6000000: // delay1 = 6000000 ms (100 min)
+	stopnpctimer;
+	sleep rand(0,30)*60000; // 0 to 30 minutes
+OnInit:
+	// Select Coordinates to summon a random MVP on
+	switch(rand(1,7)) {
+		case 1:  set .@x,77;   set .@y,251;  break;
+		case 2:  set .@x,147;  set .@y,224;  break;
+		case 3:  set .@x,219;  set .@y,219;  break;
+		case 4:  set .@x,244;  set .@y,120;  break;
+		case 5:  set .@x,149;  set .@y,41;   break;
+		case 6:  set .@x,53;   set .@y,109;  break;
+		case 7:  set .@x,149;  set .@y,151;  break;
+	}
+	set .@mob,rand(2235,2241);
+	monster "lhz_dun04",.@x,.@y,getmonsterinfo(.@mob, MOB_NAME),.@mob,1,strnpcinfo(3)+"::OnLhzMvPDead";
+
+	// Select Coordinates to summon a random 99 on
+	switch(rand(1,7)) {
+		case 1:  set .@x2,77;   set .@y2,251;  break;
+		case 2:  set .@x2,147;  set .@y2,224;  break;
+		case 3:  set .@x2,219;  set .@y2,219;  break;
+		case 4:  set .@x2,244;  set .@y2,120;  break;
+		case 5:  set .@x2,149;  set .@y2,41;   break;
+		case 6:  set .@x2,53;   set .@y2,109;  break;
+		case 7:  set .@x2,149;  set .@y2,151;  break;
+	}
+	set .@mob2,rand(2228,2234);
+	monster "lhz_dun04",.@x2,.@y2,getmonsterinfo(.@mob2, MOB_NAME),.@mob2,1,strnpcinfo(3)+"::OnMy99Dead";
+	end;
+
+OnLhzMvPDead:
+	killmonster "lhz_dun04",strnpcinfo(3)+"::OnMy99Dead";
+	initnpctimer;
+OnMy99Dead:
+	end;
+}
+
+//========================================================================================
+//Portal das minas
+//========================================================================================
+
+hero_ent2,47,25,4	script	Portal das Minas#1	844,3,3,{
+
+	OnTouch:
+	mes "^FFAA00[Guardião das Minas]^000000";
+	mes "Você sente o ar vibrar... Uma fenda se abre entre as rochas.";
+	mes " ";
+	mes "Do outro lado, jazem as profundezas esquecidas onde os antigos anões mineravam relíquias...";
+	mes " ";
+	mes "Minérios como Oridecons, Eluniuns e até Benção do Ferreiro repousam entre as sombras.";
+	mes " ^i[6240] ^i[7620] ^i[6241] ^i[7619] ^i[6635]";
+	mes "Mas nada grandioso vem sem custo...";
+	mes " ";
+	mes "Para estabilizar o portal, preciso de ^8B0000500.000 Zeny^000000.";
+	mes "Está pronto para cruzar?";
+	setdialogalign(DIALOG_ALIGN_MIDDLE);
+	setdialogalign(DIALOG_ALIGN_CENTER);
+	setdialogsize(400,350);
+
+	if (select("Pagar e entrar:Cancelar") == 2) close;
+
+	if (Zeny < 500000) {
+		mes "^FF0000Você não possui Zeny suficiente.^000000";
+		close;
+	}
+
+	Zeny -= 500000;
+
+	specialeffect 1062;
+	specialeffect2 1062;
+	specialeffect 1025;
+	sleep2 2000;
+
+	mes "Que os espíritos das minas guiem sua jornada...";
+	warp "sp_rudus",194,258;
+	end;
+}
+
+sp_rudus,0,0	monster	Cobalt Mineral	1976,520,5000
+sp_rudus,0,0	monster	Mineral	1614,520,5000
+
+/*
+//==================================================
+// Monstros das minas gvg
+//==================================================
+sp_rudus,0,0	monster	Poisonous	20592,135
+sp_rudus,0,0	monster	Toxious	20593,135
+sp_rudus,0,0	monster	White Porcellio	20602,122
+sp_rudus,0,0	monster	Green Mineral	20594,140
+sp_rudus,0,0	monster	Red Mineral	20595,140
+sp_rudus,0,0	monster	White Mineral	20596,140
+sp_rudus,0,0	monster	Purple Mineral	20597,140
+sp_rudus,0,0	monster	Abyssman	20603,120
+
+sp_rudus2,0,0	monster	Green Mineral	20594,140
+sp_rudus2,0,0	monster	Red Mineral	20595,140
+sp_rudus2,0,0	monster	White Mineral	20596,140
+sp_rudus2,0,0	monster	Purple Mineral	20597,140
+sp_rudus2,0,0	monster	Jeweliant	20598,120
+sp_rudus2,0,0	monster	Jewel	20600,13
+sp_rudus2,0,0	boss_monster	Jungoliant	20601,1,7200000,600000
+*/

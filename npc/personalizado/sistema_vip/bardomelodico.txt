@@ -1,0 +1,177 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                    BARDO MELÓDICO
+//===============================================================
+
+//========================================================================================
+// Bardo Melódico - Versão com Efeitos Visuais de Canção
+//========================================================================================
+
+1@herbs,322,92,6	script	Bardo Melódico	51,4,4,{
+	
+OnInit:
+    set .buff_duration, 1200; // 20 minutos
+    set .song_duration, 300; // 5 minutos de canção
+    setunitdata getnpcid(0), UNPC_GROUP_ID, 84;	
+    setunittitle getnpcid(0), "[Canção Especial]";
+    
+    // Configuração para usar habilidades (INT e DEX)
+    setunitdata getnpcid(0), UNPC_INT, 600;
+    setunitdata getnpcid(0), UNPC_DEX, 600;
+    
+    // Loop de animação com efeitos especiais
+    while(1) {
+        
+        // Efeito visual de Dissonância (ID: 240) + Música de Crepúsculo Sangrento (ID: 2426)
+        // Usa unitskillusepos em posição distante para não afetar jogadores
+        specialeffect 277; // Dissonância visual no NPC
+        
+        sleep 60000; // A cada 60 segundos
+    }
+    end;
+
+OnTouch:
+    // Verifica se já está ouvindo a canção
+    if (bardo_listening) {
+        mes "^339966[Bardo Melódico]^000000";
+        mes "Você já está ouvindo minha canção...";
+        mes "Aguarde até o final para receber a bênção!";
+        close;
+    }
+    
+    mes "^339966[Bardo Melódico]^000000";
+    mes "Ah... uma alma errante em busca de poder ou poesia?";
+    specialeffect2 234; // Efeito musical ao iniciar diálogo
+    next;
+    
+    mes "^339966[Bardo Melódico]^000000";
+    mes "Sente-se, aventureiro! Feche os olhos...";
+    mes "Deixe que minha canção guie seu espírito por entre as brumas do destino.";
+    mes "Aqueles que ouvirem até a última nota... serão tocados por bênções antigas.";
+    next;
+    
+    mes "^339966[Bardo Melódico]^000000";
+    mes "Deseja ouvir a melodia até o fim?";
+    mes "^ff6600(Você ficará TRAVADO no lugar durante a canção!)^000000";
+    if (select("^339966[>]^000000 Sim, quero ouvir.","^ff0000[>] Não, outra hora.^000000") == 2) close;
+    
+    // Inicia a canção de forma assíncrona
+    set bardo_listening, 1;
+    set bardo_time_left, .song_duration;
+    
+    // Efeito visual de início da canção - Dissonance (ondas sonoras)
+    specialeffect2 240;
+    next;
+    
+    mes "^339966[Bardo Melódico]^000000";
+    mes "A melodia começa...";
+    mes "^ff6600Você não poderá se mover até o fim da canção!^000000";
+    mes "A canção durará 5 minutos.";
+    
+    // TRAVA O PERSONAGEM
+    setpcblock PCBLOCK_MOVE, 1;
+    
+    close2;
+    
+    // Inicia o timer
+    addtimer 1000, strnpcinfo(3)+"::OnSongTick";
+    end;
+
+OnSongTick:
+    if (!bardo_listening) end;
+    
+    set bardo_time_left, bardo_time_left - 1;
+    
+    if (bardo_time_left <= 0) {
+        // Canção terminou
+        set bardo_listening, 0;
+        
+        // DESTRAVA O PERSONAGEM
+        setpcblock PCBLOCK_MOVE, 0;
+        
+        // Efeito de conclusão - Reverberation (explosão musical)
+        specialeffect2 565;
+        sleep2 500;
+        specialeffect2 75;  // Blessing effect
+        sleep2 500;
+        specialeffect2 361; // Angelus effect
+        sleep2 500;
+        specialeffect2 72;  // Increase AGI effect
+        sleep2 500;
+        specialeffect2 88;  // Level up effect
+        
+        // Aplica o buff automaticamente
+        bonus_script "{ bonus2 bExpAddRace,RC_All,10; bonus2 bDropAddRace,RC_All,20; }", .buff_duration, 1, 0, EFST_OVERLAPEXPUP;
+        
+        dispbottom "Bênção do Bardo Melódico recebida!";
+        dispbottom "+10% EXP e +20% Drop por 20 minutos!";
+        dispbottom "Você pode se mover novamente!";
+        end;
+    }
+    
+    // Mostra mensagem a cada segundo
+    dispbottom "[Melodia do Bardo]: Faltam " + bardo_time_left + " segundos...";
+    
+    // Efeito visual a cada 30 segundos - notas musicais
+    if (bardo_time_left % 30 == 0) {
+        specialeffect2 233; // Bragi's Poem effect
+    }
+    
+    // Mensagem especial a cada minuto
+    if (bardo_time_left % 60 == 0) {
+        dispbottom "[Bardo Melódico]: " + (bardo_time_left / 60) + " minuto(s) restante(s).";
+        specialeffect2 305; // Apple of Idun effect
+    }
+    
+    // Continua o timer
+    addtimer 1000, strnpcinfo(3)+"::OnSongTick";
+    end;
+
+// Menu principal com opções
+OnInteract:
+    if (bardo_listening) {
+        mes "^339966[Bardo Melódico]^000000";
+        mes "Você ainda está ouvindo minha canção...";
+        mes "Tempo restante: ^ff6600" + bardo_time_left + " segundos^000000";
+        specialeffect2 233; // Nota musical
+        next;
+        
+        mes "^339966[Bardo Melódico]^000000";
+        mes "Deseja ^ff0000cancelar^000000 a canção?";
+        mes "^999999(Você será desbloqueado se cancelar)^000000";
+        if (select("^339966[>]^000000 Não, vou continuar","^ff0000[>] Sim, cancelar^000000") == 2) {
+            set bardo_listening, 0;
+            set bardo_time_left, 0;
+            deltimer strnpcinfo(3)+"::OnSongTick";
+            
+            // DESTRAVA O PERSONAGEM ao cancelar
+            setpcblock PCBLOCK_MOVE, 0;
+            
+            specialeffect2 183; // Efeito de cancelamento
+            mes "Canção cancelada.";
+            mes "Você pode se mover novamente.";
+        }
+        close;
+    }
+    
+    // Se não está ouvindo, inicia do zero
+    goto OnTouch;
+}
+
+1@herbs,322,92,6	script	#bardomelocido	111,{
+
+OnInit:
+
+	while(1) {
+	showscript "[ Bardo Melódico ]", getnpcid(0);
+	sleep 100;
+}
+end;
+}

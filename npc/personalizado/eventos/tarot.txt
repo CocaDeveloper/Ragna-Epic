@@ -1,0 +1,431 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                     EVENTO TAROT
+//===============================================================
+
+1@herbs,318,50,3	script	Evento Tarot	678,{
+
+	set .@GMLevel,60;	// Nível GM necessário para acessar o painel admin
+	set .@n$,"^FF1493[Evento Tarot]^000000";
+
+	// Painel Administrativo
+	if (getgmlevel()>=.@GMLevel) {
+		mes .@n$;
+		mes "Painel Administrativo";
+		mes "Status: " + ($tarot_status ? "^00FF00ATIVO^000000" : "^FF0000INATIVO^000000");
+		next;
+		switch(select("^339966[»]^000000 Iniciar Evento:^339966[»]^000000 Parar Evento:^339966[»]^000000 Menu Jogador")) {
+		case 1:
+			mes .@n$;
+			if ($tarot_status) {
+				mes "O evento já está ativo!";
+				close;
+			}
+			mes "Deseja iniciar o Evento Tarot manualmente?";
+			if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+			
+			donpcevent "Tarot_Event::OnAdminStart";
+			next;
+			mes .@n$;
+			mes "Evento Tarot foi iniciado manualmente!";
+			close;
+		case 2:
+			mes .@n$;
+			if (!$tarot_status) {
+				mes "O evento não está ativo!";
+				close;
+			}
+			mes "Deseja parar o evento?";
+			mes "Isso cancelará o evento imediatamente.";
+			if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+			
+			donpcevent "Tarot_Event::OnAdminStop";
+			next;
+			mes .@n$;
+			mes "Evento parado com sucesso!";
+			close;
+		case 3:
+			// Continua para o menu normal do jogador
+			break;
+		}
+	}
+
+	// Menu normal para jogadores
+	mes .@n$;
+	mes "Olá, ^ffa500"+strcharinfo(0)+"!^000000";
+	mes "Está afim de testar sua sorte nas cartas?";
+	mes " ";
+	mes "Você possui ^ff0000"+pontosevento+"^000000 pontos de evento.";
+	next;
+	switch(select("^339966[»]^000000 Participar do Evento:^339966[»]^000000 Premiação:^339966[»]^000000 Horários:^ff0000[»] Cancelar^000000")) {
+
+		case 1:
+			if (!$tarot_status) {
+				mes .@n$;
+				mes "^ff0000O evento não está ativo no momento.^000000";
+				close;
+			}
+
+			for (.@i = 0; .@i < getarraysize($@tarot_participantes$); .@i++) {
+				if ($@tarot_participantes$[.@i] == strcharinfo(0)) {
+					mes .@n$;
+					mes "Você já está registrado.";
+					close;
+				}
+			}
+
+			$@tarot_participantes$[getarraysize($@tarot_participantes$)] = strcharinfo(0);
+			announce "[Tarot]: O jogador "+strcharinfo(0)+" se inscreveu no evento.", bc_all | bc_yellow;
+			close;
+
+		case 2:
+			mes .@n$;
+			mes "^ff0000Premiação:^000000";
+			for (.@i = 0; .@i < getarraysize($@premiacaoITEM); .@i++) {
+				mes $@premiacaoQUANT[.@i] + "x " + getitemname($@premiacaoITEM[.@i]);
+			}
+			mes "+3 Pontos de Evento para o vencedor.";
+			mes "+1 Pontos de Evento para participantes.";
+			close;
+
+		case 3:
+			mes .@n$;
+			mes "O evento acontece às:";
+			mes "• ^ffa50003H00min^000000";
+			mes "• ^ffa50007H00min^000000";
+			mes "• ^ffa50012H00min^000000";
+			mes "• ^ffa50016H00min^000000";
+			mes "• ^ffa50021H00min^000000";
+			mes "Horário do servidor.";
+			close;
+
+		case 4:
+			close;
+	}
+
+OnInit:
+	.namenpc$ = "^FF1493[Evento Tarot]^000000";
+	setarray $@mapeventtarot$, "gon_test", 57, 86;
+	$@mintarot_participantes = 2;  // Mínimo de 2 participantes
+	$@lvminGM = 60;
+	// CORREÇÃO: Definindo corretamente a premiação (5 unidades do item 1001007)
+	setarray $@premiacaoITEM, 1001007;
+	setarray $@premiacaoQUANT, 5;
+	
+	callfunc("resetEventoTarot", $@tarot_participantes$, $@mapeventtarot$[0]);
+	
+	// Mapflags básicas
+	setarray .@mapflag,
+		mf_nowarp,
+		mf_nowarpto,
+		mf_noskill,
+		mf_noteleport,
+		mf_nomemo,
+		mf_nosave,
+		mf_noicewall,
+		mf_nobranch,
+		mf_noreturn;
+		
+	for (.@i = 0; .@i < getarraysize(.@mapflag); .@i++)
+		setmapflag $@mapeventtarot$[0], .@mapflag[.@i];
+	
+	// Desabilita a Cartomante no início (evento inativo)
+	disablenpc "Cartomante";
+
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 1009;	
+		setunittitle getnpcid(0), "[Rune-Midgard]";
+
+		while(1) {
+		showscript "[ Evento Tarot ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+-	script	Tarot_Event	-1,{
+
+OnClock0300:
+OnClock0700:
+OnClock1200:
+OnClock1600:
+OnClock2100:
+OnStart:
+	$tarot_status = 1;
+	// Habilita a Cartomante quando o evento inicia
+	enablenpc "Cartomante";
+	
+	for (.@t = 3; .@t > 0; .@t--) {
+		if (!$tarot_status || agitcheck() || agitcheck2()) {
+			callfunc("resetEventoTarot", $@tarot_participantes$, $@mapeventtarot$[0]);
+			end;
+		}
+		announce "[Tarot]: O evento começará em "+(.@t*20)+" segundos!", bc_all;
+		sleep 25000;
+	}
+	
+	if (getarraysize($@tarot_participantes$) < $@mintarot_participantes) {
+		announce "[Tarot]: Participantes insuficientes... Mínimo: "+$@mintarot_participantes+" jogadores.", bc_all;
+		callfunc("resetEventoTarot", $@tarot_participantes$, $@mapeventtarot$[0]);
+		end;
+	}
+
+	$tarot_status = 0;
+	for (.@p = 0; .@p < getarraysize($@tarot_participantes$); .@p++) {
+		if (isloggedin(getcharid(3, $@tarot_participantes$[.@p])))
+			warpchar $@mapeventtarot$[0], atoi($@mapeventtarot$[1]), atoi($@mapeventtarot$[2]), getcharid(0, $@tarot_participantes$[.@p]);
+		else
+			deletearray $@tarot_participantes$[.@p], 1;
+	}
+	
+	// Bloqueia comandos para jogadores comuns (libera apenas para GMs 60+)
+	setmapflag $@mapeventtarot$[0], mf_nocommand, 60;
+	
+	announce "[Tarot]: Entrada encerrada... O Evento Tarot começou!!", bc_all | bc_yellow;
+	sleep 7000;
+	donpcevent "Cartomante::OnSpeak";
+	end;
+
+// Labels administrativos
+OnAdminStart:
+	if ($tarot_status) end; // Evita iniciar se já estiver ativo
+	$tarot_status = 1;
+	// Habilita a Cartomante quando o evento é iniciado manualmente
+	enablenpc "Cartomante";
+	announce "[Tarot]: O Evento Tarot começará em breve... Para participar, digite: @eventos, fale com o npc e inscreva-se!!", bc_all | bc_yellow;
+	goto OnStart;
+
+OnAdminStop:
+	announce "[Tarot]: Um ADM parou o Evento Tarot. Até a próxima!!", bc_all | bc_yellow;
+	callfunc("resetEventoTarot", $@tarot_participantes$, $@mapeventtarot$[0]);
+	end;
+
+OnTarotRound:
+	while (getarraysize($@tarot_participantes$) > 1) {
+		sleep 1000;
+		
+		// NPC anuncia nova rodada
+		donpcevent "Cartomante::OnAnnounceRound";
+		sleep 1500;
+		
+		for (.@i = 0; .@i < getarraysize($@tarot_participantes$); .@i++) {
+			attachrid(getcharid(3, $@tarot_participantes$[.@i]));
+			if (strcharinfo(3) == $@mapeventtarot$[0]) {
+				.@card = 522 + rand(1,14);
+				specialeffect2 .@card;
+				
+				if (.@card == 531) {
+					// Remove o jogador do evento
+					deletearray $@tarot_participantes$[.@i], 1;
+					.@i--; // Ajusta o índice após remoção
+					
+					percentheal -99,-99;
+					set pontosevento,pontosevento+1;  // +1 pontos de evento por participar
+					dispbottom "[Tarot]: Você recebeu +1 ponto de evento por participação.";
+					
+					// NPC anuncia eliminação
+					set $@eliminated_player$, strcharinfo(0);
+					donpcevent "Cartomante::OnPlayerEliminated";
+					
+					sleep2 1500;
+					warp "prontera",155,191;
+				} else {
+					// Jogador teve sorte na carta
+					dispbottom "[Tarot]: Você teve sorte com a carta!";
+				}
+			}
+			detachrid;
+		}
+		
+		// Verifica se restou apenas 1 jogador
+		if (getarraysize($@tarot_participantes$) <= 1) break;
+		
+		// Intervalo entre rodadas
+		sleep 1000;
+	}
+
+	sleep 2000;
+	
+	// PROTEÇÃO: Verifica se há exatamente 1 vencedor E se ele ainda não recebeu prêmio
+	if (getarraysize($@tarot_participantes$) == 1 && !$@tarot_premio_entregue) {
+		
+		// MARCA que o prêmio está sendo entregue para evitar duplicatas
+		$@tarot_premio_entregue = 1;
+		
+		attachrid(getcharid(3, $@tarot_participantes$[0]));
+		if (strcharinfo(3) == $@mapeventtarot$[0]) {
+			// NPC anuncia o vencedor
+			set $@winner_name$, strcharinfo(0);
+			donpcevent "Cartomante::OnAnnounceWinner";
+			
+			announce "[Tarot]: O jogador " + strcharinfo(0) + " foi o vencedor!", bc_all | bc_yellow;
+			specialeffect2 EF_ANGEL;
+			
+			// ENTREGA DIRETA E ÚNICA - SEM LOOP
+			// Entrega exatamente 5 unidades do item 1001007
+			getitem 1001007, 5;
+			message strcharinfo(0), "Você recebeu 5x " + getitemname(1001007);
+			
+			set pontosevento, pontosevento + 3;  // +3 pontos de evento por vencer
+			dispbottom "[Tarot]: Você recebeu +3 pontos de evento por vencer o Tarot.";
+			
+			sleep2 3000;
+			warp "prontera", 155, 191;
+		}
+		detachrid;
+	}
+	
+	callfunc("resetEventoTarot", $@tarot_participantes$, $@mapeventtarot$[0]);
+	end;
+
+OnStop:
+	announce "[Tarot]: O evento foi cancelado!", bc_all | bc_yellow;
+	callfunc("resetEventoTarot", $@tarot_participantes$, $@mapeventtarot$[0]);
+	end;
+}
+
+gon_test,57,90,5	script	Cartomante	678,{
+
+	// Adiciona verificação de clique durante o evento
+	if (.event_running) {
+		mes "^FF1493[Cartomante]^000000";
+		mes "O evento está em andamento.";
+		mes "Aguarde até o final para poder conversar comigo!";
+		close;
+	}
+	
+	// Se não há evento rodando, permite interação normal
+	mes "^FF1493[Cartomante]^000000";
+	mes "Olá! Eu sou a famosa Cartomante!";
+	mes "Minhas cartas podem revelar o futuro...";
+	mes "Ou levá-lo direto ao passado!";
+	mes "Aguarde o próximo evento para testar sua sorte!";
+	close;
+
+OnSpeak:
+	// Marca que o evento está rodando
+	.event_running = 1;
+	
+	setarray .msgs$, 
+		"Bem-vindos ao meu Salão Místico!", 
+		"O Destino das Cartas estão em suas mãos!", 
+		"Preparem-se para descobrir o que o futuro reserva!", 
+		"Que a sorte esteja com vocês!",
+		"TARÔÔÔÔÔ!! TARÔÔÔÔÔÔÔ!!!";
+	
+	for (.@i = 0; .@i < getarraysize(.msgs$); .@i++) {
+		npctalk .msgs$[.@i];
+		sleep 3000;
+	}
+	
+	// Inicia o movimento do NPC
+	donpcevent "Cartomante::OnStartMovement";
+	
+	donpcevent "Tarot_Event::OnTarotRound";
+	end;
+
+OnAnnounceRound:
+	npctalk "TARÔÔÔÔÔ!! TARÔÔÔÔÔÔÔ!!!";
+	end;
+
+OnPlayerEliminated:
+	npctalk $@eliminated_player$ + " teve azar nas cartas!";
+	npctalk "O destino não foi favorável desta vez!";
+	end;
+
+OnPlayerLeft:
+	npctalk $@eliminated_player$ + " saiu do evento.";
+	npctalk "Que pena... As cartas ainda tinham muito a revelar!";
+	end;
+
+OnAnnounceWinner:
+	npctalk "Incrível! " + $@winner_name$ + " dominou o Destino das Cartas!";
+	npctalk "Parabéns, você é um verdadeiro mestre do Tarot!";
+	npctalk "É o nosso grande vencedor!";
+	end;
+
+OnInit:
+	// Define posição inicial e limites de movimento
+	.start_x = 57;
+	.start_y = 90;
+	.move_range = 4;  // 4 células para cada lado
+	.moving = 0;      // Flag de controle de movimento
+	.direction = 1;   // 1 = direita, 0 = esquerda
+	.event_running = 0; // Flag para controlar se o evento está rodando
+	end;
+
+OnStartMovement:
+	.moving = 1;
+	donpcevent "Cartomante::OnMove";
+	end;
+
+OnStopMovement:
+	.moving = 0;
+	.event_running = 0; // Marca que o evento terminou
+	// Retorna para posição original
+	npcwalkto .start_x, .start_y;
+	end;
+
+OnMove:
+	if (!.moving) end;
+	
+	// Calcula próxima posição baseada na direção
+	if (.direction) {
+		// Movendo para direita
+		.@next_x = .start_x + .move_range;
+		npcwalkto .@next_x, .start_y;
+		.direction = 0; // Próxima vez vai para esquerda
+	} else {
+		// Movendo para esquerda
+		.@next_x = .start_x - .move_range;
+		npcwalkto .@next_x, .start_y;
+		.direction = 1; // Próxima vez vai para direita
+	}
+	
+	// Reagenda próximo movimento em 3 segundos
+	sleep 3000;
+	if (.moving) donpcevent "Cartomante::OnMove";
+	end;
+}
+
+-	script	tarot_events	-1,{
+
+OnPCDieEvent:
+OnPCLogoutEvent:
+	if (strcharinfo(3) == $@mapeventtarot$[0]) {
+		for (.@i = 0; .@i < getarraysize($@tarot_participantes$); .@i++) {
+			if ($@tarot_participantes$[.@i] == strcharinfo(0)) {
+				deletearray $@tarot_participantes$[.@i], 1;
+				// NPC anuncia saída do jogador
+				set $@eliminated_player$, strcharinfo(0);
+				donpcevent "Cartomante::OnPlayerLeft";
+				warp getsavepoint(0), getsavepoint(1), getsavepoint(2);
+				sleep2 1500;
+				atcommand "@alive";
+				break;
+			}
+		}
+	}
+	end;
+}
+
+function	script	resetEventoTarot	{
+	deletearray getarg(0);
+	$tarot_status = 0;
+	mapwarp getarg(1), "prontera", 155, 191;
+	// Para o movimento da Cartomante
+	donpcevent "Cartomante::OnStopMovement";
+	// Remove o bloqueio de comandos
+	removemapflag getarg(1), mf_nocommand;
+	// Desabilita a Cartomante quando o evento termina
+	disablenpc "Cartomante";
+	return;
+}
+
+new_evt,175,186,3	duplicate(Evento Tarot)	Evento Tarot#new	678

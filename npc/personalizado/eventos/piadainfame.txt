@@ -1,0 +1,462 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                   EVENTO PIADA INFAME
+//===============================================================
+
+1@herbs,318,38,3	script	Piada Infame	625,{
+
+	set .@GMLevel,60;	// Nível GM necessário para acessar o painel admin
+	set .@n$,"^FF1493[Piada Infame]^000000";
+
+	// Painel Administrativo
+	if (getgmlevel()>=.@GMLevel) {
+		mes .@n$;
+		mes "Painel Administrativo";
+		mes "Status: " + ($piada_status ? "^00FF00ATIVO^000000" : "^FF0000INATIVO^000000");
+		next;
+		switch(select("^339966[»]^000000 Iniciar Evento:^339966[»]^000000 Parar Evento:^339966[»]^000000 Menu Jogador")) {
+		case 1:
+			mes .@n$;
+			if ($piada_status) {
+				mes "O evento já está ativo!";
+				close;
+			}
+			mes "Deseja iniciar o Evento Piada Infame manualmente?";
+			if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+			
+			donpcevent "Piada_Event::OnAdminStart";
+			next;
+			mes .@n$;
+			mes "Evento Piada Infame foi iniciado manualmente!";
+			close;
+		case 2:
+			mes .@n$;
+			if (!$piada_status) {
+				mes "O evento não está ativo!";
+				close;
+			}
+			mes "Deseja parar o evento?";
+			mes "Isso cancelará o evento imediatamente.";
+			if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+			
+			donpcevent "Piada_Event::OnAdminStop";
+			next;
+			mes .@n$;
+			mes "Evento parado com sucesso!";
+			close;
+		case 3:
+			// Continua para o menu normal do jogador
+			break;
+		}
+	}
+
+	// Menu normal para jogadores
+	mes .@n$;
+	mes "Olá, ^ffa500"+strcharinfo(0)+"!^000000";
+	mes "Está preparado para enfrentar as piadas mais infames do reino?";
+	mes " ";
+	mes "Você possui ^ff0000"+pontosevento+"^000000 pontos de evento.";
+	next;
+	switch(select("^339966[»]^000000 Participar do Evento:^339966[»]^000000 Premiação:^339966[»]^000000 Horários:^ff0000[»] Cancelar^000000")) {
+
+		case 1:
+			if (!$piada_status) {
+				mes .@n$;
+				mes "^ff0000O evento não está ativo no momento.^000000";
+				close;
+			}
+
+			for (.@i = 0; .@i < getarraysize($@piada_participantes$); .@i++) {
+				if ($@piada_participantes$[.@i] == strcharinfo(0)) {
+					mes .@n$;
+					mes "Você já está registrado.";
+					close;
+				}
+			}
+
+			$@piada_participantes$[getarraysize($@piada_participantes$)] = strcharinfo(0);
+			announce "[Piada Infame]: O jogador "+strcharinfo(0)+" se inscreveu no evento.", bc_all | bc_yellow;
+			close;
+
+		case 2:
+			mes .@n$;
+			mes "^ff0000Premiação:^000000";
+			for (.@i = 0; .@i < getarraysize($@premiacaoITEM); .@i++) {
+				mes $@premiacaoQUANT[.@i] + "x " + getitemname($@premiacaoITEM[.@i]);
+			}
+			mes "+3 Pontos de Evento para o vencedor.";
+			mes "+1 Pontos de Evento para participantes.";
+			close;
+
+		case 3:
+			mes .@n$;
+			mes "O evento acontece às:";
+			mes "• ^ffa50004H00min^000000";
+			mes "• ^ffa50008H00min^000000";
+			mes "• ^ffa50013H00min^000000";
+			mes "• ^ffa50017H00min^000000";
+			mes "• ^ffa50022H00min^000000";
+			mes "Horário do servidor.";
+			close;
+
+		case 4:
+			close;
+	}
+
+OnInit:
+	.namenpc$ = "^FF1493[Piada Infame]^000000";
+	setarray $@mapeventpiada$, "poring_w01", 101, 70;
+	$@minpiada_participantes = 2;  // Mínimo de 2 participantes
+	$@lvminGM = 60;
+	setarray $@premiacaoITEM, 1001007;
+	setarray $@premiacaoQUANT, 7;
+	
+	callfunc("resetEventoPiada", $@piada_participantes$, $@mapeventpiada$[0]);
+	
+	// Mapflags básicas
+	setarray .@mapflag,
+		mf_nowarp,
+		mf_nowarpto,
+		mf_noskill,
+		mf_noteleport,
+		mf_nomemo,
+		mf_nosave,
+		mf_noicewall,
+		mf_nobranch,
+		mf_noreturn;
+		
+	for (.@i = 0; .@i < getarraysize(.@mapflag); .@i++)
+		setmapflag $@mapeventpiada$[0], .@mapflag[.@i];
+		
+	// Desabilita o Bardo Comediante no início (evento inativo)
+	disablenpc "Bardo Comediante";
+	
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 1009;	
+	setunittitle getnpcid(0), "[Rune-Midgard]";
+
+	while(1) {
+	showscript "[ Piada Infame ]", getnpcid(0);
+	sleep 100;
+	}
+	end;
+}
+
+-	script	Piada_Event	-1,{
+
+OnClock0400:
+OnClock0900:
+OnClock1300:
+OnClock1700:
+OnClock2200:
+OnStart:
+	$piada_status = 1;
+	// Habilita o Bardo Comediante quando o evento inicia
+	enablenpc "Bardo Comediante";
+	
+	for (.@t = 3; .@t > 0; .@t--) {
+		if (!$piada_status || agitcheck() || agitcheck2()) {
+			callfunc("resetEventoPiada", $@piada_participantes$, $@mapeventpiada$[0]);
+			end;
+		}
+		announce "[Piada Infame]: O evento começará em "+(.@t*20)+" segundos!", bc_all;
+		sleep 25000;
+	}
+	
+	if (getarraysize($@piada_participantes$) < $@minpiada_participantes) {
+		announce "[Piada Infame]: Participantes insuficientes... Mínimo: "+$@minpiada_participantes+" jogadores.", bc_all;
+		callfunc("resetEventoPiada", $@piada_participantes$, $@mapeventpiada$[0]);
+		end;
+	}
+
+	$piada_status = 0;
+	for (.@p = 0; .@p < getarraysize($@piada_participantes$); .@p++) {
+		if (isloggedin(getcharid(3, $@piada_participantes$[.@p])))
+			warpchar $@mapeventpiada$[0], atoi($@mapeventpiada$[1]), atoi($@mapeventpiada$[2]), getcharid(0, $@piada_participantes$[.@p]);
+		else
+			deletearray $@piada_participantes$[.@p], 1;
+	}
+	
+	// Bloqueia comandos para jogadores comuns (libera apenas para GMs 60+)
+	setmapflag $@mapeventpiada$[0], mf_nocommand, 60;
+	
+	announce "[Piada Infame]: Entrada encerrada... O Evento Piada Infame começou!!", bc_all | bc_yellow;
+	sleep 7000;
+	donpcevent "Bardo Comediante::OnSpeak";
+	end;
+
+// Labels administrativos
+OnAdminStart:
+	if ($piada_status) end; // Evita iniciar se já estiver ativo
+	$piada_status = 1;
+	// Habilita o Bardo Comediante quando o evento é iniciado manualmente
+	enablenpc "Bardo Comediante";
+	announce "[Piada Infame]: O Evento Piada Infame começará em breve... Para participar, digite: @eventos, fale com o npc e inscreva-se!!", bc_all | bc_yellow;
+	goto OnStart;
+
+OnAdminStop:
+	announce "[Piada Infame]: Um ADM parou o Evento Piada Infame. Não houve vencedores... Até a próxima!!", bc_all | bc_yellow;
+	callfunc("resetEventoPiada", $@piada_participantes$, $@mapeventpiada$[0]);
+	end;
+
+OnJokeRound:
+	while (getarraysize($@piada_participantes$) > 1) {
+		sleep 1000;
+		
+		// Array de piadas que o bardo falará
+		setarray .piadas$,
+			"Por que a escada foi promovida? Porque sempre dava um passo à frente!",
+			"O que a planta falou para o jardineiro? Você me dá vida!",
+			"Por que o sapato foi ao médico? Porque estava com um calo!",
+			"O que o vento falou para a árvore? Segura firme que eu vou passar!",
+			"Por que o celular foi para a terapia? Porque tinha muitos toques!",
+			"O que o pão falou para a manteiga? Você me derrete!",
+			"Por que o lápis foi para a aula de música? Para aprender a fazer notas!",
+			"O que o relógio disse para o calendário? O tempo voa!",
+			"Por que o pássaro voou para o hospital? Porque estava com dor no bico!",
+			"O que a impressora falou para a outra impressora? Essa folha é sua ou é impressão minha?",
+			"Por que os pássaros voam para o sul no inverno? Porque é longe demais para ir andando!",
+			"O que o pato disse para a pata? Vem quá!",
+			"Por que o lápis ficou de castigo? Porque estava escrevendo besteira!",
+			"O que o tomate foi fazer no banco? Tirar extrato!",
+			"O que o zero disse para o oito? Belo cinto!",
+			"Por que o cachorro levou o relógio para o quintal? Porque queria fazer hora!",
+			"O que a abelha foi fazer no salão de beleza? Fazer a barba!",
+			"Por que a aranha é o animal mais carente? Porque vive na teia!",
+			"O que o café disse para o açúcar? Você me adoça a vida!",
+			"Por que o fantasma foi para a escola? Para aprender a assombrar melhor!",
+			"O que o celular falou para o carregador? Você me completa!",
+			"Por que o lápis não foi para a festa? Porque estava sem ponta!",
+			"O que a luz falou para o interruptor? Você me acende!",
+			"Por que o computador foi ao médico? Porque pegou um vírus!",
+			"Como o cachorro entrou na igreja? Pela 'pata' principal!",
+			"Por que o peixe não gosta de computador? Porque tem medo da rede!",
+			"O que a formiga falou para o elefante? Sobe aí que eu te levo!",
+			"Por que o calendário ficou popular? Porque todo mundo marcava encontro com ele!",
+			"Por que o livro de matemática estava triste? Porque tinha muitos problemas!",
+			"O que é que a fechadura falou para a chave? Você me completa!",
+			"Como se chama um bumerangue que não volta? Pau!";
+			
+		.@piada_random = rand(getarraysize(.piadas$));
+		
+		// Define a piada ANTES de chamar o NPC
+		set $@current_joke$, .piadas$[.@piada_random];
+		
+		// NPC conta a piada
+		donpcevent "Bardo Comediante::OnTellJoke";
+		sleep 2000;
+		
+		// Aplica Piada Infame em todos os participantes restantes
+		for (.@i = 0; .@i < getarraysize($@piada_participantes$); .@i++) {
+			attachrid(getcharid(3, $@piada_participantes$[.@i]));
+			if (strcharinfo(3) == $@mapeventpiada$[0]) {
+				// Chance de 20% de ser congelado (eliminado)
+				if (rand(100) < 20) {
+					// Aplica efeito de freeze
+					sc_start SC_FREEZE, 2000, 1;
+					specialeffect2 EF_FROSTDIVER;
+					sleep2 1000;
+					
+					// Remove o jogador do evento
+					deletearray $@piada_participantes$[.@i], 1;
+					.@i--; // Ajusta o índice após remoção
+					
+					set pontosevento,pontosevento+1;  // +1 pontos de evento por participar
+					dispbottom "[Piada Infame]: Você foi eliminado! Recebeu +1 ponto de evento por participação.";
+					
+					// NPC anuncia eliminação
+					set $@eliminated_player$, strcharinfo(0);
+					donpcevent "Bardo Comediante::OnPlayerEliminated";
+					
+					sleep2 1000;
+					warp "prontera",155,191;
+				} else {
+					// Jogador resistiu à piada
+					specialeffect2 EF_BLESSING;
+					dispbottom "[Piada Infame]: Você resistiu à piada!";
+				}
+			}
+			detachrid;
+		}
+		
+		// Verifica se restou apenas 1 jogador
+		if (getarraysize($@piada_participantes$) <= 1) break;
+		
+		// Intervalo entre rodadas
+		sleep 2000;
+	}
+
+	sleep 1500;
+	if (getarraysize($@piada_participantes$)) {
+		attachrid(getcharid(3, $@piada_participantes$[0]));
+		if (strcharinfo(3) == $@mapeventpiada$[0]) {
+			// NPC anuncia o vencedor
+			set $@winner_name$, strcharinfo(0);
+			donpcevent "Bardo Comediante::OnAnnounceWinner";
+			
+			announce "[Piada Infame]: O jogador " + strcharinfo(0) + " resistiu a todas as piadas e foi o vencedor!", bc_all | bc_yellow;
+			specialeffect2 EF_ANGEL;
+			for (.@i = 0; .@i < getarraysize($@premiacaoITEM); .@i++) {
+				getitem $@premiacaoITEM[.@i], $@premiacaoQUANT[.@i];
+				message strcharinfo(0), "Você recebeu "+$@premiacaoQUANT[.@i]+"x "+getitemname($@premiacaoITEM[.@i]);
+			}
+			set pontosevento,pontosevento+3;  // +3 pontos de evento por vencer
+			dispbottom "[Piada Infame]: Você recebeu +3 pontos de evento por vencer o evento.";
+		}
+		detachrid;
+	}
+	callfunc("resetEventoPiada", $@piada_participantes$, $@mapeventpiada$[0]);
+	end;
+
+OnStop:
+	announce "[Piada Infame]: O evento foi cancelado!", bc_all | bc_yellow;
+	callfunc("resetEventoPiada", $@piada_participantes$, $@mapeventpiada$[0]);
+	end;
+}
+
+poring_w01,101,73,5	script	Bardo Comediante	625,{
+
+	// Adiciona verificação de clique durante o evento
+	if (.event_running) {
+		mes "^FF1493[Bardo Comediante]^000000";
+		mes "O evento está em andamento.";
+		mes "Aguarde até o final para poder conversar comigo!";
+		close;
+	}
+	
+	// Se não há evento rodando, permite interação normal
+	mes "^FF1493[Bardo Comediante]^000000";
+	mes "Olá! Eu sou o famoso Bardo Comediante!";
+	mes "Minhas piadas são tão ruins que podem congelar qualquer um!";
+	mes "Aguarde o próximo evento para ver meu show!";
+	close;
+
+OnSpeak:
+	// Marca que o evento está rodando
+	.event_running = 1;
+	
+	setarray .msgs$, 
+		"Bem-vindos ao show de comédia mais infame do reino!", 
+		"Preparem-se para rir até congelar!", 
+		"Minhas piadas são tão ruins, que são boas!", 
+		"Que comecem as gargalhadas mortais!",
+		"FREEEEEEZEEE!!! FREEEEEEEEZEEEE!!!";
+	
+	for (.@i = 0; .@i < getarraysize(.msgs$); .@i++) {
+		npctalk .msgs$[.@i];
+		sleep 3000;
+	}
+	
+	// Inicia o movimento do NPC
+	donpcevent "Bardo Comediante::OnStartMovement";
+	
+	donpcevent "Piada_Event::OnJokeRound";
+	end;
+
+OnTellJoke:
+	npctalk $@current_joke$;
+	sleep 3000;
+	npctalk "HAHAHAHAHA! Congelaram?";
+	end;
+
+OnPlayerEliminated:
+	npctalk $@eliminated_player$ + " foi eliminado pela Piada Infame!";
+	npctalk "Mais um que não aguentou minhas piadas! HAHAHA!";
+	end;
+
+OnPlayerLeft:
+	npctalk $@eliminated_player$ + " saiu do evento.";
+	npctalk "Que pena... Perdeu as melhores piadas!";
+	end;
+
+OnAnnounceWinner:
+	npctalk "Inacreditável! " + $@winner_name$ + " resistiu a todas as minhas piadas!";
+	npctalk "Parabéns, você tem um senso de humor à prova de gelo!";
+	npctalk "É o nosso grande vencedor!";
+	end;
+
+OnInit:
+	// Define posição inicial e limites de movimento
+	.start_x = 101;
+	.start_y = 73;
+	.move_range = 4;  // 4 células para cada lado
+	.moving = 0;      // Flag de controle de movimento
+	.direction = 1;   // 1 = direita, 0 = esquerda
+	.event_running = 0; // Flag para controlar se o evento está rodando
+	end;
+
+OnStartMovement:
+	.moving = 1;
+	donpcevent "Bardo Comediante::OnMove";
+	end;
+
+OnStopMovement:
+	.moving = 0;
+	.event_running = 0; // Marca que o evento terminou
+	// Retorna para posição original
+	npcwalkto .start_x, .start_y;
+	end;
+
+OnMove:
+	if (!.moving) end;
+	
+	// Calcula próxima posição baseada na direção
+	if (.direction) {
+		// Movendo para direita
+		.@next_x = .start_x + .move_range;
+		npcwalkto .@next_x, .start_y;
+		.direction = 0; // Próxima vez vai para esquerda
+	} else {
+		// Movendo para esquerda
+		.@next_x = .start_x - .move_range;
+		npcwalkto .@next_x, .start_y;
+		.direction = 1; // Próxima vez vai para direita
+	}
+	
+	// Reagenda próximo movimento em 3 segundos
+	sleep 3000;
+	if (.moving) donpcevent "Bardo Comediante::OnMove";
+	end;
+}
+
+-	script	piada_events	-1,{
+
+OnPCDieEvent:
+OnPCLogoutEvent:
+	if (strcharinfo(3) == $@mapeventpiada$[0]) {
+		for (.@i = 0; .@i < getarraysize($@piada_participantes$); .@i++) {
+			if ($@piada_participantes$[.@i] == strcharinfo(0)) {
+				deletearray $@piada_participantes$[.@i], 1;
+				// NPC anuncia saída do jogador
+				set $@eliminated_player$, strcharinfo(0);
+				donpcevent "Bardo Comediante::OnPlayerLeft";
+				warp getsavepoint(0), getsavepoint(1), getsavepoint(2);
+				sleep2 1500;
+				atcommand "@alive";
+				break;
+			}
+		}
+	}
+	end;
+}
+
+function	script	resetEventoPiada	{
+	deletearray getarg(0);
+	$piada_status = 0;
+	mapwarp getarg(1), "prontera", 155, 191;
+	// Para o movimento do Bardo Comediante
+	donpcevent "Bardo Comediante::OnStopMovement";
+	// Remove o bloqueio de comandos
+	removemapflag getarg(1), mf_nocommand;
+	// Desabilita o Bardo Comediante quando o evento termina
+	disablenpc "Bardo Comediante";
+	return;
+}
+
+new_evt,182,182,3	duplicate(Piada Infame)	Piada Infame#evento	625

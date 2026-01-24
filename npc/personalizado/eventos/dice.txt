@@ -1,0 +1,392 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                    EVENTO DICE
+// ===================== Descrição: =============================
+
+1@herbs,311,45,3	script	Evento Dice	715,{
+
+	set .@GMLevel,60;
+	set .@n$,"^FF1493[Evento Dice]^000000";
+
+	// Painel Administrativo
+	if (getgmlevel()>=.@GMLevel) {
+		mes .@n$;
+		mes "Painel Administrativo";
+		mes "Status: " + ($portaodice ? "^00FF00ATIVO^000000" : "^FF0000INATIVO^000000");
+		next;
+		switch(select("^339966[»]^000000 Iniciar Evento:^339966[»]^000000 Parar Evento:^339966[»]^000000 Menu Jogador")) {
+		case 1:
+			mes .@n$;
+			if ($portaodice) {
+				mes "O evento já está ativo!";
+				close;
+			}
+			mes "Deseja iniciar o Evento Dice manualmente?";
+			if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+			donpcevent "CoreDice::OnAdminStart";
+			next;
+			mes .@n$;
+			mes "Evento Dice foi iniciado manualmente!";
+			close;
+		case 2:
+			mes .@n$;
+			if (!$portaodice) {
+				mes "O evento não está ativo!";
+				close;
+			}
+			mes "^ff0000Deseja parar o evento?^000000";
+			mes "Isso fechará a entrada imediatamente.";
+			if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+			donpcevent "CoreDice::OnAdminStop";
+			next;
+			mes .@n$;
+			mes "Evento parado com sucesso!";
+			close;
+		case 3:
+			break;
+		}
+	}
+
+	// Menu normal
+	mes .@n$;
+	mes (gettime(3)>= 6&&gettime(3)<= 12?"Bom-dia":(gettime(3)>=13&&gettime(3)<=18?"Boa-tarde":"Boa-noite"))+", ^ffa500"+strcharinfo(0)+"^000000!";
+	mes "Você possui ^ff0000"+pontosevento+"^000000 pontos de evento.";
+	mes " ";
+	mes " ";
+	mes "^ff0000O que deseja fazer?^000000";
+	switch(select("^339966[»]^000000 Ir para o evento:^339966[»]^000000 Ver horários:^ff0000[»] Sair^000000")) {
+		case 1:
+			if($portaodice == 0){
+				next; 
+				mes .@n$;
+				mes "^ff0000O evento está fechado no momento. Por favor, volte mais tarde!^000000";
+				close;
+			}
+			percentheal 100,100;
+			warp "dice",19,19;
+			announce "[Dice]: O jogador "+strcharinfo(0)+" entrou no Evento Dice!",bc_all;
+			close;
+		case 2:
+			next;
+			mes .@n$;
+			mes "O evento acontece de 2 em 2 horas:";
+			mes "• ^ffa50000H05min^000000";
+			mes "• ^ffa50002H05min^000000";
+			mes "• ^ffa50004H05min^000000";
+			mes "• ^ffa50006H05min^000000";
+			mes "• ^ffa50008H05min^000000";
+			mes "• ^ffa50010H05min^000000";
+			mes "• ^ffa50012H05min^000000";
+			mes "• ^ffa50014H05min^000000";
+			mes "• ^ffa50016H05min^000000";
+			mes "• ^ffa50018H05min^000000";
+			mes "• ^ffa50020H05min^000000";
+			mes "• ^ffa50022H05min^000000";
+			mes "Horário do servidor.";
+			close;
+		case 3:
+			close;
+	}
+	
+OnInit:
+
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 1009;	
+		setunittitle getnpcid(0), "[Rune-Midgard]";
+
+		while(1) {
+		showscript "[ Evento Dice ]", getnpcid(0);
+		sleep 100;
+	}
+		end;
+}
+
+-	script	CoreDice	-1,{
+
+OnInit:
+	set $portaodice,0;
+	set $dicerounds,0;
+	cleararray $dice_players$[0], "", 128;
+	set $dice_player_count, 0;
+	end;
+
+// Admin
+OnAdminStart:
+	if ($portaodice) end;
+	set $portaodice, 1;
+	set $dicerounds, 0;
+	cleararray $dice_players$[0], "", 128;
+	set $dice_player_count, 0;
+	announce "[Dice]: O Evento Dice está prestes a começar! Para participar, digite: @eventos e fale com o npc... Vocês têm 5 minutos!!", bc_all | bc_yellow;
+	goto EventSequence;
+
+OnAdminStop:
+	set $portaodice, 0;
+	set $dicerounds, 0;
+	cleararray $dice_players$[0], "", 128;
+	set $dice_player_count, 0;
+	mapwarp "dice", "prontera", 155, 191;
+	announce "[Dice]: Um ADM parou o Evento Dice! Não houve vencedores... Até a próxima!!", bc_all | bc_yellow;
+	end;
+
+// Auto (de 2 em 2 horas)
+OnClock0005:
+OnClock0205:
+OnClock0405:
+OnClock0605:
+OnClock0805:
+OnClock1005:
+OnClock1205:
+OnClock1405:
+OnClock1605:
+OnClock1805:
+OnClock2005:
+OnClock2205:
+	set $portaodice, 1;
+	set $dicerounds, 0;
+	cleararray $dice_players$[0], "", 128;
+	set $dice_player_count, 0;
+	announce "[Dice]: O Evento Dice está prestes a começar! Para participar, digite: @eventos e fale com o npc... Vocês têm 5 minutos!!", bc_all | bc_yellow;
+
+EventSequence:
+	sleep 60000;
+	announce "[Dice]: A entrada para o Evento Dice fechará em 4 minutos!", bc_all | bc_yellow;
+	sleep 60000;
+	announce "[Dice]: A entrada para o Evento Dice fechará em 3 minutos!", bc_all | bc_yellow;
+	sleep 60000;
+	announce "[Dice]: A entrada para o Evento Dice fechará em 2 minutos!", bc_all | bc_yellow;
+	sleep 60000;
+	announce "[Dice]: A entrada para o Evento Dice fechará em 1 minuto!", bc_all | bc_yellow;
+	sleep 60000;
+	set $portaodice, 0;
+	announce "[Dice]: A entrada para o Evento Dice foi fechada! Tente novamente na próxima!!", bc_all | bc_yellow;
+
+	// checagem mínima
+	if(getmapusers("dice") < 2) {
+		mapannounce "dice", "[Dice]: O evento foi cancelado por falta de participantes! Mínimo: 2 jogadores!", bc_yellow;
+		mapwarp "dice", "prontera", 155, 191;
+		end;
+	}
+
+	sleep 20000;
+	mapannounce "dice", "[Dice]: Sejam bem-vindos ao DICE!", bc_yellow;
+	sleep 5000;
+	mapannounce "dice", "[Dice]: O evento começará em instantes... Preparem-se!!", bc_yellow;
+	sleep 20000;
+	goto OnRoundStart;
+
+OnRoundStart:
+	set $dicerounds, $dicerounds + 1;
+
+	if(getmapusers("dice") <= 1) goto OnEventEnd;
+
+	// limite de segurança
+	if($dicerounds > 30) {
+		mapannounce "dice", "[Dice]: ATENÇÃO: Limite de rodadas atingido! Todos os sobreviventes são vencedores!!!", bc_yellow;
+		goto OnEventEnd;
+	}
+
+	mapannounce "dice", "[Dice]: A " + $dicerounds + "º rodada começou! Escolha um número de 1 a 6! Vocês têm 10 segundos!", bc_yellow;
+	sleep 11000;
+	
+	set .@numero_eliminado, rand(1,6);
+	mapannounce "dice", "[Dice]: O número SORTEADO foi: " + .@numero_eliminado + "! Todos no número " + .@numero_eliminado + " foram eliminados!!", bc_yellow;
+	
+	sleep 1000;
+
+	// SUBSTITUIÇÃO - trocar apenas esta seção do script original:
+	// De:
+	// switch(.@numero_eliminado) {
+	//	case 1: areawarp "dice",  6,22,13,29, "prontera",155,191; break;
+	//	case 2: areawarp "dice", 16,22,23,29, "prontera",155,191; break;
+	//	case 3: areawarp "dice", 26,22,33,29, "prontera",155,191; break;
+	//	case 4: areawarp "dice",  6,10,13,17, "prontera",155,191; break;
+	//	case 5: areawarp "dice", 16,10,23,17, "prontera",155,191; break;
+	//	case 6: areawarp "dice", 26,10,33,17, "prontera",155,191; break;
+	// }
+	
+// Versão CORRIGIDA - elimina jogadores do número sorteado + áreas neutras
+	switch(.@numero_eliminado) {
+		case 1: 
+			getareaunits(BL_PC, "dice", 6, 22, 13, 29, .@eliminated);
+			break;
+		case 2: 
+			getareaunits(BL_PC, "dice", 16, 22, 23, 29, .@eliminated);
+			break;
+		case 3: 
+			getareaunits(BL_PC, "dice", 26, 22, 33, 29, .@eliminated);
+			break;
+		case 4: 
+			getareaunits(BL_PC, "dice", 6, 10, 13, 17, .@eliminated);
+			break;
+		case 5: 
+			getareaunits(BL_PC, "dice", 16, 10, 23, 17, .@eliminated);
+			break;
+		case 6: 
+			getareaunits(BL_PC, "dice", 26, 10, 33, 17, .@eliminated);
+			break;
+	}
+	
+	// ADICIONAR jogadores das áreas neutras ao array de eliminados
+	set .@current_size, getarraysize(.@eliminated);
+	
+	// Parte superior
+	getareaunits(BL_PC, "dice", 14, 24, 15, 27, .@neutral_temp);
+	for(set .@i, 0; .@i < getarraysize(.@neutral_temp); set .@i, .@i + 1) {
+		set .@eliminated[.@current_size], .@neutral_temp[.@i];
+		set .@current_size, .@current_size + 1;
+	}
+	
+	getareaunits(BL_PC, "dice", 24, 24, 25, 27, .@neutral_temp);
+	for(set .@i, 0; .@i < getarraysize(.@neutral_temp); set .@i, .@i + 1) {
+		set .@eliminated[.@current_size], .@neutral_temp[.@i];
+		set .@current_size, .@current_size + 1;
+	}
+	
+	// Parte central
+	getareaunits(BL_PC, "dice", 8, 18, 11, 21, .@neutral_temp);
+	for(set .@i, 0; .@i < getarraysize(.@neutral_temp); set .@i, .@i + 1) {
+		set .@eliminated[.@current_size], .@neutral_temp[.@i];
+		set .@current_size, .@current_size + 1;
+	}
+	
+	getareaunits(BL_PC, "dice", 18, 18, 21, 21, .@neutral_temp);
+	for(set .@i, 0; .@i < getarraysize(.@neutral_temp); set .@i, .@i + 1) {
+		set .@eliminated[.@current_size], .@neutral_temp[.@i];
+		set .@current_size, .@current_size + 1;
+	}
+	
+	getareaunits(BL_PC, "dice", 28, 18, 31, 21, .@neutral_temp);
+	for(set .@i, 0; .@i < getarraysize(.@neutral_temp); set .@i, .@i + 1) {
+		set .@eliminated[.@current_size], .@neutral_temp[.@i];
+		set .@current_size, .@current_size + 1;
+	}
+	
+	// Parte inferior
+	getareaunits(BL_PC, "dice", 14, 12, 15, 15, .@neutral_temp);
+	for(set .@i, 0; .@i < getarraysize(.@neutral_temp); set .@i, .@i + 1) {
+		set .@eliminated[.@current_size], .@neutral_temp[.@i];
+		set .@current_size, .@current_size + 1;
+	}
+	
+	getareaunits(BL_PC, "dice", 24, 12, 25, 15, .@neutral_temp);
+	for(set .@i, 0; .@i < getarraysize(.@neutral_temp); set .@i, .@i + 1) {
+		set .@eliminated[.@current_size], .@neutral_temp[.@i];
+		set .@current_size, .@current_size + 1;
+	}
+		
+	// Aplicar dano aos jogadores eliminados (VERSÃO CORRIGIDA)
+	for(set .@j, 0; .@j < getarraysize(.@eliminated); set .@j, .@j + 1) {
+		if(.@eliminated[.@j] > 0) {
+			attachrid(.@eliminated[.@j]);
+			// Verificar se ainda está no mapa do evento antes de aplicar dano
+			if(strcharinfo(3) == "dice") {
+				specialeffect2 EF_SUI_EXPLOSION;
+				// Usar heal negativo ao invés de percentheal para evitar bugs
+				heal -MaxHp, 0;
+			}
+			detachrid;
+		}
+	}
+	
+	// Aguardar 1 segundos e expulsar os mortos
+	sleep 1000;
+	
+	// Expulsar jogadores do número sorteado
+	switch(.@numero_eliminado) {
+		case 1: areawarp "dice", 6, 22, 13, 29, "prontera", 155, 191; break;
+		case 2: areawarp "dice", 16, 22, 23, 29, "prontera", 155, 191; break;
+		case 3: areawarp "dice", 26, 22, 33, 29, "prontera", 155, 191; break;
+		case 4: areawarp "dice", 6, 10, 13, 17, "prontera", 155, 191; break;
+		case 5: areawarp "dice", 16, 10, 23, 17, "prontera", 155, 191; break;
+		case 6: areawarp "dice", 26, 10, 33, 17, "prontera", 155, 191; break;
+	}
+	
+	// Expulsar jogadores das áreas neutras
+	// Parte superior
+	areawarp "dice", 14, 24, 15, 27, "prontera", 155, 191;
+	areawarp "dice", 24, 24, 25, 27, "prontera", 155, 191;
+	
+	// Parte central
+	areawarp "dice", 8, 18, 11, 21, "prontera", 155, 191;
+	areawarp "dice", 18, 18, 21, 21, "prontera", 155, 191;
+	areawarp "dice", 28, 18, 31, 21, "prontera", 155, 191;
+	
+	// Parte inferior
+	areawarp "dice", 14, 12, 15, 15, "prontera", 155, 191;
+	areawarp "dice", 24, 12, 25, 15, "prontera", 155, 191;
+
+	sleep 5000;
+
+	set .@players_remaining, getmapusers("dice");
+	//mapannounce "dice", "[Dice]: Jogadores restantes: " + .@players_remaining, bc_yellow;
+
+	if(.@players_remaining == 0) {
+		mapannounce "dice", "[Dice]: Todos os jogadores foram eliminados! Não houve sobreviventes! O evento terminou sem vencedores!", bc_yellow;
+		goto OnEventEnd;
+	} else if(.@players_remaining == 1) {
+		goto OnEventEnd;
+	} else {
+		mapannounce "dice", "[Dice]: A próxima rodada começará em breve! Reposicionem-se!!", bc_yellow;
+		sleep 10000;
+		goto OnRoundStart;
+	}
+
+OnEventEnd:
+	// conta e coleta GIDs corretamente
+	set .@count, getmapunits(BL_PC, "dice", .@players);
+
+	if(.@count == 1) {
+		attachrid(.@players[0]);
+		set .@winner_name$, strcharinfo(0);
+		announce "[Dice]: O jogador " + .@winner_name$ + " foi o grande vencedor do Evento DICE! Parabéns!!", bc_all | bc_yellow;
+		getitem 1001007, 10; 
+		set Zeny, Zeny + 25000000;
+		set pontosevento, pontosevento + 3;
+		mapannounce "dice", "[Dice]: Parabéns! Você ganhou 25.000.000 de zeny e 10 Moedas de Evento!", bc_yellow;
+		detachrid;
+	} else if(.@count == 0) {
+		announce "[Dice]: Todos os jogadores foram eliminados! Não houve sobreviventes! O evento terminou sem vencedores!", bc_all | bc_yellow;
+	} else {
+		announce "[Dice]: O Evento Dice terminou com múltiplos vencedores! Parabéns à todos os sobreviventes!!!", bc_all | bc_yellow;
+		for(set .@i,0; .@i<.@count; set .@i,.@i+1) {
+			attachrid(.@players[.@i]);
+			getitem 1001007, 10; 
+			set Zeny, Zeny + 25000000;
+			set pontosevento, pontosevento + 3;
+			dispbottom "[Dice]: Parabéns! Você ganhou 25.000.000 de zeny e +3 pontos de evento!";
+			detachrid;
+		}
+	}
+
+	sleep 2000;
+	mapwarp "dice", "prontera", 155, 191;
+	set $portaodice, 0;
+	set $dicerounds, 0;
+	cleararray $dice_players$[0], "", 128;
+	set $dice_player_count, 0;
+	end;
+}
+
+// Mapflags
+dice	mapflag	noloot
+dice	mapflag	nomemo
+dice	mapflag	nowarp
+dice	mapflag	nowarpto
+dice	mapflag	noicewall
+dice	mapflag	nosave	SavePoint
+dice	mapflag	noreturn
+dice	mapflag	noteleport
+dice	mapflag	nobranch
+dice	mapflag	nopenalty
+dice	mapflag	pvp_nocalcrank
+dice	mapflag	nocommand	60
+dice	mapflag	noskill	99
+
+new_evt,160,162,7	duplicate(Evento Dice)	Evento Dice#new	715

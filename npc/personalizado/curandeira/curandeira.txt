@@ -1,0 +1,253 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  NPC - Curandeira
+//===============================================================
+// Alteração v2.5:
+// - Adicionado delay de 5 segundos para interação direta com o NPC
+// - Mantido o cooldown de 20 segundos para comandos @buff/@superbuff
+// - Mantida a capacidade de bloquear buffs específicos em mapas PvP/WoE
+//===============================================================
+
+//===============================================================
+// PARTE 1: INICIALIZADOR DE COMANDOS (SCRIPT OCULTO)
+//===============================================================
+-	script	Curandeira_Loader	-1,{
+OnInit:
+	// !! IMPORTANTE !!
+	// Defina aqui os mapas onde os comandos @buff e @superbuff terão alguns buffs BLOQUEADOS.
+	setarray $@pvp_maps$[0], "guild_vs2", "arena_x1-1", "arena_pvp", "arena_gvg", "arena_wot", "pay_gld"; // Adicione mais mapas se precisar
+	
+	.@vip_group_id = 1;
+	.@supervip_group_id = 2;
+	bindatcmd "buff", "Curandeira::OnBuff", .@vip_group_id, 99;
+	bindatcmd "superbuff", "Curandeira::OnSuperBuff", .@supervip_group_id, 99;
+	end;
+}
+
+//===============================================================
+// PARTE 2: O NPC CURANDEIRA (VISÍVEL NO JOGO)
+//===============================================================
+prontera,152,190,5	script	Curandeira	936,{
+
+// Acionado quando o jogador clica ou anda sobre o NPC
+OnTouch:
+	// Verifica se o jogador está em cooldown para interação com NPC
+	if (gettimetick(2) < @curandeira_cooldown) {
+		.@time_left = @curandeira_cooldown - gettimetick(2);
+		dispbottom "Você deve aguardar " + .@time_left + " segundos para usar a Curandeira novamente!";
+		end;
+	}
+	
+	.@vip_id = 5;
+	.@supervip_id = 99;
+	if (getgroupid() == .@supervip_id) {
+		callsub L_Buffs_SuperVIP, 0; // 0 = Não está em PvP
+		dispbottom "Você recebeu os buffs de Super VIP!";
+	} else if (getgroupid() == .@vip_id) {
+		callsub L_Buffs_VIP, 0; // 0 = Não está em PvP
+		dispbottom "Você recebeu os buffs de VIP!";
+	} else {
+		callsub L_Buffs_Normal;
+	}
+	
+	// Define o cooldown de 5 segundos para interação com NPC
+	@curandeira_cooldown = gettimetick(2) + 5;
+	end;
+
+// Acionado pelo comando @buff (chamado pelo Loader)
+OnBuff:
+	// Verifica se o jogador está em cooldown
+	if (gettimetick(2) < @buff_cooldown) {
+		.@time_left = @buff_cooldown - gettimetick(2);
+		dispbottom "Você deve aguardar " + .@time_left + " segundos para utilizar este comando novamente!";
+		end;
+	}
+	
+	// Verifica se está em mapa PvP
+	.@is_in_pvp = (inarray($@pvp_maps$, strcharinfo(3)) > -1);
+	callsub L_Buffs_VIP, .@is_in_pvp;
+	if (.@is_in_pvp) { dispbottom "Os buffs são limitados para este mapa!"; }
+	else { dispbottom "Você recebeu os buffs de VIP!"; }
+	
+	// Define o cooldown de 20 segundos
+	@buff_cooldown = gettimetick(2) + 20;
+	end;
+
+// Acionado pelo comando @superbuff (chamado pelo Loader)
+OnSuperBuff:
+	// Verifica se o jogador está em cooldown
+	if (gettimetick(2) < @superbuff_cooldown) {
+		.@time_left = @superbuff_cooldown - gettimetick(2);
+		dispbottom "Você deve aguardar " + .@time_left + " segundos para utilizar este comando novamente!";
+		end;
+	}
+	
+	// Verifica se está em mapa PvP
+	.@is_in_pvp = (inarray($@pvp_maps$, strcharinfo(3)) > -1);
+	callsub L_Buffs_SuperVIP, .@is_in_pvp;
+	if (.@is_in_pvp) { dispbottom "Os buffs são limitados para este mapa!"; }
+	else { dispbottom "Você recebeu os buffs de Super VIP!"; }
+	
+	// Define o cooldown de 20 segundos
+	@superbuff_cooldown = gettimetick(2) + 20;
+	end;
+
+//===============================================================
+//                Sub-rotinas de Buffs 
+//===============================================================
+
+// --- NÍVEL 1: JOGADORES COMUNS (Não é afetado pela restrição) ---
+L_Buffs_Normal:
+	dispbottom "Buffs normais recebidos!";
+	specialeffect2 EF_HEAL2;						// Efeito Especial de Cura
+	percentheal 100, 100;							// Restaura HP e SP 100%
+	repairall;										// Repara os equipamentos quebrados
+	specialeffect2 EF_INCAGILITY;					// Efeito Especial de Agilidade
+	sc_start SC_INCREASEAGI, 240000, 10;			// Increase AGI - 4 minutos
+	specialeffect2 EF_BLESSING;						// Efeito Especial de Benção
+	sc_start SC_BLESSING, 240000, 10;				// Blessing - 4 minutos
+	sc_start SC_ANGELUS, 300000, 5;					// Angelus - 5 minutos
+	sc_start SC_IMPOSITIO, 120000, 3;				// Impositio Manus - 2 minutos
+	sc_start SC_FOOD_STR_CASH, 120000, 2;			// STR +2 - 2 minutos
+	sc_start SC_FOOD_AGI_CASH, 120000, 2;			// AGI +2 - 2 minutos
+	sc_start SC_FOOD_VIT_CASH, 120000, 2;			// VIT +2 - 2 minutos
+	sc_start SC_FOOD_INT_CASH, 120000, 2;			// INT +2 - 2 minutos
+	sc_start SC_FOOD_DEX_CASH, 120000, 2;			// DEX +2 - 2 minutos
+	sc_start SC_FOOD_LUK_CASH, 120000, 2;			// LUK +2 - 2 minutos
+	return;
+
+// --- NÍVEL 2: JOGADORES VIPs ---
+L_Buffs_VIP:
+	.@is_in_pvp = getarg(0); // Pega o status: 1 para PvP, 0 para normal
+	specialeffect2 EF_HEAL2;						// Efeito Especial de Cura
+	percentheal 100, 100;							// Restaura HP e SP 100%
+	repairall;										// Repara os equipamentos quebrados
+	
+	// Buffs permitidos em qualquer mapa
+	specialeffect2 EF_INCAGILITY;					// Efeito Especial de Agilidade
+	sc_start SC_INCREASEAGI, 360000, 10;				// Increase AGI - 6 minutos
+	specialeffect2 EF_BLESSING;						// Efeito Especial de Benção
+	sc_start SC_BLESSING, 360000, 10;				// Blessing - 6 minutos
+	specialeffect2 EF_ANGELUS;						// Efeito Especial de Angelus
+	sc_start SC_ANGELUS, 360000, 5;					// Angelus - 6 minutos
+	specialeffect2 EF_IMPOSITIO;					// Efeito Especial de Impositio Manus
+	sc_start SC_IMPOSITIO, 240000, 3;				// Impositio Manus - 4 minutos
+	specialeffect2 EF_ITEMFAST;						// Efeito Especial de Poção do Vento
+	sc_start SC_SPEEDUP1, 10000, 50;         		// Speed Potion - 10 segundos
+	sc_start SC_FOOD_STR_CASH, 180000, 3;			// STR +3 - 3 minutos
+	sc_start SC_FOOD_AGI_CASH, 180000, 3;			// AGI +3 - 3 minutos
+	sc_start SC_FOOD_VIT_CASH, 180000, 3;			// VIT +3 - 3 minutos
+	sc_start SC_FOOD_INT_CASH, 180000, 3;			// INT +3 - 3 minutos
+	sc_start SC_FOOD_DEX_CASH, 180000, 3;			// DEX +3 - 3 minutos
+	sc_start SC_FOOD_LUK_CASH, 180000, 3;			// LUK +3 - 3 minutos
+	
+	// >> Buffs BLOQUEADOS em mapas PvP <<
+	if (!.@is_in_pvp) {
+		sc_start SC_GLORIA, 60000, 5;				// Gloria - 1 minuto
+		sc_start SC_ASPERSIO, 180000, 5;			// Aspersio - 3 minutos
+		sc_start SC_MAGNIFICAT, 120000, 3;			// Magnificat - 2 minutos
+		sc_start SC_CONCENTRATION, 240000, 5;		// Concentration - 4 minutos
+		sc_start SC_ENDURE, 120000, 3;				// Endure - 2 minutos
+	}
+	return;
+
+// --- NÍVEL 3: JOGADORES SUPER VIPs ---
+L_Buffs_SuperVIP:
+	.@is_in_pvp = getarg(0); // Pega o status: 1 para PvP, 0 para normal
+	specialeffect2 EF_HEAL2;						// Efeito Especial de Cura
+	percentheal 100, 100;							// Restaura HP e SP 100%
+	repairall;										// Repara os equipamentos quebrados
+	
+	// Buffs permitidos em qualquer mapa
+	specialeffect2 EF_INCAGILITY;					// Efeito Especial de Agilidade
+	sc_start SC_INCREASEAGI, 480000, 10;			// Increase AGI - 8 minutos
+	specialeffect2 EF_BLESSING;						// Efeito Especial de Benção
+	sc_start SC_BLESSING, 480000, 10;				// Blessing - 8 minutos
+	specialeffect2 EF_ANGELUS;						// Efeito Especial de Angelus
+	sc_start SC_ANGELUS, 480000, 5;					// Angelus - 8 minutos
+	specialeffect2 EF_IMPOSITIO;					// Efeito Especial de Impositio Manus
+	sc_start SC_IMPOSITIO, 360000, 3;				// Impositio Manus - 6 minutos
+	sc_start SC_MAGNIFICAT, 180000, 3;				// Magnificat - 3 minutos
+	sc_start SC_CONCENTRATION, 240000, 5;			// Concentration - 4 minutos
+	sc_start SC_ENDURE, 180000, 3;					// Endure - 3 minutos
+	specialeffect2 EF_ITEMFAST;						// Efeito Especial de Poção do Vento
+	sc_start SC_SPEEDUP1, 20000, 50;         		// Speed Potion - 20 segundos
+	sc_start SC_FOOD_STR_CASH, 300000, 5;			// STR +5 - 5 minutos
+	sc_start SC_FOOD_AGI_CASH, 300000, 5;			// AGI +5 - 5 minutos
+	sc_start SC_FOOD_VIT_CASH, 300000, 5;			// VIT +5 - 5 minutos
+	sc_start SC_FOOD_INT_CASH, 300000, 5;			// INT +5 - 5 minutos
+	sc_start SC_FOOD_DEX_CASH, 300000, 5;			// DEX +5 - 5 minutos
+	sc_start SC_FOOD_LUK_CASH, 300000, 5;			// LUK +5 - 5 minutos
+	
+	// >> Buffs BLOQUEADOS em mapas PvP <<
+	if (!.@is_in_pvp) {
+		sc_start SC_GLORIA, 120000, 5;				// Gloria - 2 minutos
+		sc_start SC_ASPERSIO, 180000, 5;			// Aspersio - 3 minutos
+		specialeffect2 EF_ASSUMPTIO;				// Efeito Especial de Assumptio
+		sc_start SC_ASSUMPTIO, 180000, 5;			// Assumption - 3 minutos
+		specialeffect2 EF_PERFECTION;				// Efeito Especial de Ferreiro
+		sc_start SC_WEAPONPERFECTION, 60000, 1;		// Weapon Perfection - 1 minuto
+		specialeffect2 EF_PROVOKE;					// Efeito Especial de Provocar
+		sc_start SC_PROVOKE, 60000, 1; 				// Provocar - 1 minutos
+		sc_start SC_WINDWALK, 360000, 5; 			// Wind Walk - 6 minutos
+		
+		// Buffs de Proteção Química (FP) - Geralmente bloqueados
+		specialeffect2 EF_CHEMICALPROTECTION;		// Efeito Especial de FP
+		sc_start SC_CP_HELM, 600000, 1;			// Revestir Elmo - 10 minutos
+		sc_start SC_CP_ARMOR, 600000, 1;			// Revestir Armadura - 10 minutos
+		sc_start SC_CP_WEAPON, 600000, 1;			// Revestir Arma - 10 minutos
+		sc_start SC_CP_SHIELD, 600000, 1;			// Revestir Escudo - 10 minutos
+		
+		// Buffs de Soul Linker
+		if (Class == 4049) {
+		skilleffect "SL_SOULLINKER", 0;				// Efeito Espirito do Espiritualista
+		sc_start4 SC_SPIRIT, 300000,5,461,0,0;		// Espirito do Espiritualista
+		}
+		
+}
+	return;
+
+OnInit:
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 42;	
+	setunittitle getnpcid(0), "[Sacerdotisa]";
+
+	while(1) {
+		showscript "[ Curandeira ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+//===============================================================
+//                        Duplicadas 
+//===============================================================
+
+//1@herbs, 291, 63, 4	duplicate(Curandeira)	Curandeira#vip	936
+malangdo, 228, 277, 3	duplicate(Curandeira)	Curandeira#testedano1	936
+malangdo, 141, 269, 3	duplicate(Curandeira)	Curandeira#testedano2	936
+malangdo,281,235,3	duplicate(Curandeira)	Curandeira#testedano3	936
+malangdo,82,237,3	duplicate(Curandeira)	Curandeira#testedano4	936
+gs_room01,118,103,3	duplicate(Curandeira)	Curandeira#salags01	936
+gs_room02,118,103,3	duplicate(Curandeira)	Curandeira#salags02	936
+gs_room03,118,103,3	duplicate(Curandeira)	Curandeira#salags03	936
+gs_room04,118,103,3	duplicate(Curandeira)	Curandeira#salags04	936
+gs_room05,118,103,3	duplicate(Curandeira)	Curandeira#salags05	936
+gs_room06,118,103,3	duplicate(Curandeira)	Curandeira#salags06	936
+gs_room07,118,103,3	duplicate(Curandeira)	Curandeira#salags07	936
+gs_room08,118,103,3	duplicate(Curandeira)	Curandeira#salags08	936
+gs_room09,118,103,3	duplicate(Curandeira)	Curandeira#salags09	936
+gs_room10,118,103,3	duplicate(Curandeira)	Curandeira#salags10	936
+
+alberta,186,147,5	duplicate(Curandeira)	Curandeira#alberta	936
+morocc,151,104,5	duplicate(Curandeira)	Curandeira#morocc	936
+geffen,116,65,5	duplicate(Curandeira)	Curandeira#geffen	936
+payon,169,228,3	duplicate(Curandeira)	Curandeira#payon	936
+aldebaran,135,123,5	duplicate(Curandeira)	Curandeira#aldebaran	936
+xmas,144,136,5	duplicate(Curandeira)	Curandeira#xmas	936

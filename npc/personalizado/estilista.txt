@@ -1,0 +1,674 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                       ESTILISTA
+// ===================== Descrição: =============================
+
+-	script	Estilista	-1,{
+ 
+//==============================================================
+//= Configurações do NPC
+//==============================================================
+ 
+        set .npcname$, "^339966[Estilista]^000000"; //Nome que irá aparecer nas falas do NPC
+        set .vip_needed, 5; //Nível necessário de VIP para acessar os recursos especias do NPC
+       
+        set .max_v_hstyle, 40; //Número máximo de estilos de cabelo para jogadores VIP
+        set .max_v_hcolor, 50; //Número máximo de cores de cabelo para jogadores VIP
+        set .max_v_ccolor, 300; //Número máximo de cores de roupa para jogadores VIP
+       
+        set .novip_can_acess, 0; //Jogadores não-VIP poderão acessar os menus de salvamento e carregamento de estilos? (1 para sim, 0 para não)
+       
+        set .max_hstyle, 40; //Número máximo de estilos de cabelo para jogadores comuns
+        set .max_hcolor, 50; //Número máximo de cores de cabelo para jogadores comuns
+        set .max_ccolor, 100;    //Número máximo de cores de roupa para jogadores comuns
+       
+        //Número mínimo para estilos e cores para todos jogadores
+        set .min_hstyle, 1;
+        set .min_hcolor, 1;
+        set .min_ccolor, 1;
+       
+        set .max_sns, 10; //Número máximo de caracteres aceitos para os nomes dos estilos
+ 
+//==============================================================
+//==============================================================
+       
+	   		//if ( countitem(65000) ||  countitem(65002) ||  countitem(65003) ||  countitem(65004) ||  countitem(65005) ||  countitem(65006) ||  countitem(65007) ||  countitem(65008) ) {
+		//mes .npcname$;
+		//mes "Olá ^FFA500"+strcharinfo(0)+"^000000. O que você deseja?";
+		//menu "^3CB371[»]^000000 Alterar estilo do cabelo.",c_hstyle,"^3CB371[»]^000000 Alterar cor da roupa.",c_ccolor,"^ff0000[»]^000000 Sair.",L_end;
+		//close;
+		//}
+		
+        mes .npcname$;
+	mes (gettime(3)>= 6&&gettime(3)<= 12?"Bom-dia":(gettime(3)>=13&&gettime(3)<=18?"Boa-tarde":"Boa-noite"))+", ^008aff"+strcharinfo(0)+"^000000 !";
+        mes "Eu posso alterar sua aparência com muitos e variados estilos e cores de roupa e cabelo.";
+        next;
+        goto menu1;
+       
+        menu1 : {
+                set @hstyle, getlook (1);
+                set @hcolor, getlook (6);
+                set @ccolor, getlook (7);
+               
+                if (.novip_can_acess == 0) {
+                        if (getgroupid() < .vip_needed) {
+                                set .save_style$, "";
+                                set .load_style$, "";
+                        } else {
+                                set .save_style$, "^3CB371[»]^000000 Salvar estilo.";
+                                set .load_style$, "^3CB371[»]^000000 Carregar estilo.";
+                        }
+                } else {
+                        set .save_style$, "- Salvar estilo.";
+                        set .load_style$, "- Carregar estilo.";
+                }
+                mes .npcname$;
+                mes "Vejo que está utilizando um estilo bem interessante...";
+                mes "Estilo de cabelo: [ ^3CB371"+@hstyle+"^000000 ].";
+                mes "Cor do cabelo: [ ^3CB371"+@hcolor+"^000000 ].";
+                mes "Cor da roupa: [ ^3CB371"+@ccolor+"^000000 ].";
+                mes "Em que posso lhe ser útil?";
+                next;
+                menu "^3CB371[»]^000000 Alterar estilo do cabelo",c_hstyle,"^3CB371[»]^000000 Alterar cor do cabelo",c_hcolor,"^3CB371[»]^000000 Alterar cor da roupa",c_ccolor,.save_style$,save_style,.load_style$,load_style,"^ff0000[»] Sair^000000",L_end;
+        }
+       
+        c_hstyle: {
+                mes .npcname$;
+                mes "Seu estilo de cabelo atual é o de número : ^FF0000"+@hstyle+"^000000.";
+                mes "O que acha?";
+                next;
+                switch (select ("- Próximo.:- Anterior.:- Escolher número.:- Gostei deste.")) {
+                        case 1: { //Próximo
+                                if (.vip_needed > 0) {
+                                        if (getgroupid() < .vip_needed) {
+                                                if (@hstyle >= .max_hstyle) {
+                                                        mes .npcname$;
+                                                        mes "Seu estilo de cabelo já é o último que possuo em meu catálogo.";
+                                                        next;
+                                                        goto c_hstyle;
+                                                } else {
+                                                        setlook 1,@hstyle+1;
+                                                        set @hstyle, getlook (1);
+                                                        specialeffect2 54,strcharinfo(0);
+                                                        goto c_hstyle;
+                                                }
+                                        } else {
+                                                if (@hstyle >= .max_v_hstyle) {
+                                                        mes .npcname$;
+                                                        mes "Seu estilo de cabelo já é o último que possuo em meu catálogo.";
+                                                        next;
+                                                        goto c_hstyle;
+                                                } else {
+                                                        setlook 1,@hstyle+1;
+                                                        set @hstyle, getlook (1);
+                                                        specialeffect2 54,strcharinfo(0);
+                                                        goto c_hstyle;
+                                                }
+                                        }
+                                } else {
+                                        if (@hstyle >= .max_hstyle) {
+                                                mes .npcname$;
+                                                mes "Seu estilo de cabelo já é o último que possuo em meu catálogo.";
+                                                next;
+                                                goto c_hstyle;
+                                        } else {
+                                                setlook 1,@hstyle+1;
+                                                set @hstyle, getlook (1);
+                                                specialeffect2 54,strcharinfo(0);
+                                                goto c_hstyle;
+                                        }
+                                }
+                        }
+                        case 2: { //Anterior
+                                if (@hstyle == .min_hstyle ) {
+                                        mes .npcname$;
+                                        mes "Seu estilo de cabelo já é o primeiro que possuo em meu catálogo.";
+                                        next;
+                                        goto c_hstyle;
+                                } else {
+                                        setlook 1,@hstyle-1;
+                                        set @hstyle, getlook (1);
+                                        specialeffect2 54,strcharinfo(0);
+                                        goto c_hstyle;
+                                }
+                        }
+                        case 3: { //Escolher Número
+                                mes .npcname$;
+                                if (.vip_needed > 0) {
+                                        if (getgroupid() < .vip_needed) {
+                                                mes "Escolha um número entre ^FF0000"+.min_hstyle+"^000000 e ^FF0000"+.max_hstyle+"^000000.";
+                                                next;
+                                                input @input,.min_hstyle,.max_hstyle;
+                                                setlook 1,@input;
+                                                set @hstyle, @input;
+                                                specialeffect2 54,strcharinfo(0);
+                                                goto c_hstyle;
+                                        } else {
+                                                mes "Escolha um número entre ^FF0000"+.min_hstyle+"^000000 e ^FF0000"+.max_v_hstyle+"^000000.";
+                                                next;
+                                                input @input,.min_hstyle,.max_v_hstyle;
+                                                setlook 1,@input;
+                                                set @hstyle, @input;
+                                                specialeffect2 54,strcharinfo(0);
+                                                goto c_hstyle;
+                                        }
+                                } else {
+                                        mes "Escolha um número entre ^FF0000"+.min_hstyle+"^000000 e ^FF0000"+.max_hstyle+"^000000.";
+                                        next;
+                                        input @input,.min_hstyle,.max_hstyle;
+                                        setlook 1,@input;
+                                        set @hstyle, @input;
+                                        specialeffect2 54,strcharinfo(0);
+                                        goto c_hstyle;
+                                }
+                        }
+                        case 4: { //Gostei deste
+                                mes .npcname$;
+                                mes "Que bom que gostou, deseja mais algo?";
+                                next;
+                                if (select ("- Sim.:- Não.") == 1) {
+                                        goto menu1;
+                                } else {
+                                        goto L_end;
+                                }
+                                close;
+                        }
+                }
+        }
+       
+        c_hcolor: {
+                mes .npcname$;
+                mes "Sua cor de cabelo atual é a de número : ^FF0000"+@hcolor+"^000000.";
+                mes "O que acha?";
+                next;
+                switch (select ("- Próxima.:- Anterior.:- Escolher número.:- Gostei desta.")) {
+                        case 1: { //Próxima
+                                if (.vip_needed > 0) {
+                                        if (getgroupid() < .vip_needed) {
+                                                if (@hcolor >= .max_hcolor) {
+                                                        mes .npcname$;
+                                                        mes "Sua cor de cabelo já é a última que possuo em meu catálogo.";
+                                                        next;
+                                                        goto c_hcolor;
+                                                } else {
+                                                        setlook 6,@hcolor+1;
+                                                        set @hcolor, getlook (6);
+                                                        specialeffect2 54,strcharinfo(0);
+                                                        goto c_hcolor;
+                                                }
+                                        } else {
+                                                if (@hcolor >= .max_v_hcolor) {
+                                                        mes .npcname$;
+                                                        mes "Sua cor de cabelo já é a última que possuo em meu catálogo.";
+                                                        next;
+                                                        goto c_hcolor;
+                                                } else {
+                                                        setlook 6,@hcolor+1;
+                                                        set @hcolor, getlook (6);
+                                                        specialeffect2 54,strcharinfo(0);
+                                                        goto c_hcolor;
+                                                }
+                                        }
+                                } else {
+                                        if (@hcolor >= .max_hcolor) {
+                                                mes .npcname$;
+                                                mes "Sua cor de cabelo já é a última que possuo em meu catálogo.";
+                                                next;
+                                                goto c_hcolor;
+                                        } else {
+                                                setlook 6,@hcolor+1;
+                                                set @hcolor, getlook (6);
+                                                specialeffect2 54,strcharinfo(0);
+                                                goto c_hcolor;
+                                        }
+                                }
+                        }
+                        case 2: { //Anterior
+                                if (@hcolor == .min_hcolor ) {
+                                        mes .npcname$;
+                                        mes "Sua cor de cabelo já é a primeira que possuo em meu catálogo.";
+                                        next;
+                                        goto c_hcolor;
+                                } else {
+                                        setlook 6,@hcolor-1;
+                                        set @hcolor, getlook (6);
+                                        specialeffect2 54,strcharinfo(0);
+                                        goto c_hcolor;
+                                }
+                        }
+                        case 3: { //Escolher Número
+                                mes .npcname$;
+                                if (.vip_needed > 0) {
+                                        if (getgroupid() < .vip_needed) {
+                                                mes "Escolha um número entre ^FF0000"+.min_hcolor+"^000000 e ^FF0000"+.max_hcolor+"^000000.";
+                                                next;
+                                                input @input,.min_hcolor,.max_hcolor;
+                                                setlook 6,@input;
+                                                set @hcolor, @input;
+                                                specialeffect2 54,strcharinfo(0);
+                                                goto c_hcolor;
+                                        } else {
+                                                mes "Escolha um número entre ^FF0000"+.min_hcolor+"^000000 e ^FF0000"+.max_v_hcolor+"^000000.";
+                                                next;
+                                                input @input,.min_hcolor,.max_v_hcolor;
+                                                setlook 6,@input;
+                                                set @hcolor, @input;
+                                                specialeffect2 54,strcharinfo(0);
+                                                goto c_hcolor;
+                                        }
+                                } else {
+                                        mes "Escolha um número entre ^FF0000"+.min_hcolor+"^000000 e ^FF0000"+.max_hcolor+"^000000.";
+                                        next;
+                                        input @input,.min_hcolor,.max_hcolor;
+                                        setlook 6,@input;
+                                        set @hcolor, @input;
+                                        specialeffect2 54,strcharinfo(0);
+                                        goto c_hcolor;
+                                }
+                        }
+                        case 4: { //Gostei desta
+                                mes .npcname$;
+                                mes "Que bom que gostou, deseja mais algo?";
+                                next;
+                                if (select ("- Sim.:- Não.") == 1) {
+                                        goto menu1;
+                                } else {
+                                        goto L_end;
+                                }
+                                close;
+                        }
+                }
+        }
+       
+        c_ccolor: {
+                mes .npcname$;
+                mes "Sua cor de roupa atual é a de número : ^FF0000"+@ccolor+"^000000.";
+                mes "O que acha?";
+                next;
+                switch (select ("- Próxima.:- Anterior.:- Escolher número.:- Gostei desta.")) {
+                        case 1: { //Próxima
+                                if (.vip_needed > 0) {
+                                        if (getgroupid() < .vip_needed) {
+                                                if (@ccolor >= .max_ccolor) {
+                                                        mes .npcname$;
+                                                        mes "Sua cor de roupa já é a última que possuo em meu catálogo.";
+                                                        next;
+                                                        goto c_ccolor;
+                                                } else {
+                                                        setlook 7,@ccolor+1;
+                                                        set @ccolor, getlook (7);
+                                                        specialeffect2 54,strcharinfo(0);
+                                                        goto c_ccolor;
+                                                }
+                                        } else {
+                                                if (@ccolor >= .max_v_ccolor) {
+                                                        mes .npcname$;
+                                                        mes "Sua cor de roupa já é a última que possuo em meu catálogo.";
+                                                        next;
+                                                        goto c_ccolor;
+                                                } else {
+                                                        setlook 7,@ccolor+1;
+                                                        set @ccolor, getlook (7);
+                                                        specialeffect2 54,strcharinfo(0);
+                                                        goto c_ccolor;
+                                                }
+                                        }
+                                } else {
+                                        if (@ccolor >= .max_ccolor) {
+                                                mes .npcname$;
+                                                mes "Sua cor de roupa já é a última que possuo em meu catálogo.";
+                                                next;
+                                                goto c_ccolor;
+                                        } else {
+                                                setlook 7,@ccolor+1;
+                                                set @ccolor, getlook (7);
+                                                specialeffect2 54,strcharinfo(0);
+                                                goto c_ccolor;
+                                        }
+                                }
+                        }
+                        case 2: { //Anterior
+                                if (@ccolor == .min_ccolor ) {
+                                        mes .npcname$;
+                                        mes "Sua cor de roupa já é a primeira que possuo em meu catálogo.";
+                                        next;
+                                        goto c_ccolor;
+                                } else {
+                                        setlook 7,@ccolor-1;
+                                        set @ccolor, getlook (7);
+                                        specialeffect2 54,strcharinfo(0);
+                                        goto c_ccolor;
+                                }
+                        }
+                        case 3: { //Escolher Número
+                                mes .npcname$;
+                                if (.vip_needed > 0) {
+                                        if (getgroupid() < .vip_needed) {
+                                                mes "Escolha um número entre ^FF0000"+.min_ccolor+"^000000 e ^FF0000"+.max_ccolor+"^000000.";
+                                                next;
+                                                input @input,.min_ccolor,.max_ccolor;
+                                                setlook 7,@input;
+                                                set @ccolor, @input;
+                                                specialeffect2 54,strcharinfo(0);
+                                                goto c_ccolor;
+                                        } else {
+                                                mes "Escolha um número entre ^FF0000"+.min_ccolor+"^000000 e ^FF0000"+.max_v_ccolor+"^000000.";
+                                                next;
+                                                input @input,.min_hcolor,.max_v_ccolor;
+                                                setlook 7,@input;
+                                                set @ccolor, @input;
+                                                specialeffect2 54,strcharinfo(0);
+                                                goto c_ccolor;
+                                        }
+                                } else {
+                                        mes "Escolha um número entre ^FF0000"+.min_ccolor+"^000000 e ^FF0000"+.max_ccolor+"^000000.";
+                                        next;
+                                        input @input,.min_ccolor,.max_ccolor;
+                                        setlook 7,@input;
+                                        set @ccolor, @input;
+                                        specialeffect2 54,strcharinfo(0);
+                                        goto c_ccolor;
+                                }
+                        }
+                        case 4: { //Gostei desta
+                                mes .npcname$;
+                                mes "Que bom que gostou, deseja mais algo?";
+                                next;
+                                if (select ("- Sim.:- Não.") == 1) {
+                                        goto menu1;
+                                } else {
+                                        goto L_end;
+                                }
+                                close;
+                        }
+                }
+        }
+       
+        save_style: {
+                if (style1$ == "") { set style1$, "Vazio"; }
+                if (style2$ == "") { set style2$, "Vazio"; }
+                if (style3$ == "") { set style3$, "Vazio"; }
+                if (style4$ == "") { set style4$, "Vazio"; }
+                if (style5$ == "") { set style5$, "Vazio"; }
+       
+                mes .npcname$;
+                mes "Escolha em qual slot você deseja salvar seu estilo atual.";
+                next;
+                menu "- Estilo 1 [ ^FF6C00"+style1$+"^000000 ]",style1_save,"- Estilo 2 [ ^FF6C00"+style2$+"^000000 ]",style2_save,"- Estilo 3 [ ^FF6C00"+style3$+"^000000 ]",style3_save,"- Estilo 4 [ ^FF6C00"+style4$+"^000000 ]",style4_save,"- Estilo 5 [ ^FF6C00"+style5$+"^000000 ]",style5_save,"- Voltar.",menu1,"- Sair.",L_end;
+               
+                style1_save: {
+                        if (style1$ == "Vazio") {
+                                mes .npcname$;
+                                mes "Digite um nome para o estilo.";
+                                mes "^FF0000Atenção:^000000 O nome do estilo pode conter no máximo ^FF0000"+.max_sns+"^000000 caracteres.";
+                                next;
+                                if (input (@style_n$,1,.max_sns) == 1) {
+                                        mes .npcname$;
+                                        mes "^FF0000Falha ao salvar estilo.^000000";
+                                        mes "O nome que você digitou para o estilo possui mais que "+.max_sns+" caracteres, por favor digite um nome menor para que o estilo seja salvo corretamente.";
+                                        next;
+                                        menu "- Tentar novamente.",style1_save,"- Cancelar.",save_style,"- Sair.",L_end;
+                                } else {
+                                        set style1$, @style_n$;
+                                        set style1_hstyle, getlook (1);
+                                        set style1_hcolor, getlook (6);
+                                        set style1_ccolor, getlook (7);
+                                        goto save_sucess;
+                                }
+                        } else {
+                                mes .npcname$;
+                                mes "^FF0000Atenção:^000000 O estilo já foi salvo anteriormente se decidir continuar ele será deletado, o que deseja fazer?";
+                                next;
+                                menu "- Continuar.",style1_ovrwt,"- Cancelar.",save_style,"- Sair.",L_end;
+                        }
+                        style1_ovrwt: {
+                                set style1$, "Vazio";
+                                goto style1_save;
+                        }
+                }
+                style2_save: {
+                        if (style2$ == "Vazio") {
+                                mes .npcname$;
+                                mes "Digite um nome para o estilo.";
+                                mes "^FF0000Atenção:^000000 O nome do estilo pode conter no máximo ^FF0000"+.max_sns+"^000000 caracteres.";
+                                next;
+                                if (input (@style_n$,1,.max_sns) == 1) {
+                                        mes .npcname$;
+                                        mes "^FF0000Falha ao salvar estilo.^000000";
+                                        mes "O nome que você digitou para o estilo possui mais que "+.max_sns+" caracteres, por favor digite um nome menor para que o estilo seja salvo corretamente.";
+                                        next;
+                                        menu "- Tentar novamente.",style2_save,"- Cancelar.",save_style,"- Sair.",L_end;
+                                } else {
+                                        set style2$, @style_n$;
+                                        set style2_hstyle, getlook (1);
+                                        set style2_hcolor, getlook (6);
+                                        set style2_ccolor, getlook (7);
+                                        goto save_sucess;
+                                }
+                        } else {
+                                mes .npcname$;
+                                mes "^FF0000Atenção:^000000 O estilo já foi salvo anteriormente se decidir continuar ele será deletado, o que deseja fazer?";
+                                next;
+                                menu "- Continuar.",style2_ovrwt,"- Cancelar.",save_style,"- Sair.",L_end;
+                        }
+                        style2_ovrwt: {
+                                set style2$, "Vazio";
+                                goto style2_save;
+                        }
+                }
+                style3_save: {
+                        if (style3$ == "Vazio") {
+                                mes .npcname$;
+                                mes "Digite um nome para o estilo.";
+                                mes "^FF0000Atenção:^000000 O nome do estilo pode conter no máximo ^FF0000"+.max_sns+"^000000 caracteres.";
+                                next;
+                                if (input (@style_n$,1,.max_sns) == 1) {
+                                        mes .npcname$;
+                                        mes "^FF0000Falha ao salvar estilo.^000000";
+                                        mes "O nome que você digitou para o estilo possui mais que "+.max_sns+" caracteres, por favor digite um nome menor para que o estilo seja salvo corretamente.";
+                                        next;
+                                        menu "- Tentar novamente.",style3_save,"- Cancelar.",save_style,"- Sair.",L_end;
+                                } else {
+                                        set style3$, @style_n$;
+                                        set style3_hstyle, getlook (1);
+                                        set style3_hcolor, getlook (6);
+                                        set style3_ccolor, getlook (7);
+                                        goto save_sucess;
+                                }
+                        } else {
+                                mes .npcname$;
+                                mes "^FF0000Atenção:^000000 O estilo já foi salvo anteriormente se decidir continuar ele será deletado, o que deseja fazer?";
+                                next;
+                                menu "- Continuar.",style3_ovrwt,"- Cancelar.",save_style,"- Sair.",L_end;
+                        }
+                        style3_ovrwt: {
+                                set style3$, "Vazio";
+                                goto style3_save;
+                        }
+                }
+                style4_save: {
+                        if (style4$ == "Vazio") {
+                                mes .npcname$;
+                                mes "Digite um nome para o estilo.";
+                                mes "^FF0000Atenção:^000000 O nome do estilo pode conter no máximo ^FF0000"+.max_sns+"^000000 caracteres.";
+                                next;
+                                if (input (@style_n$,1,.max_sns) == 1) {
+                                        mes .npcname$;
+                                        mes "^FF0000Falha ao salvar estilo.^000000";
+                                        mes "O nome que você digitou para o estilo possui mais que "+.max_sns+" caracteres, por favor digite um nome menor para que o estilo seja salvo corretamente.";
+                                        next;
+                                        menu "- Tentar novamente.",style4_save,"- Cancelar.",save_style,"- Sair.",L_end;
+                                } else {
+                                        set style4$, @style_n$;
+                                        set style4_hstyle, getlook (1);
+                                        set style4_hcolor, getlook (6);
+                                        set style4_ccolor, getlook (7);
+                                        goto save_sucess;
+                                }
+                        } else {
+                                mes .npcname$;
+                                mes "^FF0000Atenção:^000000 O estilo já foi salvo anteriormente se decidir continuar ele será deletado, o que deseja fazer?";
+                                next;
+                                menu "- Continuar.",style4_ovrwt,"- Cancelar.",save_style,"- Sair.",L_end;
+                        }
+                        style4_ovrwt: {
+                                set style4$, "Vazio";
+                                goto style4_save;
+                        }
+                }
+                style5_save: {
+                        if (style5$ == "Vazio") {
+                                mes .npcname$;
+                                mes "Digite um nome para o estilo.";
+                                mes "^FF0000Atenção:^000000 O nome do estilo pode conter no máximo ^FF0000"+.max_sns+"^000000 caracteres.";
+                                next;
+                                if (input (@style_n$,1,.max_sns) == 1) {
+                                        mes .npcname$;
+                                        mes "^FF0000Falha ao salvar estilo.^000000";
+                                        mes "O nome que você digitou para o estilo possui mais que "+.max_sns+" caracteres, por favor digite um nome menor para que o estilo seja salvo corretamente.";
+                                        next;
+                                        menu "- Tentar novamente.",style5_save,"- Cancelar.",save_style,"- Sair.",L_end;
+                                } else {
+                                        set style5$, @style_n$;
+                                        set style5_hstyle, getlook (1);
+                                        set style5_hcolor, getlook (6);
+                                        set style5_ccolor, getlook (7);
+                                        goto save_sucess;
+                                }
+                        } else {
+                                mes .npcname$;
+                                mes "^FF0000Atenção:^000000 O estilo já foi salvo anteriormente se decidir continuar ele será deletado, o que deseja fazer?";
+                                next;
+                                menu "- Continuar.",style5_ovrwt,"- Cancelar.",save_style,"- Sair.",L_end;
+                        }
+                        style5_ovrwt: {
+                                set style5$, "Vazio";
+                                goto style5_save;
+                        }
+                }
+                save_sucess: {
+                        mes .npcname$;
+                        mes "^0000FFEstilo salvo com sucesso.^000000";
+                        mes "O seu estilo foi salvo corretamente, e você poderá utilizá-lo quando quiser.";
+                        mes "Deseja mais alguma coisa?";
+                        next;
+                        menu "- Alterar aparência.",menu1,"- Sair.",L_end;
+                }
+        }
+       
+        load_style: {
+                if (style1$ == "") { set style1$, "Vazio"; }
+                if (style2$ == "") { set style2$, "Vazio"; }
+                if (style3$ == "") { set style3$, "Vazio"; }
+                if (style4$ == "") { set style4$, "Vazio"; }
+                if (style5$ == "") { set style5$, "Vazio"; }
+               
+                mes .npcname$;
+                mes "Escolha qual estilo deseja carregar.";
+                next;
+                menu "- Estilo 1 [ ^FF6C00"+style1$+"^000000 ]",style1_load,"- Estilo 2 [ ^FF6C00"+style2$+"^000000 ]",style2_load,"- Estilo 3 [ ^FF6C00"+style3$+"^000000 ]",style3_load,"- Estilo 4 [ ^FF6C00"+style4$+"^000000 ]",style4_load,"- Estilo 5 [ ^FF6C00"+style5$+"^000000 ]",style5_load,"- Voltar.",menu1,"- Sair.",L_end;
+               
+                style1_load: {
+                        if (style1$ == "Vazio") {
+                                mes .npcname$;
+                                mes "O estilo que você selecionou está vazio e não pode ser carregado.";
+                                next;
+                                goto load_style;
+                        } else {
+                                setlook 1, style1_hstyle;
+                                setlook 6, style1_hcolor;
+                                setlook 7, style1_ccolor;
+                                specialeffect2 54,strcharinfo(0);
+                                goto load_sucess;
+                        }
+                }              
+                style2_load: {
+                        if (style2$ == "Vazio") {
+                                mes .npcname$;
+                                mes "O estilo que você selecionou está vazio e não pode ser carregado.";
+                                next;
+                                goto load_style;
+                        } else {
+                                setlook 1, style2_hstyle;
+                                setlook 6, style2_hcolor;
+                                setlook 7, style2_ccolor;
+                                specialeffect2 54,strcharinfo(0);
+                                goto load_sucess;
+                        }
+                }              
+                style3_load: {
+                        if (style3$ == "Vazio") {
+                                mes .npcname$;
+                                mes "O estilo que você selecionou está vazio e não pode ser carregado.";
+                                next;
+                                goto load_style;
+                        } else {
+                                setlook 1, style3_hstyle;
+                                setlook 6, style3_hcolor;
+                                setlook 7, style3_ccolor;
+                                specialeffect2 54,strcharinfo(0);
+                                goto load_sucess;
+                        }
+                }
+                style4_load: {
+                        if (style4$ == "Vazio") {
+                                mes .npcname$;
+                                mes "O estilo que você selecionou está vazio e não pode ser carregado.";
+                                next;
+                                goto load_style;
+                        } else {
+                                setlook 1, style4_hstyle;
+                                setlook 6, style4_hcolor;
+                                setlook 7, style4_ccolor;
+                                specialeffect2 54,strcharinfo(0);
+                                goto load_sucess;
+                        }
+                }
+                style5_load: {
+                        if (style5$ == "Vazio") {
+                                mes .npcname$;
+                                mes "O estilo que você selecionou está vazio e não pode ser carregado.";
+                                next;
+                                goto load_style;
+                        } else {
+                                setlook 1, style5_hstyle;
+                                setlook 6, style5_hcolor;
+                                setlook 7, style5_ccolor;
+                                specialeffect2 54,strcharinfo(0);
+                                goto load_sucess;
+                        }
+                }
+               
+                load_sucess: {
+                        mes .npcname$;
+                        mes "Estilo carregado com sucesso, deseja mais algo?";
+                        next;
+                        menu "- Alterar aparência.",menu1,"- Carregar outro estilo.",load_style,"- Sair.",L_end;
+                }
+        }
+       
+        L_end: {
+                mes .npcname$;
+                mes "Tudo bem, volte quando precisar dos meus serviços.";
+                close;
+        }
+
+OnInit:
+
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 63;	
+	setunittitle getnpcid(0), "[Estilista]";
+
+while(1) {
+		showscript "[ Estilista ]", getnpcid(0);
+		sleep 100;
+	}
+    end;	
+}
+prontera,171,180,1	duplicate(Estilista)	Clodovil#arets	122

@@ -1,0 +1,87 @@
+//prontera,166,199,4	shop	Loja de Utilidades#pat122	964,611:40,517:50,501:50,502:200,503:550,504:1200,506:40,645:1200,656:2200,657:4500,601:125,602:1200,1065:625,715:1800,716:1000,717:600
+moc_para01,19,44,4	shop	Loja de Utilidades#eden	964,611:40,517:50,501:50,502:200,503:550,504:1200,506:40,645:1200,656:2200,657:4500,601:125,602:1200,1065:625,715:1800,716:1000,717:600
+hero_ent2,79,82,5	shop	Loja de Utilidades#hall	964,611:40,517:50,501:50,502:200,503:550,504:1200,506:40,645:1200,656:2200,657:4500,601:125,602:1200,1065:625,715:1800,716:1000,717:600
+hero_ent2,94,75,3	shop	HatsCrustonsBetaTest#hall	10562,53000:100,53001:100,53002:100,53003:100,53004:100,53005:100,53006:100,53007:100,53008:100,53009:100,53010:100,53011:100,53012:100,53013:100,53014:100,53015:100,53016:100,53017:100,53018:100,53019:100,53020:100,53021:100,53022:100,53023:100,53024:100,53025:100,53026:100,53027:100,53028:100,53029:100,53030:100,53031:100,53032:100,53033:100,53034:100,53035:100,53036:100,53037:100,53038:100,53039:100,53040:100,53041:100,53042:100,53043:100,53044:100,53045:100,53046:100,53047:100,53048:100,53049:100,53050:100,53051:100,53052:100,53053:100,53054:100,53055:100,53056:100
+hero_ent2,96,75,3	shop	Cartas Customizadas#cards	10562,4128:500000,4361:500000,4376:500000,4263:500000,4372:500000,4363:500000,4142:500000,4143:500000,4236:500000,4374:500000,4419:500000,4425:500000,4330:500000,4342:500000,4121:500000,4145:500000,4430:500000,4144:500000,4137:500000,4148:500000,4134:500000,4367:500000,4241:500000,4123:500000,4169:500000,4003:500000,4229:500000,4440:500000
+
+
+// NPC: Doa  o de Visuais de Classe
+hero_ent2,89,78,4	script	Mestre dos Hats	10563,{
+	mes "[Mestre dos Hats]";
+	mes "Ol , bem-vindo! Eu sou um grande criador de equipamentos.";
+	mes "Estou doando visuais especiais para que as pessoas possam test -los!";
+	mes "De qual classe voc  quer testar os equipamentos?";
+	
+	next;
+	switch(select(
+		"Super Aprendiz",
+		"Justiceiro",
+		"Ninja",
+		"Cavaleiro",
+		"Mago",
+		"Ca ador",
+		"Ferreiro",
+		"Arruaceiro",
+		"Taekwon",
+		"Templ rio",
+		"S bio",
+		"Bardo/Odalisca",
+		"Alquimista",
+		"Sacerdote",
+		"Monge",
+		"IniciantePVM",
+		"Tank"
+	)) {
+	case 1: callsub S_DarItem,53000,53001,53002,"Super Aprendiz"; break;
+	case 2: callsub S_DarItem,53003,53004,53005,"Justiceiro"; break;
+	case 3: callsub S_DarItem,53006,53007,53008,"Ninja"; break;
+	case 4: callsub S_DarItem,53009,53010,53011,"Cavaleiro"; break;
+	case 5: callsub S_DarItem,53012,53013,53014,"Mago"; break;
+	case 6: callsub S_DarItem,53015,53016,53017,"Ca ador"; break;
+	case 7: callsub S_DarItem,53018,53019,53020,"Ferreiro"; break;
+	case 8: callsub S_DarItem,53021,53022,53023,"Arruaceiro"; break;
+	case 9: callsub S_DarItem,53024,53025,53026,"Taekwon"; break;
+	case 10: callsub S_DarItem,53027,53028,53029,"Templ rio"; break;
+	case 11: callsub S_DarItem,53030,53031,53032,"S bio"; break;
+	case 12: callsub S_DarItem,53033,53034,53035,"Bardo/Odalisca"; break;
+	case 13: callsub S_DarItem,53036,53037,53038,"Alquimista"; break;
+	case 14: callsub S_DarItem,53045,53046,53047,"Sacerdote"; break;
+	case 15: callsub S_DarItem,53048,53049,53050,"Monge"; break;
+	case 16: callsub S_DarItem,53051,53052,53053,"IniciantePVM"; break;
+	case 17: callsub S_DarItem,53054,53055,53056,"Tank"; break;
+	}
+	end;
+
+S_DarItem:
+	getitem getarg(0),1;
+	getitem getarg(1),1;
+	getitem getarg(2),1;
+	npctalk "Obrigado por pegar o set de " + getarg(3) + ", qualquer bug ou sugest o falar com o Estevam.";
+	mes "[Mestre dos Visuais]";
+	mes "Os equipamentos da classe foram entregues. Divirta-se!";
+	close;
+}
+
+// NPC: Deletar Itens do Invent rio
+hero_ent2,85,75,5	script	Zelador de Invent rio	10561,{
+	mes "[Zelador de Inventario]";
+	mes "Voc  deseja deletar TODOS os itens do seu invent rio?";
+	mes "Aten  o: os itens equipados ser o preservados.";
+	next;
+	if(select("Sim, deletar tudo.:N o, estou s  olhando.") == 2) {
+		mes "[Zelador de Inventario]";
+		mes "Tudo bem! Volte quando tiver certeza.";
+		close;
+	}
+
+	// Remove todos os itens que N O est o equipados
+	getinventorylist;
+	for (.@i = 0; .@i < @inventorylist_count; .@i++) {
+		if (@inventorylist_equip[.@i] == 0)
+			delitem @inventorylist_id[.@i], @inventorylist_amount[.@i];
+	}
+	npctalk "Inventario limpo com sucesso. Qualquer bug ou sugestao, falar com o Estevam.";
+	mes "[Zelador de Inventario]";
+	mes "Todos os seus itens (exceto os equipados) foram removidos.";
+	close;
+}

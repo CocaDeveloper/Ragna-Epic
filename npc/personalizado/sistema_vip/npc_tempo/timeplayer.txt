@@ -1,0 +1,16 @@
+// ============================
+// Sistema de Rastreamento de Tempo Online Real
+// ============================
+-	script	OnlineTimeTracker	-1,{
+
+OnPCLoginEvent:
+	#LOGIN_TICK = gettimetick(2); // marca quando loga
+	end;
+
+OnPCLogoutEvent:
+	if (#LOGIN_TICK) {
+		#TOTAL_PLAYTIME += gettimetick(2) - #LOGIN_TICK; // soma o tempo jogado nesta sessão
+		#LOGIN_TICK = 0;
+	}
+	end;
+}

@@ -1,0 +1,148 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                    Roleta da Sorte
+// ===================== Descrição: =============================
+
+prontera,145,169,5	script	Roleta da Sorte	563,{
+	// Cutins - certifique-se que os arquivos estejam na pasta correta
+	setarray .cutin$,
+		"roleta_slot1",
+		"roleta_slot2", 
+		"roleta_slot3", 
+		"roleta_slot4",
+		"roleta_slot5",
+		"roleta_slot6",
+		"roleta_slot7",
+		"roleta_slot8",
+		"roleta_slot9",
+		"roleta_slot10",
+		"roleta_slot27",
+		"roleta_slot28";
+	
+	// Lista dos premios
+	setarray .@premios, 
+		12208, // Manual de Combate - 50%
+		12210, // Goma de Mascar - 50%
+		7619, // Elunium Enriquecido - 30%
+		7620, // Oridecon Enriquecido - 30%
+		7621, // Amuleto de Ziegfried - 20%
+		1240001, // Moeda YoYo - 5%
+		676, // Sacola de Prata 100kk - 5%
+		12221, // Megafone - 50%
+		12888, // Caixa de Consumíveis 10x - 30%
+		14232, // Caixa de Fruto de Yggdrasil 100x - 30%
+		440006, // Visual Mensal - 1%
+		101457; // Caixa de Ticket de Intâncias - 5%
+	
+	// Quantidade dos premios
+	setarray .@quant,
+		1, 1, 3, 3, 5, 1, 1, 1, 1, 1, 1, 1;
+	
+	// Nomes dos premios
+	setarray .@nomes$,
+		"Manual de Combate",
+		"Goma de Mascar",
+		"Elunium Enriquecido",
+		"Oridecon Enriquecido",
+		"Amuleto de Ziegfried",
+		"Moeda YoYo",
+		"Sacola de Prata",
+		"Megafone",
+		"Caixa de Consumíveis",
+		"Caixa de Fruto de Yggdrasil",
+		"Visual Mensal",
+		"Caixa de Ticket de Intâncias";
+	
+	// Sistema de Pesos/Porcentagens (multiplicado por 100 para trabalhar com inteiros)
+	setarray .@pesos,
+		5000, // Manual de Combate - 50%
+		5000, // Goma de Mascar - 50%
+		3000, // Elunium Enriquecido - 30%
+		3000, // Oridecon Enriquecido - 30%
+		2000, // Amuleto de Ziegdried - 20%
+		500,  // Moeda YoYo - 5%
+		500,  // Sacola de Prata - 5%
+		5000, // Megafone - 50%
+		3000, // Caixa de Consumíveis - 30%
+		3000, // Caixa de Fruto de Yggdrasil - 30%
+		100,  // Visual Mensal - 1%
+		500;  // Caixa de Ticket de Intâncias - 5%
+	
+	mes "^339966[Roleta da Sorte]^000000";
+	mes "Bem-vindo a Roleta da Sorte!";
+	mes "Cada giro custa ^ffa500[1x Moeda da Sorte]^000000";
+	mes " ";
+	mes "^ff0000Deseja tentar a sorte?^000000";
+	
+	if(select("^339966[»]^000000 Sim, quero girar!:^ff0000[»] Nao, depois.^000000") == 2) {
+		next;
+		mes "^339966[Roleta da Sorte]^000000";
+		mes "Tudo bem. Volte quando quiser!";
+		close;
+	}
+	
+	// Verificar se possui Moeda da Sorte
+	if(countitem(1240000) < 1) {
+		next;
+		mes "^339966[Roleta da Sorte]^000000";
+		mes "^ff0000ERRO AO GIRAR^000000";
+		mes " ";
+		mes "Voce precisa de ^FF0000[1x Moeda da Sorte]^000000 para rodar a roleta.";
+		close;
+	}
+	delitem 1240000, 1;
+	
+	// Sistema de sorteio com pesos
+	.@total_peso = 0;
+	for(.@i = 0; .@i < getarraysize(.@pesos); .@i++) {
+		.@total_peso += .@pesos[.@i];
+	}
+	
+	.@random = rand(.@total_peso);
+	.@peso_atual = 0;
+	.@item_sorteado = 0;
+	
+	for(.@i = 0; .@i < getarraysize(.@pesos); .@i++) {
+		.@peso_atual += .@pesos[.@i];
+		if(.@random < .@peso_atual) {
+			.@item_sorteado = .@i;
+			break;
+		}
+	}
+	
+	// Animacao da Roleta
+	next;
+	mes "^339966[Roleta da Sorte]^000000";
+	mes "Girando a roleta...";
+	mes "Girando a roleta...";
+	mes "Girando a roleta...";
+	
+	// Simula a rotacao passando pelos 12 slots
+	.@spin = rand(2,5); // Quantidade de voltas (aleatorio)
+	// Faz o slot final corresponder ao item sorteado
+	.@final_pos = .@item_sorteado % 12;
+	
+	for (.@i = 0; .@i < (.@spin * 12 + .@final_pos); .@i++) {
+		.@pos = .@i % 12;
+		cutin .cutin$[.@pos], 4;
+		sleep2 150;
+	}
+	cutin "", 255;
+	
+	// Resultado
+	mes " ";
+	mes "Parabens!";
+	mes "Voce ganhou ^FF0000" + .@quant[.@item_sorteado] + "x " + .@nomes$[.@item_sorteado] + "^000000!";
+	getitem .@premios[.@item_sorteado], .@quant[.@item_sorteado];
+	
+	// Anuncio Global
+	announce "[Roleta] "+strcharinfo(0)+" ganhou "+.@quant[.@item_sorteado]+"x "+.@nomes$[.@item_sorteado]+" na Roleta da Sorte!",bc_all,"0x00FF99";
+	close;
+}

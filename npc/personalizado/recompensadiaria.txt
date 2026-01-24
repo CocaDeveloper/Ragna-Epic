@@ -1,0 +1,91 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//              NPC - Recompensa Diária.
+//===============================================================
+prontera,165,207,5	script	Recompensa Diária	515,{
+	
+// Arrays com IDs dos itens e quantidades
+setarray .@items[0], 12103, 607, 14536, 12202, 12203, 12204, 12205, 12206, 12207;
+setarray .@amounts[0], 1, 20, 1, 1, 1, 1, 1, 1, 1;
+
+// Obter informações do jogador
+set .@player_ip$, getcharip();
+set .@today, gettime(5);
+
+// Verificar se já recebeu hoje (por conta)
+if(.@today != FREE_DATE) {
+	// Verificar se o IP já recebeu hoje usando array do NPC
+	set .@found_ip, 0;
+	for(set .@i, 0; .@i < getarraysize(.daily_ips$); set .@i, .@i + 1) {
+		if(.daily_ips$[.@i] == .@player_ip$ && .daily_date == .@today) {
+			set .@found_ip, 1;
+			break;
+		}
+	}
+	
+	if(.@found_ip == 1) {
+		mes "^339966[Recompensa Diária]^000000";
+		mes "Desculpe, você já recebeu os itens gratuitos de hoje.";
+		mes "É permitido apenas 1 retirada por dia.";
+		mes "Volte amanhã para receber novamente!";
+		close;
+	}
+	
+	mes "^339966[Recompensa Diária]^000000";
+	mes (gettime(3) >= 6 && gettime(3) <= 12 ? "Bom-dia" : (gettime(3) >= 13 && gettime(3) <= 18 ? "Boa-tarde" : "Boa-noite"))+", ^ffa500"+strcharinfo(0)+"^000000!";
+	mes "Bem-vindo ao serviço de Recompensas Diária.";
+	mes " ";
+	mes "^ff0000Aqui estão seus itens gratuitos...^000000";
+	next;
+	
+	// Limpar array se mudou o dia
+	if(.daily_date != .@today) {
+		deletearray .daily_ips$[0], getarraysize(.daily_ips$);
+		set .daily_date, .@today;
+	}
+	
+	// Adicionar IP ao array de IPs que já receberam
+	set .daily_ips$[getarraysize(.daily_ips$)], .@player_ip$;
+	
+	// Marcar como recebido hoje (por conta)
+	set FREE_DATE, .@today;
+	
+	// Entregar todos os itens usando loop
+	for(set .@i, 0; .@i < getarraysize(.@items); set .@i, .@i + 1) {
+		getitem .@items[.@i], .@amounts[.@i];
+	}
+	
+	mes "^339966[Recompensa Diária]^000000";
+	mes "Itens entregues com sucesso!";
+	mes "Volte amanhã para receber novamente!";
+	close;
+} else {
+	mes "^339966[Recompensa Diária]^000000";
+	mes "^ff0000A recompensa falhou!^000000";
+	mes "Você já recebeu seus itens de hoje...";
+	mes "Volte amanhã para receber novamente!";
+	close;
+}
+
+// Inicialização do NPC
+OnInit:
+	set .daily_date, 0;
+	deletearray .daily_ips$[0], getarraysize(.daily_ips$);
+	
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 52;	
+	setunittitle getnpcid(0), "[Felícia Gatuna]";
+	
+	// Chat em cima do npc
+	while(1) {
+		showscript "[ Recompensa Diária ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}

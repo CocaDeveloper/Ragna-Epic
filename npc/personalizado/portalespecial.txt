@@ -1,0 +1,113 @@
+//========================================================================================
+// NPC controlador com spawn de 100 monstros e evento ao matar apenas 1 apenas para teste
+//========================================================================================
+hero_ent2,134,31,1	script	ControlePortalRudus	10029,{
+
+	if (.spawn_active) {
+		mes "Os monstros já estão ativos em " + .map$ + ".";
+		close;
+	}
+
+	mes "Deseja iniciar o evento de caçada?";
+	next;
+	if (select("Sim:Não") == 2) close;
+
+	announce("[Evento] Caçada iniciada! Derrote 1 monstro em " + .map$ + " para abrir o portal!", bc_all);
+	.spawn_active = 1;
+	monster(.map$, 0,0, "Evento Monstro", 1002, 100, "ControlePortalRudus::OnMobKilled");
+	end;
+
+OnMobKilled:
+	if (!.spawn_active) end;
+	.spawn_active = 0;
+	announce("[Evento] Portal para Sp Rudus aberto por 5 minutos!", bc_all);
+	enablenpc("PortalRudusNPC");
+	sleep 300000;
+	disablenpc("PortalRudusNPC");
+	areawarp("sp_rudus", 0, 0, 300, 300, "hero_ent2", 132, 25);
+	end;
+
+OnInit:
+	.map$ = "1@bamn";
+	.spawn_active = 0;
+	disablenpc("PortalRudusNPC");
+	end;
+}
+
+// Portal visível com sprite
+hero_ent2,122,24,0	warp	PortalRudusNPC	2,2,sp_rudus,196,269
+//========================================================================================
+//Portal com contagem de sp_rudus01 para sp_rudus
+//========================================================================================
+-	script	Rudus_KillTracker	-1,{
+
+	OnInit:
+		set $rudus_kill_counter, 0;
+		disablenpc "RudusPortalNPC";
+		end;
+
+	OnNPCKillEvent:
+		if (strcharinfo(3) == "sp_rudus") {
+			$rudus_kill_counter++;
+
+			if ($rudus_kill_counter % 10 == 0)
+				mapannounce "sp_rudus", "Contagem atual: " + $rudus_kill_counter + "/50", bc_map;
+
+			if ($rudus_kill_counter >= 50) {
+				enablenpc "RudusPortalNPC";
+				announce "Um portal para SP_Rudus 2 foi aberto em sp_rudus em 197 269, boa sorte!", bc_map, "sp_rudus";
+				addtimer 300000, strnpcinfo(1)+"::OnClosePortal"; // 5 minutos
+				$rudus_kill_counter = 0;
+			}
+		}
+		end;
+
+	OnClosePortal:
+		announce "O portal para SP_Rudus 2 está se fechando!", bc_map, "sp_rudus";
+		disablenpc "RudusPortalNPC";
+		sleep 1000;
+		areawarp "sp_rudus2", 0, 0, 300, 300, "sp_rudus", 100, 100;
+		end;
+}
+
+// Portal para SP_Rudus2
+sp_rudus,197,269,0	warp	RudusPortalNPC	1,1,sp_rudus2,168,160
+
+
+//========================================================================================
+//NPC Contador das minas
+//========================================================================================
+
+
+hero_ent2,57,31,4	script	Guardião do Despertar#info	10367,{
+
+	mes "^FFA500[Guardião do Despertar]^000000";
+	mes "Vejo que você sente a vibração do portal ao lado...";
+	mes "Aquelas minas escondem mais do que apenas riquezas — elas testam a força e a ganância dos aventureiros.";
+
+	next;
+	mes "Ao derrotar ^FF000050 criaturas^000000 no interior das minas, algo... muda.";
+	mes "^00BFFFProgresso atual: "+$rudus_kill_counter+"/50^000000";
+	mes "O tecido da realidade se rasga e abre um novo caminho:";
+	mes "^FF0000O Despertar das Minas^000000.";
+
+	next;
+	mes "Um lugar onde as riquezas são maiores, mas também o risco...";
+	mes "^990000Lá, não há leis. Jogadores podem se enfrentar até a morte.^000000";
+	mes "Apenas os mais astutos sobreviverão.";
+
+	next;
+	mes "Deseja arriscar sua alma por glória?";
+	mes "Então vença os 50. E o portal surgirá... por tempo limitado.";
+
+	close;
+}
+
+//========================================================================================
+//mapfrags
+//========================================================================================
+hero_ent2	mapflag	fireworks
+hero_ent2	mapflag	sakura
+hero_ent2	mapflag	leaves
+
+sp_rudus2	mapflag	gvg

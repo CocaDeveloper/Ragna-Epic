@@ -1,0 +1,262 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  NPC - ENQUETE VOTAÇÃO
+//===============================================================
+
+prontera,170,161,3	script	NPC de Enquete	831,{
+
+	set @np$,"^7401DF[Enquete YoYo]^000000";
+	
+	// ===== ÁREA DO GM =====
+	if (getgmlevel() == 99) {
+		goto GM_AREA;
+	}
+	
+	// ===== ÁREA DO JOGADOR =====
+	goto PLAYER_AREA;
+
+GM_AREA:
+	// Se há enquete rodando, mostrar opções de gerenciamento
+	if ($survey_running) {
+		mes @np$;
+		mes "^FF0000=== PAINEL ADMINISTRATIVO ===^000000";
+		mes "Enquete ativa: ^8A0808" + $survey_title$ + "^000000";
+		next;
+		
+		switch(select("^339966[»]^000000 Ver Resultados:^FF0000[»] Deletar Enquete^000000:^FF0000[»] Sair^000000")) {
+			case 1:
+				mes @np$;
+				mes "- "+$survey_title$+" -";
+				mes "^FF0000"+$survey_question$+"^000000";
+				mes "";
+				for (set @a,0; @a < getarraysize($survey_option$); set @a,@a+1) {
+					mes "^0404B4"+$survey_option$[@a]+"^000000 - ^8A0808"+$survey_option_votes[@a]+"^000000 Voto/s";
+				}
+				close;
+				
+			case 2:
+				mes @np$;
+				mes "Tem certeza de que deseja deletar a enquete: ";
+				mes "";
+				mes "- ^8A0808"+$survey_title$+"^000000 -";
+				next;
+				
+				if (select("^FF0000[»] Não^000000:^339966[»]^000000 Sim, tenho certeza") == 1) {
+					close;
+				}
+				
+				set $survey_running,0;
+				set $survey_title$,"^8A0808NÃO DEFINIDO^000000"; 
+				set $survey_question$,"";
+				for (set @b,0; @b <= getarraysize($survey_option$)+2; set @b,@b+1) {
+					set $survey_option$[@b],"";
+					set $survey_option_votes[@b],0;
+				}
+				mes @np$;
+				mes "A enquete foi deletada com sucesso.";
+				close;
+				
+			case 3:
+				close;
+		}
+	}
+	
+	// Menu principal GM - sem enquete rodando
+	mes @np$;
+	mes "^FF0000=== PAINEL ADMINISTRATIVO ===^000000";
+	mes "Nenhuma enquete ativa no momento.";
+	next;
+	
+	switch(select("^339966[»]^000000 Criar Nova Enquete:^FF0000[»] Sair^000000")) {
+		case 1:
+			goto CREATE_SURVEY;
+		case 2:
+			close;
+	}
+
+CREATE_SURVEY:
+	// Inicialização para criar nova enquete
+	set $survey_title$,"^8A0808NÃO DEFINIDO^000000"; 
+	set $survey_question$,"";
+	set @question_set$,"^8A0808NÃO DEFINIDO^000000";
+	for (set @b,0; @b <= getarraysize($survey_option$); set @b,@b+1) {
+		set $survey_option$[@b],"";
+	}
+	
+	// Loop de criação da enquete
+	while (1) {
+		set @subtract,2;
+		if (getarraysize($survey_option$) > 1 && $survey_title$ != "NÃO DEFINIDO" && $survey_question$ != "") { 
+			set @menu_string$,"^ff0000[»] Concluir^000000";
+			set @menu_string$,@menu_string$+":Título [^04B404"+$survey_title$+"^000000]";
+			set @subtract,3;
+		} else {
+			set @menu_string$,"Título [^04B404"+$survey_title$+"^000000]";
+		}
+		set @menu_string$,@menu_string$+":Pergunta ["+@question_set$+"]";
+		for (set @a,0; @a < getarraysize($survey_option$); set @a,@a+1) {
+			set @menu_string$,@menu_string$ +":    "+(@a+1)+". ^0404B4"+$survey_option$[@a]+"^000000";
+		}
+		set @menu_string$,@menu_string$ +":^0AE143+^000000 Adicionar Opção";
+		
+		mes @np$;
+		mes "^FF0000=== CRIANDO ENQUETE ===^000000";
+		mes "Configure sua enquete:";
+		next;
+		
+		set @selected, select(@menu_string$)-@subtract;
+		
+		// Concluir enquete
+		if (@selected == -2) {
+			mes @np$;
+			mes "Título:"; 
+			mes "^04B404"+$survey_title$+"^000000";
+			mes "Pergunta:";
+			mes "^04B404"+$survey_question$+"^000000";
+			mes "Opções:";
+			for (set @b,0; @b <= getarraysize($survey_option$)-1; set @b,@b+1) {
+				mes (@b+1)+". ^0404B4"+$survey_option$[@b]+"^000000";
+			}
+			next;
+			
+			if (select("^FF0000[»] Não está correto.^000000:^339966[»]^000000 Está correto.") == 2) {
+				mes @np$;
+				mes "Sua enquete foi iniciada com sucesso.";
+				set $vote_id,$vote_id+1;
+				set $survey_running,1;
+				getmapxy(@map$,@x,@y,1);
+				announce "[Enquete YoYoRO]: Nova enquete disponível! Acesse o NPC em "+@map$+" e participe!",bc_all | bc_yellow;
+				close;
+			}
+		}
+		
+		// Configurar título
+		if (@selected == -1) { 
+			mes @np$;
+			mes "Digite o título da enquete.";
+			mes "";
+			mes "Atual:";
+			mes "^04B404"+$survey_title$+"^000000";
+			next;
+			input $survey_title$;
+		}
+		
+		// Configurar pergunta
+		if (@selected == 0) { 
+			mes @np$;
+			mes "Digite a pergunta principal da enquete.";
+			mes "";
+			mes "Atual:";
+			if ($survey_question$ == "") {
+				mes "^8A0808NÃO DEFINIDO^000000";
+			} else {
+				mes "^04B404"+$survey_question$+"^000000"; 
+			}
+			next;
+			input $survey_question$;
+			set @question_set$,"^0AE143DEFINIDO^000000";
+		}
+		
+		// Adicionar nova opção
+		if (@selected == getarraysize($survey_option$)+1) { 
+			mes @np$;
+			mes "Digite uma nova opção.";
+			next;
+			input $survey_option$[@selected-1];
+		}
+		
+		// Editar/deletar opção existente
+		if (@selected >= 1 && @selected < getarraysize($survey_option$)+1) {
+			switch(select("^339966[»]^000000 Voltar:^339966[»]^000000 Alterar:^FF0000[»] Deletar^000000")) {
+				case 1:
+					break;
+					
+				case 2:
+					mes @np$;
+					mes "Digite a nova opção:";
+					mes "";
+					mes "Atual:";
+					mes "^0404B4"+$survey_option$[@selected-1]+"^000000";
+					next;
+					input $survey_option$[@selected-1];
+					break;
+					
+				case 3:
+					for (set @a,@selected-1; @a < getarraysize($survey_option$)-1; set @a,@a+1) {
+						set $survey_option$[@a],$survey_option$[@a+1];
+					}
+					set $survey_option$[@a],"";
+					break;
+			}
+		}
+	}
+
+PLAYER_AREA:
+	// Verificar se há enquete rodando
+	if (!$survey_running) { 
+		mes @np$; 
+		mes "Não há enquetes em execução no momento. Tente novamente mais tarde!"; 
+		close; 
+	}
+	
+	// Verificar se já votou
+	if (getd("##survey_id_"+$vote_id)) {
+		mes @np$;
+		mes "^FF0000Você já votou!^000000";
+		mes "- ^8A0808"+$survey_title$+"^000000 -";
+		mes $survey_question$;
+		mes "";
+		for (set @a,0; @a < getarraysize($survey_option$); set @a,@a+1) {
+			mes "^0404B4"+$survey_option$[@a]+"^000000 - ^8A0808"+$survey_option_votes[@a]+"^000000 Voto/s";
+		}
+		close;
+	}
+	
+	// Processo de votação
+	mes @np$;
+	mes "Por favor, escolha uma opção para a seguinte enquete:";
+	next;
+	
+	while (1) {
+		mes @np$;
+		mes "- ^8A0808"+$survey_title$+"^000000 -";
+		mes "";
+		mes $survey_question$;
+		set @menu_string$,"";
+		for (set @a,0; @a < getarraysize($survey_option$); set @a,@a+1) {
+			set @menu_string$,@menu_string$ +":"+(@a+1)+". ^0404B4"+$survey_option$[@a]+"^000000";
+		}
+		next;
+		
+		set @select, select(@menu_string$)-2;
+		mes @np$;
+		mes "Tem certeza da sua escolha?";
+		mes "";
+		mes "- ^0404B4"+$survey_option$[@select]+"^000000 -";
+		next;
+		
+		if (select("^ff0000[»] Não^000000:^339966[»]^000000 Sim") == 2) { 
+			set getd("##survey_id_"+($vote_id-1)),0;
+			set getd("##survey_id_"+$vote_id),1;
+			set $survey_option_votes[@select],$survey_option_votes[@select]+1;
+			mes @np$;
+			mes "Obrigada pelo seu voto. Você recebeu ^ff0000+2 Moedas de Evento^000000 como recompensa!";
+			getitem 1001007, 2; 
+			close;
+		}
+	}
+	
+OnInit:
+
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 59;	
+	setunittitle getnpcid(0), "[Suporte YoYo]";
+	end;
+
+}

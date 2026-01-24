@@ -1,0 +1,455 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  EVENTO DISFARCE
+//===============================================================
+//======================== Descrição: ===========================
+//= Adivinhe o nome de um monstro corretamente para ganhar prêmios.
+//= 
+//= NOTA: Requer biblioteca PCRE instalada.
+//===== Comentários Adicionais: =============================
+//= 5.0 Última atualização por GmOcean.
+//= 5.1 Limpo e padronizado, principalmente. [Euphy]
+//= 5.1C Correções de bugs e melhorias. [Claude]
+//= 5.2 Adicionado sistema de pontos, tempo limite e NPC fixo [Claude]
+//= 5.3 Corrigido sincronização entre NPCs [Claude]
+//= 5.4 Reorganizado: NPC herbs = admin/info, NPC prontera = evento ativo [Claude]
+//============================================================
+
+// NPC Administrativo/Informativo - Sempre ativo em Herbs (não participa do evento)
+1@herbs,320,45,3	script	Evento Disfarce#vip	795,{
+
+	set .@GMLevel,60;	// Nível GM necessário para acessar o NPC.
+	set .@n$,"^ff1493[Evento Disfarce]^000000";
+
+	if (getgmlevel()>=.@GMLevel) {
+		mes .@n$;
+		mes "Painel Administrativo";
+		mes "Status: " + (getvariableofnpc(.EventON, "Evento Disfarce#pront") ? "^00FF00ATIVO^000000" : "^FF0000INATIVO^000000");
+		next;
+		switch(select("^339966[»]^000000 Ligar/Desligar Evento:^339966[»]^000000 Configurações")) {
+		case 1:
+			mes .@n$;
+			if (getvariableofnpc(.EventON, "Evento Disfarce#pront")) {
+				mes "O Evento atualmente está:";
+				mes "^339966[LIGADO]^000000";
+				mes "Gostaria de DESLIGÁ-LO?";
+			} else {
+				mes "O Evento atualmente está:";
+				mes "^FF0000[DESLIGADO]^000000";
+				mes "Gostaria de LIGÁ-LO?";
+			}
+			if(select("^339966[»]^000000 Sim:^339966[»]^000000 Não")==2) close;
+			if (getvariableofnpc(.EventON, "Evento Disfarce#pront")) {
+				donpcevent "Evento Disfarce#pront::OnAdminStop";
+				close;
+			}
+			donpcevent "Evento Disfarce#pront::OnAdminStart";
+			close;
+		case 2:
+			mes .@n$;
+			mes "Escolha uma configuração para modificar.";
+			next;
+			switch(select("Exibição de Monstro:Número de Rodadas:Configurações de Prêmio:Tempo Limite")) {
+			case 1:
+				setarray .@r$[0],"Disfarçar como todos os monstros.","Disfarçar apenas como MVPs.";
+				mes .@n$;
+				mes "Escolha uma regra de disfarce.";
+				next;
+				set .@newRule, select(implode(.@r$,":"));
+				donpcevent "Evento Disfarce#pront::OnSetRule"+.@newRule;
+				mes .@n$;
+				mes "A Regra de Disfarce foi definida:";
+				mes "  > ^0055FF"+.@r$[.@newRule-1]+"^000000";
+				close;
+			case 2:
+				mes .@n$;
+				mes "Digite o número de rodadas que você quer que o evento dure.";
+				mes "> Número atual: [^0000FF"+getvariableofnpc(.Rounds, "Evento Disfarce#pront")+"^000000]";
+				mes "^FF0000(Valor entre 1 e 100)^000000";
+				next;
+				input .@Rounds;
+				if (.@Rounds < 1 || .@Rounds > 100) {
+					mes .@n$;
+					mes "^FF0000Número inválido!^000000";
+					mes "Use um valor entre 1 e 100 rodadas.";
+					close;
+				}
+				donpcevent "Evento Disfarce#pront::OnSetRounds"+.@Rounds;
+				mes .@n$;
+				mes "O número de rodadas foi alterado para "+.@Rounds+".";
+				close;
+			case 3:
+				mes .@n$;
+				mes "Digite o ID do Item do prêmio dado a cada rodada.";
+				mes "Item atual: [^0000FF"+getitemname(getvariableofnpc(.Prize, "Evento Disfarce#pront"))+"^000000] (ID #"+getvariableofnpc(.Prize, "Evento Disfarce#pront")+")";
+				next;
+				input .@Prize;
+				mes .@n$;
+				if (getitemname(.@Prize)=="" || getitemname(.@Prize)=="null") {
+					mes "^FF0000Esse item não existe.^000000 Tente novamente.";
+					close;
+				}
+				mes "Digite a quantidade a ser dada.";
+				mes "^FF0000(Valor entre 1 e 30000)^000000";
+				next;
+				input .@amount;
+				mes .@n$;
+				if (.@amount<=0 || .@amount>30000) {
+					mes "^FF0000Quantidade inválida!^000000";
+					mes "Usando quantidade padrão de 1.";
+					set .@amount,1;
+					next;
+					mes .@n$;
+				}
+				donpcevent "Evento Disfarce#pront::OnSetPrize"+.@Prize+":"+.@amount;
+				mes "O Prêmio foi alterado com sucesso.";
+				mes "Prêmio: "+.@amount+"x [^0000FF"+getitemname(.@Prize)+"^000000]";
+				close;
+			case 4:
+				mes .@n$;
+				mes "Digite o tempo limite do evento em minutos.";
+				mes "> Tempo atual: [^0000FF"+(getvariableofnpc(.EventTimeLimit, "Evento Disfarce#pront")/60)+"^000000] minutos";
+				mes "^FF0000(Valor entre 10 e 120 minutos)^000000";
+				next;
+				input .@TimeLimit;
+				if (.@TimeLimit < 10 || .@TimeLimit > 120) {
+					mes .@n$;
+					mes "^FF0000Tempo inválido!^000000";
+					mes "Use um valor entre 10 e 120 minutos.";
+					close;
+				}
+				donpcevent "Evento Disfarce#pront::OnSetTimeLimit"+.@TimeLimit;
+				mes .@n$;
+				mes "O tempo limite foi alterado para "+.@TimeLimit+" minutos.";
+				close;
+			}
+		}
+	}
+	
+	// Menu para jogadores comuns
+	mes .@n$;
+	mes "Bem-vindo, ^ffa500"+strcharinfo(0)+"^000000!";
+	mes "Você possui ^ff0000"+pontosevento+"^000000 pontos de evento.";
+	mes " ";
+	mes "Como posso ajudá-lo?";
+	if(select("^339966[»]^000000 Sobre o Evento:^ff0000[»] Sair.^000000")==2) close;
+	next;
+	mes .@n$;
+	mes "Este evento é bem simples.";
+	mes "No início do evento, o NPC em";
+	mes "^ff0000Prontera^000000 se disfarçará como";
+	mes "um monstro aleatório. Você tem";
+	mes "que gritar o nome desse monstro bem alto...";
+	next;
+	mes .@n$;
+	mes "Se você estiver correto, vencerá a rodada e receberá um prêmio.";
+	mes "Além disso, você ganhará ^ff00001 Ponto de Evento^000000 por cada acerto!";
+	mes "Se não, continue tentando!";
+	mes " ";
+	mes "^FF0000ATENÇÃO: O evento acontece apenas em Prontera!^000000";
+	close;
+	
+OnInit:
+
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 1009;	
+		setunittitle getnpcid(0), "[Rune-Midgard]";
+
+		while(1) {
+		showscript "[ Evento Disfarce ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+// NPC do Evento - Ativo apenas durante eventos em Prontera
+prontera,155,180,4	script	Evento Disfarce#pront	795,{
+
+	set .@n$,"^ff1493[Evento Disfarce]^000000";
+	
+	if (!.EventON) {
+		mes .@n$;
+		mes "Desculpe, o evento não está ativo no momento.";
+		close;
+	}
+	
+	mes .@n$;
+	mes "O evento está ativo!";
+	mes "Grite o nome do monstro que eu estou disfarçado!";
+	close;
+
+OnInit:
+	set .EventON,0;
+	set .Wait,0;
+	set .Winner,0;
+	set .ResetCounter,0;
+	set .Rounds,10;
+	set .Prize,1001007;
+	set .PrizeAmt,1;
+	set .Rule,1;
+	set .MaxAttempts,20;
+	set .EventTimeLimit,1800; // 30 minutos por padrão
+	set .EventStartTime,0;
+	set .RoundCount,0;
+	set .Timer,0;
+	set .Change,0;
+	
+	// Lista de MVPs
+	setarray .MVP[0],1038,1039,1046,1059,1086,1087,1112,1115,1147,1150,1157,1159,1190,1251,1252,1272,1312,1373,
+	                  1389,1399,1418,1492,1502,1511,1583,1623,1630,1646,1647,1648,1649,1650,1651,1658,1685,1688,
+				   1708,1719,1734,1751,1768,1779,1785,1802,1832,1871,1874,1885,1917,1980,2022,2068,2087,2131,
+				   2156,2165;
+	// Lista negra
+	set .BlackList$, "1003,1006,1017,1021,1022,1027,1043,1075,1136,1137,1168," + 
+	    "1171,1172,1173,1181,1187,1210,1217,1218,1222,1223,1224,1225,1226,1227,1228," + 
+	    "1233,1284,1407,1411,1414,1495,1501,1900,1996,2000,2001,2002,2003,2004," + 
+	    "2005,2006,2007,2011,2012,2025,2028,2029,2030,2031,2032,2033,2034,2035," + 
+	    "2036,2037,2038,2039,2040,2041,2042,2043,2044,2045,2046,2047,2048,2049," + 
+	    "2050,2051,2052,2053,2054,2055,2056,2057,2058,2059,2060,2061,2062,2063," + 
+	    "2064,2065,2066,2067,2075,2076,2077,2078,2079,2080,2081,2083,2084,2085," + 
+	    "2086,2087,2088,2089,2090,2091,2092,2093,2094,2095,2096,2097,2098,2099," + 
+	    "2100,2101,2103,2104,2105,2106,2107,2108,2109,2110,2111,2112,2113," + 
+	    "2114,2115,2116,2117,2118,2119,2120,2121,2123,2124,2125,1496,";
+	
+	disablenpc "Evento Disfarce#pront";
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 1009;	
+	setunittitle getnpcid(0), "[Rune-Midgard]";
+	end;
+
+// Labels administrativos
+OnAdminStart:
+	set .EventON,1; set .Timer,1; set .EventStartTime,gettimetick(2);
+	set .ResetCounter,.ResetCounter+1;
+	enablenpc "Evento Disfarce#pront";
+	announce "[Disfarce]: O evento começará em 5 minutos em Prontera, corra e venha participar!!",bc_all | bc_yellow;
+	setnpctimer 0; initnpctimer;
+	end;
+
+OnAdminStop:
+	set .EventON,0; set .Timer,0;
+	setnpctimer 0; stopnpctimer;
+	announce "[Disfarce]: Um ADM decidiu desligar o Evento Disfarce. Como resultado, nenhum prêmio adicional será dado.",bc_all | bc_yellow;
+	deletepset 1;
+	setnpcdisplay "Evento Disfarce#pront",795;
+	disablenpc "Evento Disfarce#pront";
+	end;
+
+OnSetRule1:
+	set .Rule,1;
+	end;
+OnSetRule2:
+	set .Rule,2;
+	end;
+
+OnSetRounds1: set .Rounds,1; end; OnSetRounds2: set .Rounds,2; end; OnSetRounds3: set .Rounds,3; end; OnSetRounds4: set .Rounds,4; end; OnSetRounds5: set .Rounds,5; end;
+OnSetRounds6: set .Rounds,6; end; OnSetRounds7: set .Rounds,7; end; OnSetRounds8: set .Rounds,8; end; OnSetRounds9: set .Rounds,9; end; OnSetRounds10: set .Rounds,10; end;
+OnSetRounds11: set .Rounds,11; end; OnSetRounds12: set .Rounds,12; end; OnSetRounds13: set .Rounds,13; end; OnSetRounds14: set .Rounds,14; end; OnSetRounds15: set .Rounds,15; end;
+OnSetRounds16: set .Rounds,16; end; OnSetRounds17: set .Rounds,17; end; OnSetRounds18: set .Rounds,18; end; OnSetRounds19: set .Rounds,19; end; OnSetRounds20: set .Rounds,20; end;
+OnSetRounds21: set .Rounds,21; end; OnSetRounds22: set .Rounds,22; end; OnSetRounds23: set .Rounds,23; end; OnSetRounds24: set .Rounds,24; end; OnSetRounds25: set .Rounds,25; end;
+OnSetRounds26: set .Rounds,26; end; OnSetRounds27: set .Rounds,27; end; OnSetRounds28: set .Rounds,28; end; OnSetRounds29: set .Rounds,29; end; OnSetRounds30: set .Rounds,30; end;
+OnSetRounds31: set .Rounds,31; end; OnSetRounds32: set .Rounds,32; end; OnSetRounds33: set .Rounds,33; end; OnSetRounds34: set .Rounds,34; end; OnSetRounds35: set .Rounds,35; end;
+OnSetRounds36: set .Rounds,36; end; OnSetRounds37: set .Rounds,37; end; OnSetRounds38: set .Rounds,38; end; OnSetRounds39: set .Rounds,39; end; OnSetRounds40: set .Rounds,40; end;
+OnSetRounds41: set .Rounds,41; end; OnSetRounds42: set .Rounds,42; end; OnSetRounds43: set .Rounds,43; end; OnSetRounds44: set .Rounds,44; end; OnSetRounds45: set .Rounds,45; end;
+OnSetRounds46: set .Rounds,46; end; OnSetRounds47: set .Rounds,47; end; OnSetRounds48: set .Rounds,48; end; OnSetRounds49: set .Rounds,49; end; OnSetRounds50: set .Rounds,50; end;
+OnSetRounds51: set .Rounds,51; end; OnSetRounds52: set .Rounds,52; end; OnSetRounds53: set .Rounds,53; end; OnSetRounds54: set .Rounds,54; end; OnSetRounds55: set .Rounds,55; end;
+OnSetRounds56: set .Rounds,56; end; OnSetRounds57: set .Rounds,57; end; OnSetRounds58: set .Rounds,58; end; OnSetRounds59: set .Rounds,59; end; OnSetRounds60: set .Rounds,60; end;
+OnSetRounds61: set .Rounds,61; end; OnSetRounds62: set .Rounds,62; end; OnSetRounds63: set .Rounds,63; end; OnSetRounds64: set .Rounds,64; end; OnSetRounds65: set .Rounds,65; end;
+OnSetRounds66: set .Rounds,66; end; OnSetRounds67: set .Rounds,67; end; OnSetRounds68: set .Rounds,68; end; OnSetRounds69: set .Rounds,69; end; OnSetRounds70: set .Rounds,70; end;
+OnSetRounds71: set .Rounds,71; end; OnSetRounds72: set .Rounds,72; end; OnSetRounds73: set .Rounds,73; end; OnSetRounds74: set .Rounds,74; end; OnSetRounds75: set .Rounds,75; end;
+OnSetRounds76: set .Rounds,76; end; OnSetRounds77: set .Rounds,77; end; OnSetRounds78: set .Rounds,78; end; OnSetRounds79: set .Rounds,79; end; OnSetRounds80: set .Rounds,80; end;
+OnSetRounds81: set .Rounds,81; end; OnSetRounds82: set .Rounds,82; end; OnSetRounds83: set .Rounds,83; end; OnSetRounds84: set .Rounds,84; end; OnSetRounds85: set .Rounds,85; end;
+OnSetRounds86: set .Rounds,86; end; OnSetRounds87: set .Rounds,87; end; OnSetRounds88: set .Rounds,88; end; OnSetRounds89: set .Rounds,89; end; OnSetRounds90: set .Rounds,90; end;
+OnSetRounds91: set .Rounds,91; end; OnSetRounds92: set .Rounds,92; end; OnSetRounds93: set .Rounds,93; end; OnSetRounds94: set .Rounds,94; end; OnSetRounds95: set .Rounds,95; end;
+OnSetRounds96: set .Rounds,96; end; OnSetRounds97: set .Rounds,97; end; OnSetRounds98: set .Rounds,98; end; OnSetRounds99: set .Rounds,99; end; OnSetRounds100: set .Rounds,100; end;
+
+OnSetPrize1:
+	set .Prize,1;
+	set .PrizeAmt,1;
+	end;
+
+OnSetTimeLimit10: set .EventTimeLimit,600; end; OnSetTimeLimit11: set .EventTimeLimit,660; end; OnSetTimeLimit12: set .EventTimeLimit,720; end; OnSetTimeLimit13: set .EventTimeLimit,780; end;
+OnSetTimeLimit14: set .EventTimeLimit,840; end; OnSetTimeLimit15: set .EventTimeLimit,900; end; OnSetTimeLimit16: set .EventTimeLimit,960; end; OnSetTimeLimit17: set .EventTimeLimit,1020; end;
+OnSetTimeLimit18: set .EventTimeLimit,1080; end; OnSetTimeLimit19: set .EventTimeLimit,1140; end; OnSetTimeLimit20: set .EventTimeLimit,1200; end; OnSetTimeLimit25: set .EventTimeLimit,1500; end;
+OnSetTimeLimit30: set .EventTimeLimit,1800; end; OnSetTimeLimit35: set .EventTimeLimit,2100; end; OnSetTimeLimit40: set .EventTimeLimit,2400; end; OnSetTimeLimit45: set .EventTimeLimit,2700; end;
+OnSetTimeLimit50: set .EventTimeLimit,3000; end; OnSetTimeLimit60: set .EventTimeLimit,3600; end; OnSetTimeLimit90: set .EventTimeLimit,5400; end; OnSetTimeLimit120: set .EventTimeLimit,7200; end;
+
+// Horários automáticos
+OnClock1200:
+OnClock2200:
+	set .ResetCounter,.ResetCounter+1;
+	set .EventON,1;
+	set .Timer,1;
+	set .Wait,1;
+	set .EventStartTime,gettimetick(2);
+	enablenpc "Evento Disfarce#pront";
+	announce "[Disfarce]: O evento começará em 5 minutos em Prontera, corra e venha participar!!",bc_all | bc_yellow;
+	setnpctimer 0;
+	initnpctimer;
+	end;
+
+OnTimer10000:
+	if (.Timer || .Change) end;
+	set .Wait,0;
+	goto iDisguise;
+	end;
+
+OnTimer30000:
+	if (.Timer) end;
+	set .Change,0;
+	setnpcdisplay "Evento Disfarce#pront",795;
+	npctalk "[Disfarce]: Vocês demoraram muito para adivinhar o que eu era. A resposta era: "+$MonsterName$+". Aguardem 10 segundos enquanto me disfarço novamente.";
+	specialeffect EF_DETECT2;
+	set $MonsterName$,"";
+	deletepset 1;
+	stopnpctimer;
+	setnpctimer 0;
+	initnpctimer;
+	end;
+
+OnTimer60000:
+	if (.Timer!=1) end;
+	if (gettimetick(2) - .EventStartTime >= .EventTimeLimit) {
+		announce "[Disfarce]: Tempo limite atingido! O evento foi encerrado.",bc_all | bc_yellow;
+		goto EndEvent;
+	}
+	announce "[Disfarce]: O evento começará em 4 minutos em Prontera.",bc_all | bc_yellow;
+	end;
+
+OnTimer120000:
+	if (.Timer!=1) end;
+	if (gettimetick(2) - .EventStartTime >= .EventTimeLimit) {
+		announce "[Disfarce]: Tempo limite atingido! O evento foi encerrado.",bc_all | bc_yellow;
+		goto EndEvent;
+	}
+	announce "[Disfarce]: O evento começará em 3 minutos em Prontera.",bc_all | bc_yellow;
+	end;
+
+OnTimer180000:
+	if (.Timer!=1) end;
+	if (gettimetick(2) - .EventStartTime >= .EventTimeLimit) {
+		announce "[Disfarce]: Tempo limite atingido! O evento foi encerrado.",bc_all | bc_yellow;
+		goto EndEvent;
+	}
+	announce "[Disfarce]: O evento começará em 2 minutos em Prontera.",bc_all | bc_yellow;
+	end;
+
+OnTimer240000:
+	if (.Timer!=1) end;
+	if (gettimetick(2) - .EventStartTime >= .EventTimeLimit) {
+		announce "[Disfarce]: Tempo limite atingido! O evento foi encerrado.",bc_all | bc_yellow;
+		goto EndEvent;
+	}
+	announce "[Disfarce]: O evento começará em 1 minuto em Prontera.",bc_all | bc_yellow;
+	end;
+
+OnTimer300000:
+	if (.Timer!=1) end;
+	if (gettimetick(2) - .EventStartTime >= .EventTimeLimit) {
+		announce "[Disfarce]: Tempo limite atingido! O evento foi encerrado.",bc_all | bc_yellow;
+		goto EndEvent;
+	}
+	announce "[Disfarce]: O Evento Disfarce começou!!",bc_all | bc_yellow;
+	set .Timer,0; stopnpctimer;
+	setnpctimer 0; initnpctimer;
+
+iDisguise:
+	if (gettimetick(2) - .EventStartTime >= .EventTimeLimit) {
+		announce "[Disfarce]: Tempo limite de "+(.EventTimeLimit/60)+" minutos atingido! O evento foi encerrado.",bc_all | bc_yellow;
+		goto EndEvent;
+	}
+	
+	if (.Rule==1) {
+		set .Winner,0;
+		set .@attempts,0;
+		do {
+			set .Monster,1001+rand(999);
+			set .@attempts,.@attempts+1;
+			if (compare(","+.BlackList$+"," , ","+.Monster+",")) continue;
+			if (.Monster==.LastMonster) continue;
+			set .@monsterName$,getmonsterinfo(.Monster, MOB_NAME);
+			if (.@monsterName$ == "" || .@monsterName$ == "null") continue;
+			break;
+		} while(.@attempts < .MaxAttempts);
+		
+		if (.@attempts >= .MaxAttempts) {
+			set .Monster,1002;
+			set .@monsterName$,getmonsterinfo(.Monster, MOB_NAME);
+		}
+		
+		set .LastMonster,.Monster;
+		set $MonsterName$,.@monsterName$;
+	}
+	if (.Rule==2) {
+		set .Winner,0;
+		set .@attempts,0;
+		do {
+			set .@mvpIndex,rand(getarraysize(.MVP));
+			set .Monster,.MVP[.@mvpIndex];
+			set .@attempts,.@attempts+1;
+			set .@monsterName$,getmonsterinfo(.Monster, MOB_NAME);
+			if (.@monsterName$ == "" || .@monsterName$ == "null") continue;
+			break;
+		} while(.@attempts < .MaxAttempts);
+		
+		if (.@attempts >= .MaxAttempts) {
+			set .Monster,1039;
+			set .@monsterName$,getmonsterinfo(.Monster, MOB_NAME);
+		}
+		
+		set $MonsterName$,.@monsterName$;
+	}
+	
+	deletepset 1;
+	defpattern 1,"([^:]+):.\\s*"+$MonsterName$+".*", "iCorrect";
+	activatepset 1;
+	
+	setnpcdisplay "Evento Disfarce#pront",.Monster;
+	
+	set .Change,1;
+	setnpctimer 0;
+	end;
+
+iCorrect:
+	if (.Winner) {
+		dispbottom "[Disfarce]: Alguém já ganhou esta rodada.";
+		end;
+	}
+	set .Winner,1;
+	sleep2 50;
+	if (.Winner != 1) {
+		dispbottom "[Disfarce]: Alguém já ganhou esta rodada.";
+		end;
+	}
+	
+	set .RoundCount,.RoundCount+1;
+	deletepset 1;
+	activatepset 1;
+	getitem .Prize,.PrizeAmt;
+	set pontosevento,pontosevento+1;
+	announce strcharinfo(0)+" está correto e ganhou +1 ponto de evento! Eu estava disfarçado como: "+$MonsterName$+".",bc_map | bc_yellow;
+	
+	if (.RoundCount>=.Rounds) {
+		announce "[Disfarce]: Obrigado a todos por jogarem. Esta foi a última rodada do Evento Disfarce. Até a próxima!!",bc_all | bc_yellow;
+		goto EndEvent;
+	}
+	setnpcdisplay "Evento Disfarce#pront",795;
+	set .Change,0;
+	setnpctimer 0;
+	end;
+
+EndEvent:
+	setnpcdisplay "Evento Disfarce#pront",795;
+	set .RoundCount,0; set .Change,0; set .EventON,0;
+	set .EventStartTime,0;
+	setnpctimer 0; stopnpctimer;
+	disablenpc "Evento Disfarce#pront";
+	end;
+}
+
+new_evt,167,186,5	duplicate(Evento Disfarce#vip)	Evento Disfarce#new	795

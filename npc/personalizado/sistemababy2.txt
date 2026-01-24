@@ -1,0 +1,45 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                     Sistema Baby  
+//===============================================================
+
+prontera.gat,119,207,5	script	Baby Size	941,{
+
+	SetArray @Size$[0],"Tamanho Pequeno","Tamanho Grande","Tamanho Original";
+	SetArray @Size[0],1,2,0;
+
+	If (Class < 4023) {
+	Mes "^339966[Baby Aurora]^000000";
+	Mes "^ff0000Ops!!!^000000";
+	Mes "Aqui é proibido gigantes!";
+	Close;
+}
+	Mes "^339966[Baby Aurora]^000000";
+	Mes "Olá, ^FFA500"+StrCharInfo(0)+"^000000!";
+	Mes "Eu posso alterar o seu tamanho...";
+	Mes " ";
+	Mes	"^ff0000Escolha qual tamanho você quer:^000000";
+	Next;
+	
+	For (Set .@i,0;.@i < GetArraySize(@Size$);Set .@i,.@i+1)
+	Set .@menu$,.@menu$ + "^339966[»]^000000 "+@Size$[.@i]+ ":";
+	If(Select(.@menu$+"^ff0000[»] Sair^000000") > GetArraySize(@Size$)) Close;
+	Set @menu,@menu -1;
+
+	Mes "^339966[Baby Aurora]^000000";
+	Mes "Você escolheu o tamanho ^FF0000"+@Size$[@menu]+"^000000";
+	Atcommand "@size "+@Size[@menu];
+	Close;
+	
+OnInit:
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 45;	
+	setunittitle getnpcid(0), "[Baby Aurora]";
+	end;
+}

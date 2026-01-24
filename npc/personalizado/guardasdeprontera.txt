@@ -1,0 +1,41 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+// 			         GUARDAS DAS CIDADES
+//===============================================================
+
+prontera,188,198,9	script	Guarda de Prontera	417,{
+    mes "^339966[Guarda de Prontera]^000000";
+	mes "Saudações, viajante...";
+	mes "Eu estou de olho em tudo para manter Prontera sempre segura.";
+	mes "Se precisar de ajuda, não hesite em procurar os guardas da cidade!";
+    close;
+
+OnInit:
+
+setunitdata getnpcid(0), UNPC_GROUP_ID, 56;	
+setunittitle getnpcid(0), "[Rune-Midgard]";
+end;
+}
+
+prontera,188,209,5	duplicate(Guarda de Prontera)	Guarda de Prontera#2	417
+prontera,238,312,3	duplicate(Guarda de Prontera)	Guarda de Prontera#3	417
+prontera,165,174,4	duplicate(Guarda de Prontera)	Guarda de Prontera#4	417
+prontera,146,233,5	duplicate(Guarda de Prontera)	Guarda de Prontera#5	417
+prontera,165,233,3	duplicate(Guarda de Prontera)	Guarda de Prontera#6	417
+prontera,151,125, 5	duplicate(Guarda de Prontera)	Guarda de Prontera#7	417
+prontera,160,125, 4	duplicate(Guarda de Prontera)	Guarda de Prontera#8	417
+prontera,229,104, 5	duplicate(Guarda de Prontera)	Guarda de Prontera#9	417
+prontera,223,99, 1	duplicate(Guarda de Prontera)	Guarda de Prontera#10	417
+prontera,151,329, 5	duplicate(Guarda de Prontera)	Guarda de Prontera#11	417
+prontera,47,338, 6	duplicate(Guarda de Prontera)	Guarda de Prontera#12	417
+prontera,53,344, 5	duplicate(Guarda de Prontera)	Guarda de Prontera#13	417
+prontera,53,344, 5	duplicate(Guarda de Prontera)	Guarda de Prontera#14	417
+prontera,160,329, 4	duplicate(Guarda de Prontera)	Guarda de Prontera#15	417
+prontera,158,353, 4	duplicate(Guarda de Prontera)	Guarda de Prontera#16	417

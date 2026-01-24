@@ -1,0 +1,120 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  PLACA RANKING PvP
+//===============================================================
+
+prontera,178,220,3	script	Ranking PvP	857,{
+
+	set .np$,"^339966[Ranking PvP]^000000";
+	
+	mes .np$;
+	mes "Bem-vindo ao ^00B2EERanking PvP^000000 em tempo real!";
+	mes "Aqui você pode acompanhar os melhores jogadores da arena.";
+	next;
+	
+	switch(select("^3CB371[»]^000000 Ver Top 10 PvP:^FFA500[»]^000000 Minha Posição:^FF6347[»]^000000 Estatísticas Gerais:^ff0000[»]^000000 Sair")) {
+	
+		case 1: // Top 10 PvP
+			next;
+			mes .np$;
+			mes "^00B2EE------- TOP 10 RANKING PVP -------^000000";
+			mes " ";
+			
+			query_sql "SELECT `char_name`, `Matou`, `Morreu`, `Total` FROM `ranking_pvp` ORDER BY `Total` DESC LIMIT 10", .@nome$, .@matou, .@morreu, .@pontos;
+			
+			if(getarraysize(.@nome$) == 0) {
+				mes "^FF6347Nenhum jogador rankeado ainda.^000000";
+				mes "Seja o primeiro a entrar na arena!";
+			} else {
+				mes "^228B22Pos. - Nome - Matou - Morreu - Pontos^000000";
+				mes "^777777------------------------------------^000000";
+				
+				for(.@i = 0; .@i < getarraysize(.@nome$) && .@i < 10; .@i++) {
+					set .@pos$, (.@i+1);
+					if(.@i == 0) set .@pos$, "^FFD700"+(.@i+1)+"º^000000"; // Ouro para 1º
+					else if(.@i == 1) set .@pos$, "^C0C0C0"+(.@i+1)+"º^000000"; // Prata para 2º  
+					else if(.@i == 2) set .@pos$, "^CD7F32"+(.@i+1)+"º^000000"; // Bronze para 3º
+					else set .@pos$, "^777777"+(.@i+1)+"º^000000";
+					
+					mes .@pos$+" - ^FF8C00"+.@nome$[.@i]+"^000000 - ^228B22"+.@matou[.@i]+"^000000 - ^EE0000"+.@morreu[.@i]+"^000000 - ^00B2EE"+.@pontos[.@i]+"^000000";
+				}
+			}
+			close;
+			
+		case 2: // Minha Posição
+			next;
+			mes .np$;
+			mes "^00B2EE-------- SUA POSIÇÃO --------^000000";
+			mes " ";
+			
+			query_sql "SELECT `char_id`, `char_name`, `Matou`, `Morreu`, `Total` FROM `ranking_pvp` ORDER BY `Total` DESC", .@char_id, .@nome$, .@matou, .@morreu, .@pontos;
+			.@num = inarray(.@char_id, getcharid(0));
+			
+			if(.@num < 0) {
+				mes "^FF6347Você ainda não está rankeado.^000000";
+				mes "Entre na arena PvP e comece a batalhar!";
+				mes " ";
+				mes "^777777Dica: Cada eliminação rende 1 ponto PvP.^000000";
+			} else {
+				mes "^FFA500Jogador:^000000 " + strcharinfo(0);
+				mes "^228B22Posição:^000000 " + (.@num+1) + "º lugar";
+				mes "^228B22Eliminou:^000000 " + .@matou[.@num] + " jogadores";
+				mes "^EE0000Morreu:^000000 " + .@morreu[.@num] + " vezes";  
+				mes "^00B2EEPontos Totais:^000000 " + .@pontos[.@num];
+				mes " ";
+				
+				// Mostrar diferença para o próximo colocado
+				if(.@num > 0) {
+					.@diff = .@pontos[.@num-1] - .@pontos[.@num];
+					mes "^777777Para alcançar o " + .@num + "º lugar: ^FF6347" + .@diff + " pontos^000000";
+				} else {
+					mes "^FFD700Parabéns! Você é o líder do ranking!^000000";
+				}
+			}
+			close;
+			
+		case 3: // Estatísticas Gerais
+			next;
+			mes .np$;
+			mes "^00B2EE------ ESTATÍSTICAS GERAIS ------^000000";
+			
+			query_sql "SELECT COUNT(*) FROM `ranking_pvp`", .@total_players;
+			query_sql "SELECT SUM(`Matou`) FROM `ranking_pvp`", .@total_kills;
+			query_sql "SELECT SUM(`Morreu`) FROM `ranking_pvp`", .@total_deaths;
+			query_sql "SELECT AVG(`Total`) FROM `ranking_pvp`", .@avg_points;
+			
+			mes " ";
+			mes "^228B22Jogadores Rankeados:^000000 " + .@total_players[0];
+			mes "^228B22Total de Eliminações:^000000 " + .@total_kills[0];
+			mes "^EE0000Total de Mortes:^000000 " + .@total_deaths[0];
+			mes "^00B2EEMédia de Pontos:^000000 " + (.@avg_points[0]/1) + " pontos";
+			
+			// Mostrar o líder atual
+			query_sql "SELECT `char_name`, `Total` FROM `ranking_pvp` ORDER BY `Total` DESC LIMIT 1", .@lider$, .@pontos_lider;
+			if(getarraysize(.@lider$) > 0) {
+				mes " ";
+				mes "^FFD700Líder Atual:^000000 ^FF8C00" + .@lider$[0] + "^000000";
+				mes "^FFD700Pontos do Líder:^000000 ^00B2EE" + .@pontos_lider[0] + "^000000";
+			}
+			close;
+			
+		case 4: // Sair
+			mes .np$;
+			mes "Volte sempre para acompanhar o ranking!";
+			mes "Boa sorte nas arenas de batalha!";
+			close;
+	}
+
+OnInit:
+
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 56;	
+	setunittitle getnpcid(0), "[Rune-Midgard]";
+	end;
+}

@@ -1,0 +1,99 @@
+//===== rAthena Script =======================================
+//= Comando @descanso
+//===== By: ===================================================
+//= Desenvolvedor rAthena 2023
+//===== Current Version: =====================================
+//= 1.0
+//===== Description: =========================================
+//= Comando personalizado para teleportar para área de descanso
+//=========================================================
+
+-	script	atcommand_descanso	-1,{
+OnInit:
+	// Registra o comando @descanso
+	// Sintaxe: bindatcmd "comando", "script::label", level_min, level_max
+	bindatcmd "descanso", strnpcinfo(3)+"::OnDescanso", 0, 99;
+	end;
+
+OnDescanso:
+		
+	// Verifica se está em mapa PvP
+	if (getmapflag(strcharinfo(3), mf_pvp) || getmapflag(strcharinfo(3), mf_pvp_noparty) || getmapflag(strcharinfo(3), mf_pvp_noguild)) {
+		dispbottom "Você não pode usar este comando em mapas PvP!";
+		end;
+	}
+	
+	// Verifica se está em mapa WoE
+	if (getmapflag(strcharinfo(3), mf_gvg) || getmapflag(strcharinfo(3), mf_gvg_noparty)) {
+		dispbottom "Você não pode usar este comando durante a WoE!";
+		end;
+	}
+	
+	// Verifica se está em mapa de Battlegrounds
+	if (getmapflag(strcharinfo(3), mf_battleground)) {
+		dispbottom "Você não pode usar este comando em Batalhas Campais!";
+		end;
+	}
+	
+	// Lista de mapas de eventos restritos (adicione os seus aqui)
+	setarray .@mapas_eventos$[0],
+		"guild_vs1", "guild_vs2", "guild_vs3", "guild_vs4", "guild_vs5",
+		"bat_c01", "bat_c02", "bat_c03", "bat_a01", "bat_a02", "bat_b01", "bat_b02",
+		"pvp_y_1-1", "pvp_y_1-2", "pvp_y_1-3", "pvp_y_1-4", "pvp_y_1-5",
+		"pvp_n_1-1", "pvp_n_1-2", "pvp_n_1-3", "pvp_n_1-4", "pvp_n_1-5",
+		"ordeal_1-1", "ordeal_1-2", "ordeal_1-3", "ordeal_1-4",
+		"job_hunte", "job_knt", "job_prist", "job_wiz", "job_thief",
+		"que_job01", "que_job02", "que_job03",
+		"1@cata", "1@spa", "1@jtb", "1@tower", "1@dth1", "1@dth2", "1@dth3",
+		"event_01", "event_02", "event_03";
+	
+	// Verifica se está em mapa de evento
+	for (.@i = 0; .@i < getarraysize(.@mapas_eventos$); .@i++) {
+		if (strcharinfo(3) == .@mapas_eventos$[.@i]) {
+			dispbottom "Você não pode usar este comando em mapas de eventos!";
+			end;
+		}
+	}
+	
+	// Verifica se tem noteleport
+	if (getmapflag(strcharinfo(3), mf_noteleport)) {
+		dispbottom "Você não pode usar este comando neste mapa!";
+		end;
+	}
+	
+	// Abre caixa de diálogo de confirmação
+	mes "^339966[Sistema de Teleporte]^000000";
+	mes "Você tem certeza que deseja se teleportar para a ^ff0000Área de Descanso^000000?";
+	next;
+	
+	// Menu de confirmação
+	switch(select("^3CB371[>]^000000 Sim, me leve até lá.:^ff0000[>]^000000 Não, cancelar!")) {
+		case 1:
+			mes "^339966[Sistema de Teleporte]^000000";
+			mes "Preparando seu teleporte...";
+			mes "Bom descanso!";
+			close2;
+			
+			// Efeito visual
+			specialeffect2 1062; // Efeito de teleporte
+			
+			// Aguarda um pouco para o efeito
+			sleep2 800;
+			
+			// Teleporta para a área de descanso
+			// ALTERE AQUI: substitua "prontera" e as coordenadas pelo seu mapa de descanso
+			warp "1@pop3", 0, 0; // Mude para seu mapa real
+			
+			// Mensagem de chegada
+			sleep2 200;
+			dispbottom "Bem-vindo à Área de Descanso! Relaxe um pouco e recupere suas energias.";
+			end;
+			
+		case 2:
+			mes "^339966[Sistema de Teleporte]^000000";
+			mes "Teleporte cancelado.";
+			mes "Você permaneceu em sua localização atual.";
+			close;
+			end;
+	}
+}

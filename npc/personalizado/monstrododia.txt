@@ -1,0 +1,287 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  NPC - Monstro do Dia
+//===============================================================
+
+prontera,145,143,0	script	Monstro do Dia	835,{
+	mes "^339966[Monstro do Dia]^000000";
+	mes (gettime(3) >= 6 && gettime(3) <= 12 ? "Bom-dia" : (gettime(3) >= 13 && gettime(3) <= 18 ? "Boa-tarde" : "Boa-noite"))+", ^ffa500"+strcharinfo(0)+"^000000!";
+	mes "O monstro do dia é: ^ff0000" + .motd$ + "^000000";
+	mes "Todos os dias às ^ff000005:00^000000 um monstro aleatório é sorteado automaticamente para beneficiar os jogadores...";
+	next;
+	mes "^339966[Monstro do Dia]^000000";
+	mes "Dentro desses benefícios estão: ^ff0000XP de Base e Job aumentados, Drop de Itens Consumíveis, Drop de Zenys...^000000 e muito mais."; 
+	mes " ";
+	mes "O que você gostaria de fazer?";
+	next;
+	
+	// Menu de opções - MODIFICADO: adicionada opção de teleporte
+	switch(select("^339966[»]^000000 Informações sistema:^339966[»]^000000 Troca de Itens:^339966[»]^000000 Ir para o mapa:^ff0000[»] Sair^000000")) {
+		case 1:
+			mes "^339966[Monstro do Dia]^000000";
+			mes "Aproveite os bônus especiais ao derrotar o monstro do dia!";
+			break;
+			
+		case 2:
+			// Sistema de troca
+			mes "^339966[Monstro do Dia]^000000";
+			mes "Posso trocar suas ^339966Sementes de Yggdrasil^000000 por ^ff0000Frutos de Yggdrasil^000000!";
+			mes " ";
+			mes "^ff0000Taxa de câmbio:^000000";
+			mes "^339966100 Sementes de Yggdrasil^000000 = ^ff000010 Frutos de Yggdrasil^000000";
+			next;
+			
+			// Verifica se o jogador tem sementes suficientes
+			.@seeds = countitem(608); // Sementes de Yggdrasil
+			if (.@seeds < 100) {
+				mes "^339966[Monstro do Dia]^000000";
+				mes "Você precisa de pelo menos ^ff0000100 Sementes de Yggdrasil^000000 para realizar a troca.";
+				mes "Atualmente você possui: ^339966" + .@seeds + " Sementes^000000.";
+				break;
+			}
+			
+			// Calcula quantas trocas o jogador pode fazer
+			.@possible_trades = .@seeds / 100;
+			
+			mes "^339966[Monstro do Dia]^000000";
+			mes "Você possui ^339966" + .@seeds + " Sementes de Yggdrasil^000000.";
+			mes "Você pode realizar até ^ff0000" + .@possible_trades + " trocas^000000.";
+			mes " ";
+			mes "Quantas trocas você deseja fazer?";
+			mes "^ff0000(Digite 0 para cancelar)^000000";
+			next;
+			
+			input .@trades_wanted;
+			
+			// Validações
+			if (.@trades_wanted == 0) {
+				mes "^339966[Monstro do Dia]^000000";
+				mes "Troca cancelada.";
+				break;
+			}
+			
+			if (.@trades_wanted > .@possible_trades) {
+				mes "^339966[Monstro do Dia]^000000";
+				mes "Você não possui sementes suficientes para realizar " + .@trades_wanted + " trocas.";
+				mes "Máximo possível: ^ff0000" + .@possible_trades + " trocas^000000.";
+				break;
+			}
+			
+			if (.@trades_wanted < 0) {
+				mes "^339966[Monstro do Dia]^000000";
+				mes "Número inválido!";
+				break;
+			}
+			
+			// Confirmação da troca
+			.@seeds_needed = .@trades_wanted * 100;
+			.@berries_received = .@trades_wanted * 10;
+			
+			mes "^339966[Monstro do Dia]^000000";
+			mes "^ff0000Confirmação da Troca:^000000";
+			mes "Você vai entregar: ^339966" + .@seeds_needed + " Sementes de Yggdrasil^000000";
+			mes "Você vai receber: ^ff0000" + .@berries_received + " Frutos de Yggdrasil^000000";
+			mes "Confirma a troca?";
+			next;
+			
+			if(select("^339966[»]^000000 Sim:^ff0000[»] Não, cancelar.^000000") == 2) {
+				mes "^339966[Monstro do Dia]^000000";
+				mes "Troca cancelada.";
+				break;
+			}
+			
+			// Verifica novamente se tem os itens (prevenção contra bugs)
+			if (countitem(608) < .@seeds_needed) {
+				mes "^339966[Monstro do Dia]^000000";
+				mes "Erro: Você não possui sementes suficientes.";
+				break;
+			}
+			
+			// Realiza a troca
+			if (delitem(608, .@seeds_needed)) {
+				getitem 607, .@berries_received;
+				mes "^339966[Monstro do Dia]^000000";
+				mes "Troca realizada com sucesso!";
+				mes "Você trocou ^ff0000" + .@seeds_needed + " Sementes^000000 por ^339966" + .@berries_received + " Frutos^000000.";
+			} else {
+				mes "^339966[Monstro do Dia]^000000";
+				mes "^ff0000Erro ao realizar a troca. Tente novamente.^000000";
+			}
+			break;
+		
+		// NOVO: Case 3 - Sistema de Teleporte
+		case 3:
+			// Busca o mapa do monstro do dia
+			.@monster_map$ = "";
+			for (.@i = 0; .@i < getarraysize(.mobs$); .@i++) {
+				if (.mobs$[.@i] == .motd$) {
+					.@monster_map$ = .mob_maps$[.@i];
+					break;
+				}
+			}
+			
+			mes "^339966[Monstro do Dia]^000000";
+			if (.@monster_map$ == "") {
+				mes "^ff0000Ops!^000000 Não consegui encontrar o mapa do monstro ^ff0000" + .motd$ + "^000000.";
+				mes "Entre em contato com a administração.";
+				break;
+			}
+			
+			mes "Posso te teleportar para o mapa onde o ^ff0000" + .motd$ + "^000000 pode ser encontrado!";
+			mes "Mapa de destino: ^339966" + .@monster_map$ + "^000000";
+			mes " ";
+			mes "^ff0000Custo:^000000 ^3399665.000 Zenys^000000";
+			mes " ";
+			mes "Deseja ser teleportado?";
+			next;
+			
+			if(select("^339966[»]^000000 Sim, teleportar!:^ff0000[»] Não, cancelar.^000000") == 2) {
+				mes "^339966[Monstro do Dia]^000000";
+				mes "Teleporte cancelado.";
+				break;
+			}
+			
+			// Verifica se tem zeny suficiente
+			if (Zeny < 5000) {
+				mes "^339966[Monstro do Dia]^000000";
+				mes "^ff0000Você não possui Zenys suficientes!^000000";
+				mes "Custo: ^3399665.000 Zenys^000000";
+				mes "Você possui: ^ff0000" + Zeny + " Zenys^000000";
+				break;
+			}
+			
+			// Cobra o custo e teleporta
+			Zeny -= 5000;
+			mes "^339966[Monstro do Dia]^000000";
+			mes "Teleporte realizado com sucesso!";
+			mes "Boa caça, ^ffa500" + strcharinfo(0) + "^000000!";
+			close2;
+			warp .@monster_map$, 0, 0;
+			end;
+			
+		case 4:
+			mes "^339966[Monstro do Dia]^000000";
+			mes "Até logo!";
+			break;
+	}
+    close;
+
+    OnNPCKillEvent:
+        // Verifica se o monstro morto é o monstro do dia
+        if (getmonsterinfo(killedrid, MOB_NAME) != .motd$) end;
+        
+        // Pega informações do jogador
+        .@party_id = getcharid(1);
+        .@player_map$ = strcharinfo(3);
+        
+        // Se não está em party (jogador solo)
+        if (!.@party_id) {
+            // Verifica se ganha o bônus geral
+            if (rand(100) < .general_chance) {
+                // Bônus de EXP e Zeny (sempre dados se passar na chance geral)
+                BaseExp += .base_exp_bonus;
+                JobExp += .job_exp_bonus;
+                Zeny += .zeny;
+                
+                // Verifica cada item individualmente
+                for (.@i = 0; .@i < getarraysize(.items); .@i++) {
+                    if (rand(100) < .item_chances[.@i]) {
+                        getitem .items[.@i], .item_quantities[.@i];
+                    }
+                }
+                dispbottom "Bônus do Monstro do Dia recebido!";
+            }
+        } 
+        // Se está em party
+        else {
+            // Salva o RID atual
+            .@current_rid = getcharid(3);
+            
+            // Para cada membro da party
+            getpartymember(.@party_id, 0);
+            for (.@j = 0; .@j < $@partymembercount; .@j++) {
+                if (isloggedin(getcharid(3, $@partymembername$[.@j]))) {
+                    attachrid(getcharid(3, $@partymembername$[.@j]));
+                    
+                    // Verifica se está no mesmo mapa e vivo
+                    if (strcharinfo(3) == .@player_map$ && Hp > 0) {
+                        // Verifica se ganha o bônus geral
+                        if (rand(100) < .general_chance) {
+                            // Bônus de EXP e Zeny (sempre dados se passar na chance geral)
+                            BaseExp += .base_exp_bonus;
+                            JobExp += .job_exp_bonus;
+                            Zeny += .zeny;
+                            
+                            // Verifica cada item individualmente
+                            for (.@i = 0; .@i < getarraysize(.items); .@i++) {
+                                if (rand(100) < .item_chances[.@i]) {
+                                    getitem .items[.@i], .item_quantities[.@i];
+                                }
+                            }
+                            dispbottom "Bônus do Monstro do Dia recebido!";
+                        }
+                    }
+                }
+            }
+            
+            // Restaura o RID original
+            attachrid(.@current_rid);
+        }
+        end;
+
+    OnClock0500:
+        .motd$ = .mobs$[rand(getarraysize(.mobs$))];
+        delwaitingroom;
+        waitingroom "[MOTD] " + .motd$, 0;
+        announce "[Monstro do Dia]: O monstro do dia foi alterado... O novo monstro é " + .motd$, 0;
+        end;
+
+    OnInit:
+        .zeny = 250000; // Recompensa em zeny
+        .job_exp_bonus = 1000; // Bônus de experiência de job
+        .base_exp_bonus = 1000; // Bônus de experiência base
+        .general_chance = 50; // Chance geral de receber qualquer bônus (50%)
+        
+        // IDs, quantidades e chances individuais dos itens de recompensa
+        setarray .items[0], 12016, 678, 607, 608, 14536, 12202, 12203, 12207, 12204, 12205, 12206;
+        setarray .item_quantities[0], 5, 5, 5, 10, 1, 1, 1, 1, 1, 1, 1;
+        setarray .item_chances[0], 15, 15, 30, 50, 10, 3, 5, 5, 5, 5, 5;
+        
+        // Lista de monstros possíveis
+        setarray .mobs$[0], "Scorpion", "Poring", "Fabre", "Drops", "Poporing", "Marin", 
+            "Lunatic", "Pupa", "Chonchon", "Spore", "Rocker", "Wolf", "Savage", 
+            "Mandragora", "Flora", "Creamy", "Peco Peco", "Bigfoot", "Zombie", "Skeleton", 
+            "Soldier Skeleton", "Archer Skeleton", "Mummy", "Verit", "Ghoul", "Wraith", 
+            "Evil Druid", "Khalitzburg", "Familiar", "Deviruchi", "Baphomet Jr", "Diabolic", 
+            "Succubus", "Incubus", "Nightmare", "Dokebi", "Smokie", "Yoyo", "Caramel", 
+            "Steel Chonchon", "Hunter Fly", "Horn", "Hermit Plant", "Andre", 
+            "Deniro", "Piere", "Vitata", "Zerom", "Metaller", "Rotar Zairo", "Plankton", 
+            "Vadon", "Marina", "Cornutus", "Magnolia", "Hydra", "Muscipular", "Drosera", 
+            "Rafflesia", "Geographer", "Golem", "Sandman", "Hode", "Desert Wolf", "Anacondaq";
+        
+        // NOVO: Array com os mapas correspondentes aos monstros
+        setarray .mob_maps$[0], "moc_fild20", "prt_fild08", "gef_fild07", "moc_fild07", "yuno_fild03", "xmas_fild01", "prt_fild01",
+            "pay_fild03", "moc_fild18", "pay_fild05", "prt_fild07", "ve_fild04", "prt_fild010", "prt_fild02",
+            "mjolnir_11", "gef_fild13", "moc_fild02", "pay_fild09", "gef_dun01", "pay_dun00", "moc_pryd02",
+            "moc_pryd02","moc_pryd03", "moc_pryd05", "gl_church", "gl_chyard", "gl_church",
+            "gl_knt02", "moc_pryd01", "gef_dun02", "prt_maze03", "mag_dun02", "gefenia02",
+            "gefenia03", "gef_dun01", "pay_fild10", "pay_fild09", "prt_fild03", "mjolnir_01", "moc_fild18",
+            "prt_maze03", "mjolnir_09", "gon_dun03", "anthell02", "anthell01",
+            "anthell01", "anthell02", "in_sphinx2", "moc_fild20", "gef_fild11", "iz_dun00", "iz_dun01",
+            "iz_dun00", "iz_dun02", "moc_fild16", "iz_dun02", "ra_fild02", "ra_fild09", "yuno_fild05",
+            "yuno_fild11", "moc_fild011", "moc_fild16", "moc_fild17", "ve_fild04", "cmd_fild09";
+        
+        // Inicializa o primeiro monstro do dia
+        .motd$ = .mobs$[rand(getarraysize(.mobs$))];
+        delwaitingroom;
+        waitingroom "[MOTD] " + .motd$, 0;
+        announce "[Monstro do Dia]: Sistema iniciado! O monstro do dia é " + .motd$, 0;
+        end;
+}

@@ -1,0 +1,26 @@
+//===============================================================
+//                 Comando @hold - Simples
+//===============================================================
+// Versão: 1.0 - Versão simples que funciona
+//===============================================================
+
+-	script	hold_cmd	FAKE_NPC,{
+
+OnInit:
+	bindatcmd "hold", "hold_cmd::OnHold";
+	end;
+
+OnHold:
+	if (#HOLD_ON == 1) {
+		// Destrava
+		#HOLD_ON = 0;
+		sc_end SC_STOP;
+		dispbottom "Movimento destravado.";
+	} else {
+		// Trava
+		#HOLD_ON = 1;
+		sc_start SC_STOP, -1, 1;
+		dispbottom "Movimento travado. Use @hold novamente para destravar.";
+	}
+	end;
+}

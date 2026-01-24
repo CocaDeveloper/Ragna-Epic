@@ -1,0 +1,108 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  NPC - Resetadora VIP
+//===============================================================
+// Versão: 1.1 - Acesso para GM
+//
+// Alteração v1.1:
+// - Adicionado acesso para GMs de nível 99.
+// - GMs recebem os mesmos benefícios de um Super VIP.
+//===============================================================
+
+1@herbs,300,63,3	script	Estilista Cirurgião#011	878,{
+    if (countitem(501) < 1) {
+		mes "^339966[Estilista Cirurgião]^000000";
+		mes "^ff0000Acesso Negado!^000000";
+		mes " ";
+        mes "Você precisa do ^ff0000Ticket ChangeSex^000000 para fazer a cirurgia.";
+        close;
+    }
+
+    set .np$,"^339966[Estilista Cirurgião]^000000";
+    cutin "orleans_1",2;
+
+    if (BaseJob == Job_Bard || BaseJob == Job_Clown || BaseJob == Job_Dancer || BaseJob == Job_Gypsy || BaseJob == Job_Ninja || BaseJob == Job_Kagerou || BaseJob == Job_Oboro || BaseJob == Job_Shinkiro || BaseJob == Job_Shiranui ) {
+        mes .np$;
+        mes "Infelizmente não posso trocar o sexo das classes ^FFA500Bardo^000000, ^FFA500Odalisca^000000, ^FFA500Ninjas^000000 e suas evoluções.";
+        close;
+    }
+
+    mes .np$;
+    mes (gettime(3)>=6 && gettime(3)<=12 ? "Bom-dia" : (gettime(3)>=13 && gettime(3)<=18 ? "Boa-tarde" : "Boa-noite"))+", ^FFA500"+strcharinfo(0)+"^000000!";
+    mes "Eu consigo trocar o seu sexo com uma rápida cirurgia!";
+	mes " ";
+	mes "O que você deseja fazer?";
+    switch(select("^339966[»]^000000 Trocar de sexo:^ff0000[»] Nada^000000")) {
+        case 1:
+            next;
+            if(sex) { // Male -> Female
+                mes .np$;
+                mes "O procedimento é simples, trocarei o seu sexo do ^0000ffmasculino^000000 para o ^ff0000feminino^000000.";
+				mes " ";
+				mes "Deseja confirmar o procedimento?";
+                cutin "orleans_1",2;
+                switch(select("^339966[»]^000000 Confirmar:^ff0000[»] Cancelar^000000")) {
+                    case 1:
+                        next;
+                        mes .np$;
+                        mes "Iniciando o procedimento, desconectando em:";
+                        sleep2 1000; mes "3..."; sleep2 1000; mes "2..."; sleep2 1000; mes "1..."; sleep2 1000;
+                        delitem 501,1;
+                        atcommand "@changecharsex "+strcharinfo(0);
+                        end;
+                    case 2:
+						next;
+                        mes .np$;
+                        mes "Tudo bem, volte quando quiser.";
+                        close;
+                }
+            } else { // Female -> Male
+                mes .np$;
+                mes "O procedimento é simples, trocarei o seu sexo do ^ff0000feminino^000000 para o ^0000ffmasculino^000000.";
+				mes " ";
+				mes "Deseja confirmar o procedimento?";
+                cutin "orleans_1",2;
+                switch(select("^339966[»]^000000 Confirmar:^ff0000[»] Cancelar^000000")) {
+                    case 1:
+                        next;
+                        mes .np$;
+                        mes "Iniciando o procedimento, desconectando em:";
+                        sleep2 1000; mes "3..."; sleep2 1000; mes "2..."; sleep2 1000; mes "1..."; sleep2 1000;
+                        delitem 501,1;
+                        atcommand "@changecharsex "+strcharinfo(0);
+                        end;
+                    case 2:
+						next;
+                        mes .np$;
+                        mes "Tudo bem, volte quando quiser.";
+                        close;
+                }
+            }
+            break;
+        case 2:
+			next;
+            mes .np$;
+            mes "Tudo bem, volte quando quiser.";
+            close;
+            break;
+    }
+
+OnInit:
+
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 83;	
+		setunittitle getnpcid(0), "[Trocador de Sexo]";
+
+		while(1) {
+		showscript "[ Change Sex ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+

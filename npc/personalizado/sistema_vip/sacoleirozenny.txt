@@ -1,0 +1,148 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  NPC - Sacoleiro VIP
+//===============================================================
+// Versão: 1.1 - Acesso para GM
+//
+// Alteração v1.1:
+// - Adicionado acesso para GMs de nível 99.
+// - GMs recebem os mesmos benefícios de um Super VIP.
+//===============================================================
+
+1@herbs,300,71,3	script	Sacoleiro VIP	963,{
+	set .npc_name$,"^339966[Sacoleiro VIP]^000000";
+
+	mes .npc_name$;
+	mes "Olá, "+(Sex?"Mrs.":"Mr.")+" ^FFA500"+strcharinfo(0)+"^000000!";
+	mes "Comigo você pode transformar seu Zeny em Sacolas de Moedas ou transformar suas Sacolas de Moedas em Zeny quando precisar.";
+	mes "O que você deseja fazer?";
+	
+	switch(select("^339966[»]^000000 Trocar Zeny por Sacolas:^339966[»]^000000 Trocar Sacolas por Zeny:^ff0000[»] Sair^000000")) {
+		
+		case 1: // Trocar Zeny por Sacolas
+			next;
+			mes .npc_name$;
+			mes "Selecione a sacola que deseja trocar:";
+			switch(select("^339966[»]^000000 Sacola de Bronze [10KK]:^339966[»]^000000 Sacola de Prata [100KK]:^339966[»]^000000 Sacola de Ouro [1B]:^ff0000[»] Cancelar^000000")) {
+				case 1:
+					next;
+					mes .npc_name$;
+					if (Zeny < 10000000) { 
+					mes "^ff0000Troca Negada.^000000";
+					mes "Você não possui Zeny suficiente."; close; }
+					if (checkweight(672,1) == 0) { 
+					mes "^ff0000Troca Negada.^000000";
+					mes "Você está sem espaço ou peso para receber o item."; close; }
+					Zeny -= 10000000;
+					getitem 672,1;
+					mes "Aqui está sua ^ff0000Sacola de Bronze.^000000";
+					close;
+				case 2:
+					next;
+					mes .npc_name$;
+					if (Zeny < 100000000) { 
+					mes "^ff0000Troca Negada.^000000";
+					mes "Você não possui Zeny suficiente."; close; }
+					if (checkweight(676,1) == 0) { 
+					mes "^ff0000Troca Negada.^000000";
+					mes "Você está sem espaço ou peso para receber o item."; close; }
+					Zeny -= 100000000;
+					getitem 676,1;
+					mes "Aqui está sua ^ff0000Sacola de Prata.^000000";
+					close;
+				case 3:
+					next;
+					mes .npc_name$;
+					if (Zeny < 1000000000) { 
+					mes "^ff0000Troca Negada.^000000";
+					mes "Você não possui Zeny suficiente."; close; }
+					if (checkweight(670,1) == 0) { 
+					mes "^ff0000Troca Negada.^000000";
+					mes "Você está sem espaço ou peso para receber o item."; close; }
+					Zeny -= 1000000000;
+					getitem 670,1;
+					mes "Aqui está sua ^ff0000Sacola de Ouro.^000000";
+					close;
+				case 4:
+					next;
+					mes .npc_name$;
+					mes "Tudo bem, volte quando precisar dos meus serviços.";
+					close;
+			}
+		
+		case 2: // Trocar Sacolas por Zeny
+			next;
+			mes .npc_name$;
+			mes "Selecione a sacola que deseja trocar por Zeny:";
+			switch(select("^339966[»]^000000 Sacola de Bronze [10KK]:^339966[»]^000000 Sacola de Prata [100KK]:^339966[»]^000000 Sacola de Ouro [1B]:^ff0000[»] Cancelar^000000")) {
+				case 1:
+					next;
+					mes .npc_name$;
+					if (countitem(672) < 1) { 
+					mes "^ff0000Troca Negada.^000000";
+					mes "Você não possui Sacola de Bronze."; close; }
+					if (Zeny > 1990000000) { 
+					mes "^ff0000Troca Negada.^000000";
+					mes "Seu Zeny está quase no limite. Use ou armazene antes de trocar."; close; }
+					delitem 672,1;
+					Zeny += 10000000;
+					mes "Você trocou uma Sacola de Bronze por ^ff000010KK de Zeny.^000000";
+					close;
+				case 2:
+					next;
+					mes .npc_name$;
+					if (countitem(676) < 1) { 
+					mes "^ff0000Troca Negada.^000000";
+					mes "Você não possui Sacola de Prata."; close; }
+					if (Zeny > 1900000000) { 
+					mes "^ff0000Troca Negada.^000000";
+					mes "Seu Zeny está quase no limite. Use ou armazene antes de trocar."; close; }
+					delitem 676,1;
+					Zeny += 100000000;
+					mes "Você trocou uma Sacola de Prata por ^ff0000100KK de Zeny.^000000";
+					close;
+				case 3:
+					next;
+					mes .npc_name$;
+					if (countitem(670) < 1) { 
+					mes "^ff0000Troca Negada.^000000";
+					mes "Você não possui Sacola de Ouro."; close; }
+					if (Zeny > 1000000000) { 
+					mes "^ff0000Troca Negada.^000000";
+					mes "Seu Zeny está quase no limite. Use ou armazene antes de trocar."; close; }
+					delitem 670,1;
+					Zeny += 1000000000;
+					mes "Você trocou uma Sacola de Ouro por ^ff00001B de Zeny.^000000";
+					close;
+				case 4:
+					next;
+					mes .npc_name$;
+					mes "Tudo bem, volte quando precisar dos meus serviços.";
+					close;
+			}
+		
+		case 3:
+			next;
+			mes .npc_name$;
+			mes "Tudo bem, volte quando precisar dos meus serviços.";
+			close;
+	}
+	
+OnInit:
+
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 1014;	
+		setunittitle getnpcid(0), "[Rune-Midgard]";
+
+		while(1) {
+		showscript "[ Sacoleiro VIP ]", getnpcid(0);
+		sleep 100;
+	}
+	end;end;
+}

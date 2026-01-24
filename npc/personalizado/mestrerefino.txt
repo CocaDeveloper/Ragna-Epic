@@ -1,0 +1,36 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                     MESTRE FERREIRO
+// ===================== Descrição: =============================
+prontera,188,215,3	script	Bigornox, o Ferreiro	813,{
+
+    // ???????? BLOCO DEFAULT (ao clicar) ????????
+    if (getbattleflag("feature.refineui")) {
+		mes "^339966[Bigornox, o Ferreiro]^000000";
+        mes "Hohoho! Eu sou Hollgrehenn, o ferreiro que faz metal chorar de emoção!";
+        mes "Tem aí alguma tranqueira enferrujada precisando virar obra de arte?";
+        close2;
+        refineui();
+        end;
+    } else {
+        callfunc "refinemain","Hollgrehenn",0;
+        end;
+    }
+
+OnInit:
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 41;	
+	setunittitle getnpcid(0), "[Mestre dos Refinos]";
+
+	while(1) {
+		showscript "[ Mestre dos Refinos ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}

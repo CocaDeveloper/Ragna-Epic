@@ -1,0 +1,733 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  NPC - Arquivador de Build
+//===============================================================
+// Versão: 1.1 - Acesso para GM
+//
+// Alteração v1.1:
+// - Adicionado acesso para GMs de nível 99.
+// - GMs recebem os mesmos benefícios de um Super VIP.
+//===============================================================
+
+1@herbs,271,71,5	script	Arquivador de Build	865,{
+if (BaseLevel < 99) { mes "Você so pode usar dos meus serviços se for level 99"; end; }
+set @npc$, "^339966[Arquivador de Build]^000000";
+mes @npc$;
+mes (gettime(3)>= 6&&gettime(3)<= 12?"Bom-dia":(gettime(3)>=13&&gettime(3)<=18?"Boa-tarde":"Boa-noite"))+", ^FFA500"+strcharinfo(0)+"^000000!";
+mes "Eu sou o Arquivador de Build.";
+mes "Gostaria de salvar ou consultar suas builds salvas?";
+switch(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")){
+		case 1: 
+		next;
+		mes @npc$;
+		mes "Muito bem, escolha o que você deseja fazer.";
+		switch(select("^339966[»]^000000 Salvar Build Atual:^339966[»]^000000 Consultar Build Salva:^339966[»]^000000 Resetar Slots:^ff0000[»] Sair^000000")){
+		case 1: 
+			saves:
+			next;
+		mes @npc$;
+		mes "Escolha o slot que você deseja salvar:";
+				switch(select("^339966[»]^000000 Slot 1 "+salva1$+":^339966[»]^000000 Slot 2 "+salva2$+":^339966[»]^000000 Slot 3 "+salva3$+":^339966[»]^000000 Slot 4 "+salva4$+":^0000ff[»]^000000 Resetar Slots:^ff0000[»] Sair^000000")){
+				case 1: 
+				if(salva1$ == "^FF0000[Em uso]^000000") goto emuso1;
+				next;
+				mes @npc$;
+				set bStr1,readparam (bStr);
+				set bAgi1,readparam (bAgi);
+				set bVit1,readparam (bVit);
+				set bInt1,readparam (bInt);
+				set bDex1,readparam (bDex);
+				set bLuk1,readparam (bLuk);
+				set Points1,StatusPoint;
+				set jub1,Class;
+				set hp1, MaxHp;
+				set sp1, MaxSp;
+				mes "Sua Build atual é:";
+				mes "Classe: ^3366FF"+jub1+"^000000";
+				mes "HP: "+hp1+"";
+				mes "SP: "+sp1+"";
+				mes "Str: "+bStr1+".";
+				mes "Agi: "+bAgi1+".";
+				mes "Vit: "+bVit1+".";
+				mes "Int: "+bInt1+".";
+				mes "Dex: "+bDex1+".";
+				mes "Luk: "+bLuk1+".";
+				mes "Deseja salvar essa build agora?";
+				switch(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")){
+					case 1: 
+					next;
+					mes @npc$;
+					mes "Digite um nome para sua build atual.";
+					input build1$;
+					set salva1$, "^FF0000[Em uso]^000000";
+					set ativa, 1;
+					next;
+					mes @npc$;
+					mes "Pronto, sua build de nome:";
+					mes "^ff0000"+build1$+"^000000";
+					mes "Classe: ^3366FF"+jub1+"^000000";
+					mes "Foi salva com sucesso.";
+					close;
+					
+					case 2:
+					next;
+					mes @npc$;
+					mes "Tudo bem. Até mais!";
+					close;
+					
+					
+					emuso1:
+					next;
+					mes @npc$;
+					mes "Desculpe, mas seu ^ff0000Slot [1]^000000 está ocupado.";
+					goto saves;
+					close;
+					}
+					
+					
+					case 2: 
+					if(salva2$ == "^FF0000[Em uso]^000000") goto emuso2;
+					next;
+				mes @npc$;
+				set bStr2,readparam (bStr);
+				set bAgi2,readparam (bAgi);
+				set bVit2,readparam (bVit);
+				set bInt2,readparam (bInt);
+				set bDex2,readparam (bDex);
+				set bLuk2,readparam (bLuk);
+				set jub2,Class;
+				set Points2,StatusPoint;
+				set hp2, MaxHp;
+				set sp2, MaxSp;
+				mes "Sua Build atual é:";
+				mes "Classe:  ^3366FF"+jub2+"^000000";
+				mes "HP: "+hp2+"";
+				mes "SP: "+sp2+"";
+				mes "Str: "+bStr2+".";
+				mes "Agi: "+bAgi2+".";
+				mes "Vit: "+bVit2+".";
+				mes "Int: "+bInt2+".";
+				mes "Dex: "+bDex2+".";
+				mes "Luk: "+bLuk2+".";
+				mes "Deseja salvar essa build agora?";
+				switch(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")){
+					case 1: 
+					next;
+					mes @npc$;
+					mes "Digite um nome para sua build atual.";
+					input build2$;
+					set salva2$, "^FF0000[Em uso]^000000";
+					set ativadois, 1;
+					next;
+					mes @npc$;
+					mes "Pronto, sua build de nome:";
+					mes "^ff0000"+build2$+"^000000";
+					mes "Classe: ^3366FF"+jub2+"^000000";
+					mes "Foi salva com sucesso.";
+					close;
+					
+					case 2:
+					next;
+					mes @npc$;
+					mes "Tudo bem. Até mais!";
+					close;
+					
+					emuso2:
+					next;
+					mes @npc$;
+					mes "Desculpe, mas seu ^ff0000Slot [2]^000000 está ocupado.";
+					goto saves;
+					close;
+					
+					}
+					
+					case 3:
+					if(salva3$ == "^FF0000[Em uso]^000000") goto emuso3;
+					next;
+				mes @npc$;
+				set bStr3,readparam (bStr);
+				set bAgi3,readparam (bAgi);
+				set bVit3,readparam (bVit);
+				set bInt3,readparam (bInt);
+				set bDex3,readparam (bDex);
+				set bLuk3,readparam (bLuk);
+				set jub3,Class;
+				set Points3,StatusPoint;
+				set hp3, MaxHp;
+				set sp3, MaxSp;
+				mes "Sua Build atual é:";
+				mes "Classe:  ^3366FF"+jub3+"^000000";
+				mes "HP: "+hp3+"";
+				mes "SP: "+sp3+"";
+				mes "Str: "+bStr3+".";
+				mes "Agi: "+bAgi3+".";
+				mes "Vit: "+bVit3+".";
+				mes "Int: "+bInt3+".";
+				mes "Dex: "+bDex3+".";
+				mes "Luk: "+bLuk3+".";
+				mes "Deseja salvar essa build agora?";
+				switch(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")){
+					case 1: 
+					next;
+					mes @npc$;
+					mes "Digite um nome para sua build atual.";
+					input build3$;
+					set salva3$, "^FF0000[Em uso]^000000";
+					set ativatreis, 1;
+					next;
+					mes @npc$;
+					mes "Pronto, sua build de nome:";
+					mes "^ff0000"+build3$+"^000000";
+					mes "Classe: ^3366FF"+jub3+"^000000";
+					mes "Foi salva com sucesso.";
+					close;
+					
+					case 2:
+					next;
+					mes @npc$;
+					mes "Tudo bem. Até mais!";
+					close;
+					
+					emuso3:
+					next;
+					mes @npc$;
+					mes "Desculpe, mas seu ^ff0000Slot [3]^000000 está ocupado.";
+					goto saves;
+					close;
+					
+					}
+					
+					case 4:
+					if(salva4$ == "^FF0000[Em uso]^000000") goto emuso4;
+					next;
+				mes @npc$;
+				set bStr4,readparam (bStr);
+				set bAgi4,readparam (bAgi);
+				set bVit4,readparam (bVit);
+				set bInt4,readparam (bInt);
+				set bDex4,readparam (bDex);
+				set bLuk4,readparam (bLuk);
+				set jub4,Class;
+				set Points4,StatusPoint;
+				set hp4, MaxHp;
+				set sp4, MaxSp;
+				mes "Sua Build atual é:";
+				mes "Classe:  ^3366FF"+jub4+"^000000";
+				mes "HP: "+hp4+"";
+				mes "SP: "+sp4+"";
+				mes "Str: "+bStr4+".";
+				mes "Agi: "+bAgi4+".";
+				mes "Vit: "+bVit4+".";
+				mes "Int: "+bInt4+".";
+				mes "Dex: "+bDex4+".";
+				mes "Luk: "+bLuk4+".";
+				mes "Deseja salvar essa build agora?";
+				switch(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")){
+					case 1: 
+					next;
+					mes @npc$;
+					mes "Digite um nome para sua build atual.";
+					input build4$;
+					set salva4$, "^FF0000[Em uso]^000000";
+					set ativaquatro, 1;
+					next;
+					mes @npc$;
+					mes "Pronto, sua build de nome:";
+					mes "^ff0000"+build4$+"^000000";
+					mes "Classe: ^3366FF"+jub4+"^000000";
+					mes "Foi salva com sucesso.";
+					close;
+					
+					case 2:
+					next;
+					mes @npc$;
+					mes "Tudo bem. Até mais!";
+					close;
+					
+					emuso4:
+					next;
+					mes @npc$;
+					mes "Desculpe, mas seu ^ff0000Slot [4]^000000 está ocupado.";
+					goto saves;
+					close;
+					
+					
+				}
+												
+				case 5: goto reset;
+				
+				case 6:
+				next;
+				mes @npc$;
+				mes "Tudo bem. Até mais!";
+				close;
+				
+				
+			}
+		
+		
+		
+		
+		case 2: 
+		next;
+		mes @npc$;
+		mes "Qual build você gostaria de ver?";
+				switch(select("^339966[»]^000000 Build 1 "+salva1$+":^339966[»]^000000 Build 2 "+salva2$+":^339966[»]^000000 Build 3 "+salva3$+":^339966[»]^000000 Build 4 "+salva4$+":^ff0000[»] Sair^000000")){
+				case 1:
+				if (ativa ==0) goto ativa1;
+				next;		
+				mes @npc$;
+				mes "Sua Build do ^ff0000slot [1]^000000 é a seguinte:";
+				next;
+				mes @npc$;
+				mes "Nome: ^ff0000"+build1$+"^000000";
+				mes "Classe: ^3366FF"+jub1+"^000000";
+				mes "HP: "+hp1+"";
+				mes "SP: "+sp1+"";
+				mes "Str: "+bStr1+"";
+				mes "Agi: "+bAgi1+"";
+				mes "Vit: "+bVit1+"";
+				mes "Int: "+bInt1+"";
+				mes "Dex: "+bDex1+"";
+				mes "Luk: "+bLuk1+"";
+				next;
+				mes @npc$;
+				mes "Deseja carregar essa build?";
+					switch(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")){
+					case 1: 
+					if (Class != jub1) goto noclass1;
+					resetstatus;
+					set StatusPoint,0;
+					statusup2 bStr,(bStr1 -1);
+					statusup2 bAgi,(bAgi1 -1);
+					statusup2 bVit,(bVit1 -1);
+					statusup2 bInt,(bInt1 -1);
+					statusup2 bDex,(bDex1 -1);
+					statusup2 bLuk,(bLuk1 -1);
+					set StatusPoint,Points1;
+					
+					close;
+					
+					case 2:
+					next;
+					mes @npc$;
+					mes "Tudo bem. Até mais!";
+					close;
+					
+					noclass1:
+					next;
+					mes @npc$;
+					mes "Desculpe, mas esta build é para a classe: ^ff0000"+jub1+"^000000.";
+					mes "Sua classe atual é: ^3366FF"+Class+"^000000.";
+					close;
+					
+						}
+				
+				next;
+				close;
+				
+				case 2:
+				if (ativadois ==0) goto ativa2;
+				next;	
+				mes @npc$;
+				mes "Sua build do ^ff0000slot [2]^00000 é a seguinte:";
+				next;
+				mes @npc$;
+				mes "Nome: ^ff0000"+build2$+"^000000";
+				mes "Classe: ^3366FF"+jub2+"^000000";
+				mes "HP: "+hp2+"";
+				mes "SP: "+sp2+"";
+				mes "Str: "+bStr2+"";
+				mes "Agi: "+bAgi2+"";
+				mes "Vit: "+bVit2+"";
+				mes "Int: "+bInt2+"";
+				mes "Dex: "+bDex2+"";
+				mes "Luk: "+bLuk2+"";
+				next;
+				mes @npc$;
+				mes "Deseja carregar essa build?";
+					switch(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")){
+					case 1: 
+					if (Class != jub2) goto noclass2;
+					resetstatus;
+					set StatusPoint,0;
+					statusup2 bStr,(bStr2 -1);
+					statusup2 bAgi,(bAgi2 -1);
+					statusup2 bVit,(bVit2 -1);
+					statusup2 bInt,(bInt2 -1);
+					statusup2 bDex,(bDex2 -1);
+					statusup2 bLuk,(bLuk2 -1);
+					set StatusPoint,Points2;
+					next;
+					mes @npc$;
+					mes "Pronto.";
+					close;
+					
+					case 2:
+					next;
+					mes @npc$;
+					mes "Tudo bem. Até mais!";
+					close;
+					
+					noclass2:
+					next;
+					mes @npc$;
+					mes "Desculpe, mas esta build é para a classe: ^ff0000"+jub2+"^000000.";
+					mes "Sua classe atual é: ^3366FF"+Class+"^000000.";
+					close;
+					}
+				
+				
+				case 3:
+				if (ativatreis == 0) goto ativa3;
+				next;	
+				mes @npc$;
+				mes "Muito bem, sua build do ^ff0000slot [3]^000000 é a seguinte:";
+				next;
+				mes @npc$;
+				mes "Nome: ^ff0000"+build3$+"^000000";
+				mes "Classe: ^3366FF"+jub3+"^000000";
+				mes "HP: "+hp3+"";
+				mes "SP: "+sp3+"";
+				mes "Str: "+bStr3+"";
+				mes "Agi: "+bAgi3+"";
+				mes "Vit: "+bVit3+"";
+				mes "Int: "+bInt3+"";
+				mes "Dex: "+bDex3+"";
+				mes "Luk: "+bLuk3+"";
+				next;
+				mes @npc$;
+				mes "Deseja carregar essa build?";
+					switch(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")){
+					case 1: 
+					if (Class != jub3) goto noclass3;
+					resetstatus;
+					set StatusPoint,0;
+					statusup2 bStr,(bStr3 -1);
+					statusup2 bAgi,(bAgi3 -1);
+					statusup2 bVit,(bVit3 -1);
+					statusup2 bInt,(bInt3 -1);
+					statusup2 bDex,(bDex3 -1);
+					statusup2 bLuk,(bLuk3 -1);
+					set StatusPoint,Points3;
+					next;
+					mes @npc$;
+					mes "Pronto.";
+					close;
+					
+					case 2:
+					next;
+					mes @npc$;
+					mes "Tudo bem. Até mais!";
+					close;					
+					
+					noclass3:
+					next;
+					mes @npc$;
+					mes "Desculpe, mas esta build é para a classe: ^ff0000"+jub3+"^000000.";
+					mes "Sua classe atual é: ^3366FF"+Class+"^000000.";
+					close;
+					}
+				
+				case 4:
+				if (ativaquatro == 0) goto ativa4;
+				next;	
+				mes @npc$;
+				mes "Muito bem, sua build do ^ff0000slot [4]^000000 é a seguinte:";
+				next;
+				mes @npc$;
+				mes "Nome: ^ff0000"+build4$+"^000000";
+				mes "Classe: ^3366FF"+jub4+"^000000";
+				mes "HP: "+hp4+"";
+				mes "SP: "+sp4+"";
+				mes "Str: "+bStr4+"";
+				mes "Agi: "+bAgi4+"";
+				mes "Vit: "+bVit4+"";
+				mes "Int: "+bInt4+"";
+				mes "Dex: "+bDex4+"";
+				mes "Luk: "+bLuk4+"";
+				next;
+				mes @npc$;
+				mes "Deseja carregar essa build?";
+					switch(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")){
+					case 1: 
+					if (Class != jub4) goto noclass4;
+					resetstatus;
+					set StatusPoint,0;
+					statusup2 bStr,(bStr4 -1);
+					statusup2 bAgi,(bAgi4 -1);
+					statusup2 bVit,(bVit4 -1);
+					statusup2 bInt,(bInt4 -1);
+					statusup2 bDex,(bDex4 -1);
+					statusup2 bLuk,(bLuk4 -1);
+					set StatusPoint,Points4;
+					next;
+					mes @npc$;
+					mes "Pronto.";
+					close;
+					
+					case 2:
+					next;
+					mes @npc$;
+					mes "Tudo bem. Até mais!";
+					close;
+					
+					noclass4:
+					next;
+					mes @npc$;
+					mes "Desculpe, mas esta build é para a classe: ^ff0000"+jub4+"^000000.";
+					mes "Sua classe atual é: ^3366FF"+Class+"^000000.";
+					close;
+					}
+				
+				
+		
+				case 5:
+					next;
+					mes @npc$;
+					mes "Tudo bem. Até mais!";
+					close;
+				
+				
+				ativa1:
+				next;
+				mes @npc$;
+				mes "Desculpe ^FFA500"+strcharinfo(0)+"^000000, mas você não tem uma build salva no ^ff0000slot [1]^000000.";
+				mes " ";
+				mes "Gostaria de criar uma build para este slot agora?";
+						switch(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")){
+						case 1: goto saves;
+						case 2:
+						next;
+						mes @npc$;
+						mes "Tudo bem. Até mais!";
+						close;
+	}
+	
+	
+		ativa2:
+				next;
+				mes @npc$;
+				mes "Desculpe ^FFA500"+strcharinfo(0)+"^000000, mas você não tem uma build salva no ^ff0000slot [2]^000000.";
+				mes " ";
+				mes "Gostaria de criar uma build para este slot agora?";
+						switch(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")){
+						case 1: goto saves;
+						case 2:
+						next;
+						mes @npc$;
+						mes "Tudo bem. Até mais!";
+						close;
+	}
+	
+	ativa3:
+				next;
+				mes @npc$;
+				mes "Desculpe ^FFA500"+strcharinfo(0)+"^000000, mas você não tem uma build salva no ^ff0000slot [3]^000000.";
+				mes " ";
+				mes "Gostaria de criar uma build para este slot agora?";
+						switch(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")){
+						case 1: goto saves;
+						case 2:
+						next;
+						mes @npc$;
+						mes "Tudo bem. Até mais!";
+						close;
+	}
+	
+	ativa4:
+				next;
+				mes @npc$;
+				mes "Desculpe ^FFA500"+strcharinfo(0)+"^000000, mas você não tem uma build salva no slot [4].";
+				mes " ";
+				mes "Gostaria de criar uma build para este slot agora?";
+						switch(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")){
+						case 1: goto saves;
+						case 2:
+						next;
+						mes @npc$;
+						mes "Tudo bem. Até mais!";
+						close;
+	}
+		}
+				
+				
+				
+				 
+		
+		case 3:
+			reset:
+				next;
+		mes @npc$;
+		mes "Qual slot você gostaria de resetar?";
+		switch(select("^339966[»]^000000 Slot [1] "+salva1$+":^339966[»]^000000 Slot [2] "+salva2$+":^339966[»]^000000 Slot [3] "+salva3$+":^339966[»]^000000 Slot [4] "+salva4$+":^0000ff[»]^000000 Todos:^ff0000[»] Sair^000000")){
+			case 1:
+			if(salva1$ == "^00FF00[Livre]^000000") goto livre1;
+			next;
+			mes @npc$;
+			mes "Tem certeza que deseja resetar seu ^ff0000Slot [1]^000000?";
+					switch(select("^339966[»]^000000 Sim","^ff0000[»] Não^000000")){
+						case 1: 
+						next;
+						set ativa,0;
+						set salva1$, "^00FF00[Livre]^000000";
+						next;
+						mes @npc$;
+						mes "Pronto.";
+						close;
+						case 2:
+						next;
+						mes @npc$;
+						mes "Tudo bem. Até mais!";
+						close;
+						
+						livre1:
+						next;
+						mes @npc$;
+						mes "Você não tem uma build salva no ^ff0000Slot [1]^000000.";
+						close;
+					}
+			
+			case 2: 
+			if(salva2$ == "^00FF00[Livre]^000000") goto livre2;
+			next;
+			mes @npc$;
+			mes "Tem certeza que deseja resetar seu ^ff0000Slot [2]^000000?";
+					switch(select("^339966[»]^000000 Sim","^ff0000[»] Não^000000")){
+						case 1: 
+						next;
+						set ativadois,0;
+						set salva2$, "^00FF00[Livre]^000000";
+						next;
+						mes @npc$;
+						mes "Pronto.";
+						close;
+						case 2:
+						next;
+						mes @npc$;
+						mes "Tudo bem. Até mais!";
+						close;
+						
+						livre2:
+						next;
+						mes @npc$;
+						mes "Você não tem uma build salva no ^ff0000Slot [2]^000000.";
+						close;
+					}
+					
+			case 3:
+			if(salva3$ == "^00FF00[Livre]^000000") goto livre3;
+			next;
+			mes @npc$;
+			mes "Tem certeza que deseja resetar seu ^ff0000Slot [3]^000000?";
+					switch(select("^339966[»]^000000 Sim","^ff0000[»] Não^000000")){
+						case 1: 
+						next;
+						set ativatreis,0;
+						set salva3$, "^00FF00[Livre]^000000";
+						next;
+						mes @npc$;
+						mes "Pronto.";
+						close;
+						case 2:
+						next;
+						mes @npc$;
+						mes "Tudo bem. Até mais!";
+						close;
+						
+						livre3:
+						next;
+						mes @npc$;
+						mes "Você não tem uma build salva no ^ff0000Slot [3]^000000.";
+						close;
+					}
+			case 4:		
+			if(salva4$ == "^00FF00[Livre]^000000") goto livre4;
+			next;
+			mes @npc$;
+			mes "Tem certeza que deseja resetar seu ^ff0000Slot [4]^000000?";
+					switch(select("^339966[»]^000000 Sim","^ff0000[»] Não^000000")){
+						case 1: 
+						next;
+						set ativaquatro,0;
+						set salva4$, "^00FF00[Livre]^000000";
+						next;
+						mes @npc$;
+						mes "Pronto.";
+						close;
+						case 2:
+						next;
+						mes @npc$;
+						mes "Tudo bem. Até mais!";
+						close;
+						
+						livre4:
+						next;
+						mes @npc$;
+						mes "Você não tem uma build salva no ^ff0000Slot [4]^000000.";
+						close;
+					}		
+			
+			case 5:
+			next;
+			mes @npc$;
+			mes "Tem certeza que deseja resetar todos os slots?";
+			switch(select("^339966[»]^000000 Sim","^ff0000[»] Não^000000")){
+						case 1: 
+							next;
+						set ativa,0;
+						set salva1$, "^00FF00[Livre]^000000";
+						set ativadois,0;
+						set salva2$, "^00FF00[Livre]^000000";
+						set ativatreis,0;
+						set salva3$, "^00FF00[Livre]^000000";
+						set ativaquatro,0;
+						set salva4$, "^00FF00[Livre]^000000";
+						mes @npc$;
+						mes "Pronto.";
+						close;
+						case 2:
+						next;
+						mes @npc$;
+						mes "Tudo bem. Até mais!";
+						close;
+					}
+			
+			
+			case 6:
+				next;
+				mes @npc$;
+				mes "Tudo bem. Até mais!";
+				close;
+			}
+		
+		
+		close;
+	}
+		
+		
+		case 2:
+		next;
+		mes @npc$;
+		mes "Tudo bem. Até mais!";
+		close;
+	}
+OnInit:
+	
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 65;	
+	setunittitle getnpcid(0), "[Arquivador]";
+	
+	while(1) {
+		showscript "[ Arquivador VIP ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}                                                                                                
+	

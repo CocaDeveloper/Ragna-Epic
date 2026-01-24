@@ -1,0 +1,36 @@
+//===============================================================
+//                 Comando @govip - VIP Teleport
+//===============================================================
+// Versão: 1.0
+// Descrição: Comando para teleportar diretamente para a área VIP
+// Restrições: Apenas VIPs ativos e GMs nível 99+
+//===============================================================
+
+-	script	govip_cmd	FAKE_NPC,{
+
+OnInit:
+	bindatcmd "govip", "govip_cmd::OnGoVip";
+	end;
+
+OnGoVip:
+	// Verificação de acesso: VIP ativo OU GM nível 99+
+	if (#VIP_TIME < gettimetick(2) && getgmlevel() < 99) {
+		dispbottom "Este comando é restrito para jogadores VIP.";
+		dispbottom "Adquira um Ticket VIP para usar este comando!";
+		end;
+	}
+	
+	// Mensagem de confirmação baseada no tipo de usuário
+	if (getgmlevel() >= 99) {
+		dispbottom "[Administrador] Teleportando para Sala VIP...";
+	} else if (#VIP_LEVEL == 2) {
+		dispbottom "[Super VIP] Teleportando para Sala VIP...";
+	} else {
+		dispbottom "[VIP] Teleportando para Sala VIP...";
+	}
+	
+	// Teleporte para a sala VIP (mesmo local do NPC Porteiro)
+	specialeffect2 1062;		sleep2 1000; // 1 segundo de delay
+	warp "1@herbs", 286, 51;
+	end;
+}

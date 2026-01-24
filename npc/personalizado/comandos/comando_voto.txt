@@ -1,0 +1,18 @@
+//===============================================================
+//                 Comando @voto - Chama NPC de Votação
+//===============================================================
+// Versão: 1.0
+// Descrição: Comando para acessar o sistema de votação
+//===============================================================
+
+-	script	voto_cmd	FAKE_NPC,{
+
+OnInit:
+	bindatcmd "voto", "voto_cmd::OnVoto";
+	end;
+
+OnVoto:
+	// Chama o NPC "Vote por Pontos" diretamente
+	doevent "Vote por Pontos::OnTalk";
+	end;
+}

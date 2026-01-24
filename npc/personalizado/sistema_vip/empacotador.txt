@@ -1,0 +1,163 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  NPC - Empacotador VIP
+//===============================================================
+// Versão: 1.1 - Acesso para GM
+//
+// Alteração v1.1:
+// - Adicionado acesso para GMs de nível 99.
+// - GMs recebem os mesmos benefícios de um Super VIP.
+//===============================================================
+
+1@herbs,300,84,3	script	Empacotador VIP	461,{
+	
+	mes "^339966[Empacotador VIP]^000000"; 
+	mes (gettime(3) >= 6 && gettime(3) <= 12 ? "Bom-dia" : (gettime(3) >= 13 && gettime(3) <= 18 ? "Boa-tarde" : "Boa-noite"))+", ^ffa500"+strcharinfo(0)+"^000000!";
+	mes "Eu sou o empacotador do servidor.";
+	mes "Posso transformar seus itens em ^339966Caixas Compactas^000000 para você.";
+	mes " ";
+	mes "^ff0000O que você deseja empacotar?^000000";
+	next; 
+	
+	menu "^339966[»]^000000 Semente de Yggdrasil (30-1 caixa)",L_Ygg1, 
+	     "^339966[»]^000000 Garrafa de Veneno Mortal (30-1 caixa)",L_Poison, 
+	     "^339966[»]^000000 Porção Branca Compacta (100-1 caixa)",L_White100,
+	     "^339966[»]^000000 Porção Branca Compacta (200-1 caixa)",L_White200,
+	     "^339966[»]^000000 Mastela (100-1 caixa)",L_Mastela100,
+	     "^339966[»]^000000 Mastela (200-1 caixa)",L_Mastela200,
+	     "^339966[»]^000000 Geleia Real (100-1 caixa)",L_Royal,
+	     "^339966[»]^000000 Galhos Secos (100-1 caixa)",L_Branches,
+	     "^339966[»]^000000 Fruto de Yggdrasil (100-1 caixa)",L_Fruit,
+	     "^ff0000[»] Sair^000000",L_Exit;
+
+// Semente de Yggdrasil
+L_Ygg1:
+	callsub S_PackItems, 608, 30, 12534, "Sementes de Yggdrasil", "Caixa de Sementes de Yggdrasil";
+	
+// Garrafa de Veneno Mortal
+L_Poison:
+	callsub S_PackItems, 678, 30, 12550, "Garrafas de Veneno Mortal", "Caixa de Veneno Mortal";
+
+// Porção Branca Compacta 100
+L_White100:
+	callsub S_PackItems, 547, 100, 12549, "Porções Brancas Compactas", "Caixa de Porção Branca (100)";
+
+// Porção Branca Compacta 200
+L_White200:
+	callsub S_PackItems, 547, 200, 12529, "Porções Brancas Compactas", "Caixa de Porção Branca (200)";
+
+// Mastela 100
+L_Mastela100:
+	callsub S_PackItems, 522, 100, 12642, "Mastelas", "Caixa de Mastela (100)";
+
+// Mastela 200
+L_Mastela200:
+	callsub S_PackItems, 522, 200, 12530, "Mastelas", "Caixa de Mastela (200)";
+
+// Geleia Real
+L_Royal:
+	callsub S_PackItems, 526, 100, 12532, "Geleias Reais", "Caixa de Geleia Real";
+
+// Galhos Secos
+L_Branches:
+	callsub S_PackItems, 604, 100, 14233, "Galhos Secos", "Caixa de Galhos Secos";
+
+// Fruto de Yggdrasil
+L_Fruit:
+	callsub S_PackItems, 607, 100, 14232, "Frutos de Yggdrasil", "Caixa de Frutos de Yggdrasil";
+
+L_Exit:
+	mes "^339966[Empacotador VIP]^000000";  
+	mes "Volte sempre que precisar empacotar seus itens!";
+	close;
+
+// Subrotina para empacotar itens
+S_PackItems:
+	set @ItemID, getarg(0);
+	set @RequiredAmount, getarg(1);
+	set @BoxID, getarg(2);
+	set @ItemName$, getarg(3);
+	set @BoxName$, getarg(4);
+	
+	mes "^339966[Empacotador VIP]^000000"; 
+	mes "Você escolheu empacotar ^ff0000"+@ItemName$+"^000000.";
+	mes " ";
+	mes "Preciso de ^ff0000"+@RequiredAmount+"^000000 unidades para fazer ^ff00001^000000 caixa.";
+	next;
+	
+	if(countitem(@ItemID) < @RequiredAmount) {
+		mes "^339966[Empacotador VIP]^000000"; 
+		mes "^ff0000Erro!^000000";
+		mes "Você não possui "+@ItemName$+" suficientes!";
+		mes " ";
+		mes "Você tem: ^339966"+countitem(@ItemID)+"^000000";
+		mes "Necessário: ^ff0000"+@RequiredAmount+"^000000";
+		close;
+	}
+	
+	mes "^339966[Empacotador VIP]^000000"; 
+	mes "Quantas caixas você deseja criar?";
+	mes " ";
+	mes "Você pode criar até ^339966"+(countitem(@ItemID)/@RequiredAmount)+"^000000 caixas.";
+	next;
+	
+	input @BoxCount, 0, (countitem(@ItemID)/@RequiredAmount);
+	
+	if(@BoxCount <= 0) {
+		mes "^339966[Empacotador VIP]^000000"; 
+		mes "^ff0000Quantidade inválida!^000000";
+		close;
+	}
+	
+	set @TotalNeeded, @BoxCount * @RequiredAmount;
+	
+	mes "^339966[Empacotador VIP]^000000"; 
+	mes "Você quer criar ^339966"+@BoxCount+"^000000 "+@BoxName$+"(s).";
+	mes "Isso vai usar ^ff0000"+@TotalNeeded+"^000000 "+@ItemName$+".";
+	mes " ";
+	mes "^ff0000Confirma a operação?^000000";
+	next;
+	
+	menu "^339966[»]^000000 Sim, empacotar",-,"^ff0000[»] Não, cancelar^000000",L_Cancel;
+	
+	// Verificação final
+	if(countitem(@ItemID) < @TotalNeeded) {
+		mes "^339966[Empacotador VIP]^000000"; 
+		mes "^ff0000Erro!^000000";
+		mes "Você não possui itens suficientes.";
+		close;
+	}
+	
+	// Executar a troca
+	delitem @ItemID, @TotalNeeded;
+	getitem @BoxID, @BoxCount;
+	
+	mes "^339966[Empacotador VIP]^000000"; 
+	mes "Sucesso!";
+	mes "Empacotei ^339966"+@TotalNeeded+"^000000 "+@ItemName$;
+	mes "em ^339966"+@BoxCount+"^000000 "+@BoxName$+"(s)!";
+	close;
+
+L_Cancel:
+	mes "^339966[Empacotador VIP]^000000"; 
+	mes "Operação cancelada. Até logo!";
+	close;
+	
+OnInit:
+
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 52;	
+		setunittitle getnpcid(0), "[Rune-Midgard]";
+
+		while(1) {
+		showscript "[ Empacotador VIP ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}

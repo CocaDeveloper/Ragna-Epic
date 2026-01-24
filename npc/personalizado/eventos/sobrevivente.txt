@@ -1,0 +1,313 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                   EVENTO NOVIÇO VS ZUMBI
+// ===================== Descrição: =============================
+
+new_evt,172,167,3	script	Noviço vs Zumbi	567,{
+
+	set .@GMLevel,60;	// Nível GM necessário para acessar o painel admin
+	set .@n$,"^FF1493[Noviço vs Zumbi]^000000";
+
+	// Painel Administrativo
+	if (getgmlevel()>=.@GMLevel) {
+		mes .@n$;
+		mes "Painel Administrativo";
+		mes "Status: " + ($eventonvz ? "^00FF00ATIVO^000000" : "^FF0000INATIVO^000000");
+		next;
+		switch(select("^339966[»]^000000 Iniciar Evento:^339966[»]^000000 Parar Evento:^339966[»]^000000 Menu Jogador")) {
+		case 1:
+			mes .@n$;
+			if ($eventonvz) {
+				mes "O evento já está ativo!";
+				close;
+			}
+			mes "Deseja iniciar o Evento Noviço vs Zumbi manualmente?";
+			if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+			
+			donpcevent "CoreNovicoVsZumbi::OnAdminStart";
+			next;
+			mes .@n$;
+			mes "Evento Noviço vs Zumbi foi iniciado!";
+			close;
+		case 2:
+			mes .@n$;
+			if (!$eventonvz) {
+				mes "O evento não está ativo!";
+				close;
+			}
+			mes "Deseja parar o evento?";
+			mes "Isso fechará a entrada imediatamente.";
+			if(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")==2) close;
+			
+			donpcevent "CoreNovicoVsZumbi::OnAdminStop";
+			next;
+			mes .@n$;
+			mes "Evento parado com sucesso!";
+			close;
+		case 3:
+			// Continua para o menu normal do jogador
+			break;
+		}
+	}
+
+	// Menu normal para jogadores
+	mes .@n$;
+	mes (gettime(3)>= 6&&gettime(3)<= 12?"Bom-dia":(gettime(3)>=13&&gettime(3)<=18?"Boa-tarde":"Boa-noite"))+", ^ffa500"+strcharinfo(0)+"^000000!";
+	mes "Você possui ^ff0000"+pontosevento+"^000000 pontos de evento.";
+	mes " ";
+	mes " ";
+	mes "^ff0000O que deseja fazer?^000000";
+		switch(select("^339966[»]^000000 Entrar no evento:^339966[»]^000000 Ver horários:^ff0000[»] Sair^000000")) {
+		case 01:
+		if($eventonvz == 0){ 
+		next; 
+		mes .@n$;
+		mes "^ff0000O evento está fechado no momento. Por favor, volte mais tarde!^000000";
+		close;
+		}
+		if($eventonvz == 2){ 
+		next; 
+		mes .@n$;
+		mes "^ff0000O evento já está em andamento. Tente novamente na próxima!^000000";
+		close;
+		}
+		if ( BaseLevel != 1 || Job != Job_Novice ) {
+			next;
+			mes .@n$;
+			mes "^ff0000Apenas Noviços de nível 1 podem participar do evento.^000000";
+			close;
+		}
+		getinventorylist;
+		if ( @inventorylist_amount ) {
+			next;
+			mes .@n$;
+			mes "^ff0000Guarde todos os seus itens primeiro.^000000";
+			close2;
+			@inventorylist_amount = false;
+			end;
+		}
+		sc_end SC_ALL;
+		sc_start SC_DECREASEAGI,1200000,10;
+		percentheal 100,100;
+		warp "quiz_01",42,369;
+		close;
+
+		case 02:
+		next;
+		mes .@n$;
+		mes "O evento acontece às:";
+		mes "• ^ffa50001H00min^000000";
+		mes "• ^ffa50008H00min^000000";
+		mes "• ^ffa50013H00min^000000";
+		mes "• ^ffa50023H00min^000000";
+		mes "Horário do servidor.";
+		close;
+
+		case 03:
+		close;
+	}
+	
+OnInit:
+
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 1009;	
+		setunittitle getnpcid(0), "[Rune-Midgard]";
+
+		while(1) {
+		showscript "[ Noviço vs Zumbi ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+-	script	CoreNovicoVsZumbi	-1,{
+
+OnInit:
+	set $eventonvz,0;
+	set .@GMLevel,60;	// Nível GM necessário para comandos
+	
+	// Configuração de recompensas do vencedor
+	setarray .winneritem, 1001007, 5;  // 5x Moedas de Evento
+	set .winnerpoints, 3;  // +3 pontos de evento
+	
+	// Comandos apenas para ADMs (liberados no mapa)
+	bindatcmd "nvzstart", strnpcinfo(0)+"::OnCmdStart",.@GMLevel,60;
+	bindatcmd "nvzstop", strnpcinfo(0)+"::OnCmdStop",.@GMLevel,60;
+	
+// Mapflags
+setarray .@mapflag,
+    mf_nowarp,
+    mf_nowarpto,
+    mf_noskill,
+    mf_noteleport,
+    mf_nomemo,
+    mf_nosave,
+    mf_noicewall,
+    mf_nobranch,
+    mf_noreturn;
+    
+for ( .@i = 0; .@i < getarraysize(.@mapflag); .@i++)
+    setmapflag "quiz_01", .@mapflag[.@i];
+
+// Permite comandos apenas para GMs nível 60+
+	setmapflag "quiz_01", mf_nocommand, 60;
+	end;
+
+// Comandos administrativos
+OnCmdStart:
+	if ($eventonvz) {
+		dispbottom "[Noviço vs Zumbi]: O evento já está ativo!";
+		end;
+	}
+	dispbottom "[Noviço vs Zumbi]: Iniciando evento manualmente...";
+	donpcevent "CoreNovicoVsZumbi::OnAdminStart";
+	end;
+
+OnCmdStop:
+	if (!$eventonvz) {
+		dispbottom "[Noviço vs Zumbi]: O evento não está ativo!";
+		end;
+	}
+	dispbottom "[Noviço vs Zumbi]: Parando evento...";
+	donpcevent "CoreNovicoVsZumbi::OnAdminStop";
+	end;
+
+// Labels administrativos
+OnAdminStart:
+	if ($eventonvz) end; // Evita iniciar se já estiver ativo
+	set $eventonvz, 1;
+	// REMOVIDO: enablenpc "NovicoVsZumbi"; - Não desabilita o NPC principal
+	killmonsterall "quiz_01";
+	announce "[Noviço vs Zumbi]: O Evento Noviço vs Zumbi está prestes a começar, loguem seus aprendizes! Para participar, digite: @eventos e fale com o npc... Vocês têm 5 minutos!!", bc_all | bc_yellow;
+	goto EventSequence;
+
+OnAdminStop:
+	set $eventonvz, 0;
+	// REMOVIDO: disablenpc "NovicoVsZumbi"; - Não desabilita o NPC principal
+	killmonsterall "quiz_01";
+	stopnpctimer;
+	announce "[Noviço vs Zumbi]: Um ADM parou o Evento Noviço vs Zumbi. Não houve vencedores... Até a próxima!!", bc_all | bc_yellow;
+	mapwarp "quiz_01", "prontera", 155, 191;
+	end;
+
+// Horários automáticos
+OnClock0100:
+OnClock0900:
+OnClock1300:
+OnClock2300:
+	if ($eventonvz) end;
+	set $eventonvz, 1;
+	// REMOVIDO: enablenpc "NovicoVsZumbi"; - Não desabilita o NPC principal
+	killmonsterall "quiz_01";
+	announce "[Noviço vs Zumbi]: O Evento Noviço vs Zumbi está prestes a começar, loguem seus aprendizes! Para participar, digite: @eventos e fale com o npc... Vocês têm 5 minutos!!", bc_all | bc_yellow;
+
+EventSequence:
+	sleep 60000; // 1 minuto
+	announce "[Noviço vs Zumbi]: A entrada para Noviço vs Zumbi fechará em 4 minutos!", bc_all | bc_yellow;
+	sleep 60000; // 1 minuto
+	announce "[Noviço vs Zumbi]: A entrada para Noviço vs Zumbi fechará em 3 minutos!", bc_all | bc_yellow;
+	sleep 60000; // 1 minuto
+	announce "[Noviço vs Zumbi]: A entrada para Noviço vs Zumbi fechará em 2 minutos!", bc_all | bc_yellow;
+	sleep 60000; // 1 minuto
+	announce "[Noviço vs Zumbi]: A entrada para Noviço vs Zumbi fechará em 1 minuto!", bc_all | bc_yellow;
+	sleep 60000; // 1 minuto
+	set $eventonvz, 0;
+	// REMOVIDO: disablenpc "NovicoVsZumbi"; - Não desabilita o NPC principal
+	announce "[Noviço vs Zumbi]: A entrada para o Noviço vs Zumbi  foi fechada! Tente novamente na próxima!!", bc_all | bc_yellow;
+	
+	if ( getmapusers("quiz_01") <= 1 ) {
+		announce "[Noviço vs Zumbi]: Evento cancelado! Não houve participantes suficientes.", bc_all | bc_yellow;
+		set $eventonvz, 0;
+		mapwarp "quiz_01", "prontera", 155, 191;
+		end;
+	}
+	
+	set $eventonvz, 2;
+	sleep 3500;
+	mapannounce "quiz_01","[Noviço vs Zumbi]: Sejam bem-vindos, Aprendizes!",bc_yellow;
+	sleep 2500;
+	mapannounce "quiz_01","[Noviço vs Zumbi]: Estamos prestes a começar o evento...",bc_yellow;
+	sleep 2500;
+	mapannounce "quiz_01","[Noviço vs Zumbi]: As regras são simples:",bc_yellow;
+	sleep 2500;
+	mapannounce "quiz_01","[Noviço vs Zumbi]: Zumbis serão gerados no meio do mapa.",bc_yellow;
+	sleep 2500;
+	mapannounce "quiz_01","[Noviço vs Zumbi]: E aparecerão a cada 20 segundos...",bc_yellow;
+	sleep 2000;
+	mapannounce "quiz_01","[Noviço vs Zumbi]: O último a sobreviver, vence.",bc_yellow;
+	sleep 2000;
+	mapannounce "quiz_01","[Noviço vs Zumbi]: Isso é tudo. Vamos começar!!",bc_yellow;
+	sleep 3000;
+	monster "quiz_01",42,369,"Zumbi",1036,4,"CoreNovicoVsZumbi::OnZumbiKilled";
+	initnpctimer;
+	end;
+	
+OnTimer20000: // Timer de 20 segundos para spawn de zumbis
+	if (!$eventonvz || $eventonvz != 2) {
+		stopnpctimer;
+		end;
+	}
+	.@users = getmapusers("quiz_01");
+	if (.@users > 5) {
+		monster "quiz_01",42,369,"Zumbi",1036,10,"CoreNovicoVsZumbi::OnZumbiKilled";
+	} else if (.@users > 2) {
+		monster "quiz_01",42,369,"Zumbi",1036,7,"CoreNovicoVsZumbi::OnZumbiKilled";
+	} else if (.@users > 0) {
+		monster "quiz_01",42,369,"Zumbi",1036,4,"CoreNovicoVsZumbi::OnZumbiKilled";
+	} else {
+		// Não há mais jogadores, encerra o evento
+		stopnpctimer;
+		killmonsterall "quiz_01";
+		set $eventonvz, 0;
+		announce "[Noviço vs Zumbi]: Evento encerrado - não há mais participantes.", bc_all | bc_yellow;
+		end;
+	}
+	setnpctimer 0;
+	end;
+	
+OnZumbiKilled:
+	// Label para quando zumbis são mortos (se necessário)
+	end;
+	
+OnPCDieEvent:
+	if ( $eventonvz == 2 && strcharinfo(3) == "quiz_01" ) {
+		warp "prontera",155,191;
+		if ( getmapusers("quiz_01") == 1 ) {
+			stopnpctimer;
+			killmonsterall "quiz_01";
+			.@size = getmapunits(BL_PC,"quiz_01",.@aid);
+			.@amt = getarraysize(.winneritem);
+			set $eventonvz, 0;
+			attachrid .@aid;
+			announce "[Noviço vs Zumbi]: O jogador " + strcharinfo(0) + " foi o vencedor!", bc_all | bc_yellow;
+			// Dar recompensas ao vencedor
+			for ( .@j = 0; .@j < .@amt; .@j += 2 )
+				getitem .winneritem[.@j], .winneritem[.@j+1];
+			set pontosevento, pontosevento + .winnerpoints;
+			warp "prontera",155,191;
+			end;
+		}
+	}
+	end;
+}
+
+							// Mapflags
+quiz_01	mapflag	nowarp
+quiz_01	mapflag	nowarpto
+quiz_01	mapflag	noskill
+quiz_01	mapflag	noteleport
+quiz_01	mapflag	nomemo
+quiz_01	mapflag	nosave	SavePoint
+quiz_01	mapflag	noicewall
+quiz_01	mapflag	nobranch
+quiz_01	mapflag	noreturn
+quiz_01	mapflag	nocommand
+quiz_01	mapflag	nopenalty	// Evita perda de EXP ao morrer
+
+1@herbs,313,38,3	duplicate(Noviço vs Zumbi)	Noviço vs Zumbi#newevt	567

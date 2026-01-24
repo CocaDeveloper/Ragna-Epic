@@ -1,0 +1,523 @@
+
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//========== NPC Flor do Tempo - Sistema de Presença (MELHORADO COM CONTINUIDADE) ==========
+
+// ========== CONFIGURAÇÕES ==========
+// Altere aqui para ajustar o sistema
+-	script	PresencaConfig	-1,{
+OnInit:
+	// CONFIGURAÇÕES PRINCIPAIS
+	set $SEGUNDOS_POR_PONTO, 3600;     // 3600 = 1 hora por ponto (PRODUÇÃO)
+	                                    // 60 = 1 minuto por ponto (TESTE)
+	set $MAX_PONTOS_DIA, 24;            // Máximo 24 pontos por dia
+	set $MAX_SESSAO_SEGUNDOS, 43200;    // Máximo 12 horas por sessão
+	set $COOLDOWN_COMPRA, 5;            // 5 segundos entre compras
+	set $TOLERANCIA_RELOG, 300;         // 5 minutos (300 segundos) de tolerância para relog
+	
+	// INTERVALOS DE VERIFICAÇÃO INTELIGENTE
+	set $TIMER_NORMAL, 300000;          // 5 minutos (modo normal)
+	set $TIMER_PROXIMO, 30000;          // 30 segundos (próximo de ganhar ponto)
+	set $MARGEM_PROXIMO, 60;            // 60 segundos antes de ganhar ponto
+	
+	end;
+}
+
+1@herbs,318,66,4	script	Flor do Tempo	977,{
+
+	// ATUALIZAÇÃO EM TEMPO REAL: Adiciona tempo online atual antes dos cálculos
+	set .@current_time, gettimetick(2);
+	set .@tempo_desde_ultimo_check, .@current_time - #LAST_ONLINE_CHECK;
+	
+	// Valida e adiciona tempo online em tempo real
+	if (.@tempo_desde_ultimo_check > 0 && .@tempo_desde_ultimo_check < 3600) {
+		set #TEMPO_ONLINE_TOTAL, #TEMPO_ONLINE_TOTAL + .@tempo_desde_ultimo_check;
+		set #LAST_ONLINE_CHECK, .@current_time;
+	}
+	
+	// ATUALIZA TAMBÉM o progresso do ponto atual
+	if (.@tempo_desde_ultimo_check > 0 && .@tempo_desde_ultimo_check < 3600) {
+		set #PROGRESSO_PONTO_ATUAL, #PROGRESSO_PONTO_ATUAL + .@tempo_desde_ultimo_check;
+	}
+
+	// Calcula tempo atual da sessão CONTÍNUA (considerando reconexões)
+	set .@current_session, gettimetick(2) - #SESSION_START_TICK;
+	set .@total_segundos_info, #TOTAL_PLAYTIME + .@current_session;
+
+	// PONTOS baseados apenas no tempo ONLINE acumulado
+	set #PONTOS_PRESENCA_TOTAL, #TEMPO_ONLINE_TOTAL / $SEGUNDOS_POR_PONTO;
+
+	// Aplica limite diário se configurado
+	if ($MAX_PONTOS_DIA > 0) {
+		set .@limite_diario, callfunc("F_GetLimiteDiario");
+		if (#PONTOS_PRESENCA_TOTAL > .@limite_diario) {
+			set #PONTOS_PRESENCA_TOTAL, .@limite_diario;
+		}
+	}
+
+	// Calcula os pontos disponíveis
+	set .@pontos_disponiveis, #PONTOS_PRESENCA_TOTAL - #PONTOS_PRESENCA_GASTOS;
+	if (.@pontos_disponiveis < 0) set .@pontos_disponiveis, 0;
+
+	mes "^339966[Flor do Tempo]^000000";
+	mes "Olá, ^ffa500" + strcharinfo(0) + "^000000.";
+	mes "Aqui está seu desempenho atual:";
+	
+	set .@session_hours, .@current_session / 3600;
+	set .@session_minutes, (.@current_session % 3600) / 60;
+	mes "^339966[»]^000000 Tempo ^00ff00ON^000000 nesta sessão: ^ff0000" + .@session_hours + "h " + .@session_minutes + "m^000000.";
+
+	mes "^339966[»]^000000 Meus pontos de presença: ^ff0000" + .@pontos_disponiveis + "^000000.";
+	
+	// MODIFICAÇÃO: Mostra tempo para próximo ponto baseado no PROGRESSO DA SESSÃO ATUAL
+	set .@progresso_sessao_atual, #PROGRESSO_PONTO_ATUAL;
+	set .@segundos_restantes, $SEGUNDOS_POR_PONTO - .@progresso_sessao_atual;
+	set .@min_restantes, .@segundos_restantes / 60;
+	if (.@segundos_restantes > 0) {
+		mes "^339966[»]^000000 Próximo ponto em: ^ff0000" + .@min_restantes + " minutos^000000.";
+	}
+	
+	// ATUALIZADO EM TEMPO REAL: Tempo total atualizado
+	set .@online_hours, #TEMPO_ONLINE_TOTAL / 3600;
+	set .@online_minutes, (#TEMPO_ONLINE_TOTAL % 3600) / 60;
+	mes "^339966[»]^000000 Tempo total da conta: ^ff0000" + .@online_hours + "h " + .@online_minutes + "m^000000.";
+	
+	mes "O que você deseja fazer agora?";
+	next;
+
+	switch(select("^339966[»]^000000 Abrir Loja de Pontos:^339966[»]^000000 Histórico de Compras:^ff0000[»] Sair^000000")) {
+	case 1: 
+		// Verifica cooldown de compra
+		if (#LAST_PURCHASE_TIME > 0 && (gettimetick(2) - #LAST_PURCHASE_TIME) < $COOLDOWN_COMPRA) {
+			set .@tempo_restante, $COOLDOWN_COMPRA - (gettimetick(2) - #LAST_PURCHASE_TIME);
+			mes "^339966[Flor do Tempo]^000000";
+			mes "Aguarde ^ff0000" + .@tempo_restante + "^000000 segundos para fazer outra compra.";
+			close;
+		}
+		break;
+	case 2:
+		callfunc "F_ShowHistorico";
+		close;
+	case 3:
+		mes "^339966[Flor do Tempo]^000000";
+		mes "Tudo bem. Volte quando quiser!"; 
+		close;
+	}
+
+	mes "^339966[Flor do Tempo]^000000";
+	mes "Escolha uma categoria:";
+	next;
+	
+	switch(select("^339966[»]^000000 Consumíveis:^339966[»]^000000 Armas:^339966[»]^000000 Equipamentos:^339966[»]^000000 Acessórios:^ff0000[»] Sair^000000")) {
+	case 1: 
+		callshop "loja_consumiveis", 1; 
+		npcshopattach "loja_consumiveis"; 
+		end;
+	case 2: 
+		callshop "loja_armas", 1; 
+		npcshopattach "loja_armas"; 
+		end;
+	case 3: 
+		callshop "loja_equipamentos", 1; 
+		npcshopattach "loja_equipamentos"; 
+		end;
+	case 4: 
+		callshop "loja_acessorios", 1; 
+		npcshopattach "loja_acessorios"; 
+		end;
+	case 5:
+		mes "^339966[Flor do Tempo]^000000";
+		mes "Tudo bem. Volte quando quiser!"; 
+		close;
+	}
+	end;
+
+OnBuyItem:
+	// Validação de segurança - tempo entre compras
+	if (#LAST_PURCHASE_TIME > 0 && (gettimetick(2) - #LAST_PURCHASE_TIME) < $COOLDOWN_COMPRA) {
+		dispbottom "[Flor do Tempo] Aguarde alguns segundos entre compras.";
+		end;
+	}
+
+	set .@qtd_total, 0;
+	for (set .@i, 0; .@i < getarraysize(@bought_nameid); set .@i, .@i + 1) {
+		set .@qtd_total, .@qtd_total + @bought_quantity[.@i];
+	}
+
+	// Recalcula pontos disponíveis baseado no tempo ONLINE real
+	set .@pontos_atuais, #TEMPO_ONLINE_TOTAL / $SEGUNDOS_POR_PONTO;
+	
+	// Aplica limite diário
+	if ($MAX_PONTOS_DIA > 0) {
+		set .@limite_diario, callfunc("F_GetLimiteDiario");
+		if (.@pontos_atuais > .@limite_diario) {
+			set .@pontos_atuais, .@limite_diario;
+		}
+	}
+	
+	// SINCRONIZA: atualiza pontos totais
+	set #PONTOS_PRESENCA_TOTAL, .@pontos_atuais;
+	set .@disponivel, #PONTOS_PRESENCA_TOTAL - #PONTOS_PRESENCA_GASTOS;
+	
+	if (.@disponivel < .@qtd_total) {
+		dispbottom "[Flor do Tempo] Você não tem pontos de presença suficientes.";
+		end;
+	}
+
+	// Entrega os itens e registra no histórico
+	for (set .@i, 0; .@i < getarraysize(@bought_nameid); set .@i, .@i + 1) {
+		getitem @bought_nameid[.@i], @bought_quantity[.@i];
+		callfunc "F_AddHistorico", @bought_nameid[.@i], @bought_quantity[.@i];
+	}
+
+	set #PONTOS_PRESENCA_GASTOS, #PONTOS_PRESENCA_GASTOS + .@qtd_total;
+	set #LAST_PURCHASE_TIME, gettimetick(2);
+	set #TOTAL_PURCHASES, #TOTAL_PURCHASES + 1;
+	
+	dispbottom "[Flor do Tempo] Você gastou " + .@qtd_total + " pontos de presença.";
+	end;
+	
+OnInit:
+
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 74;	
+		setunittitle getnpcid(0), "[Horas Jogadas]";
+
+		while(1) {
+		showscript "[ Flor do Tempo ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+//========== Lojas no formato SHOP VISUAL ==========
+
+-	shop	loja_consumiveis	-1,501:200,502:200,503:500,504:1100,505:4500
+-	shop	loja_armas	-1,1101:200,1102:400,1103:600,1104:1300
+-	shop	loja_equipamentos	-1,2201:4200,2202:4200,2203:3400
+-	shop	loja_acessorios	-1,2301:200,2302:200,2303:200
+
+//========== Sistema de Presença - Timer Inteligente COM CONTINUIDADE ==========
+
+-	script	PresencaTimer	-1,{
+
+OnPCLoginEvent:
+	set .@current_time, gettimetick(2);
+	
+	// Inicializa variáveis se for primeira vez
+	if (#SESSION_START_TICK == 0) {
+		set #TOTAL_PLAYTIME, 0;
+		set #TEMPO_ONLINE_TOTAL, 0;
+		set #PONTOS_PRESENCA_GASTOS, 0;
+		set #PONTOS_PRESENCA_TOTAL, 0;
+		set #TOTAL_PURCHASES, 0;
+		set #SESSION_START_TICK, .@current_time;
+		set #LAST_ONLINE_CHECK, .@current_time;
+		set #PROGRESSO_PONTO_ATUAL, 0;  // NOVA VARIÁVEL: progresso para próximo ponto
+		callfunc "F_InitHistorico";
+		dispbottom "^00FF00[Sistema de Presença]^000000 Bem-vindo! Sistema inicializado.";
+	} else {
+		// Verifica se o logout foi recente (dentro da tolerância)
+		set .@tempo_offline, .@current_time - #LOGOUT_TICK;
+		
+		if (#LOGOUT_TICK > 0 && .@tempo_offline <= $TOLERANCIA_RELOG) {
+			// RELOG RÁPIDO - Mantém continuidade da sessão E DO PROGRESSO
+			//dispbottom "^00FF00[Sistema de Presença]^000000 Reconexão rápida detectada! Continuando sessão...";
+			// Não reseta #SESSION_START_TICK - mantém a sessão contínua
+			// Não reseta #PROGRESSO_PONTO_ATUAL - mantém o progresso do ponto
+		} else {
+			// LOGOUT LONGO - Nova sessão E RESETA PROGRESSO DO PONTO
+			if (#LOGOUT_TICK > #SESSION_START_TICK) {
+				// Salva o tempo da sessão anterior no tempo total (apenas informativo)
+				set .@sessao_anterior, #LOGOUT_TICK - #SESSION_START_TICK;
+				if (.@sessao_anterior > 0 && .@sessao_anterior < $MAX_SESSAO_SEGUNDOS) {
+					set #TOTAL_PLAYTIME, #TOTAL_PLAYTIME + .@sessao_anterior;
+				}
+			}
+			
+			// MODIFICAÇÃO PRINCIPAL: Inicia nova sessão E ZERA PROGRESSO DO PONTO
+			set #SESSION_START_TICK, .@current_time;
+			set #PROGRESSO_PONTO_ATUAL, 0;  // ZERA O PROGRESSO PARA PRÓXIMO PONTO
+			//dispbottom "^00FF00[Sistema de Presença]^000000 Nova sessão iniciada! Progresso do ponto resetado.";
+		}
+	}
+	
+	// Reset diário se necessário
+	callfunc "F_CheckResetDiario";
+	
+	// Atualiza timestamp de verificação online
+	set #LAST_ONLINE_CHECK, .@current_time;
+	set #LOGOUT_TICK, 0;
+	
+	// Inicia timer inteligente
+	callfunc "F_ScheduleNextCheck";
+	end;
+
+OnPresencaCheck:
+	set .@tempo_atual, gettimetick(2);
+	set .@tempo_desde_ultimo_check, .@tempo_atual - #LAST_ONLINE_CHECK;
+	
+	// Validação de segurança - se passou muito tempo desde último check
+	if (.@tempo_desde_ultimo_check < 0 || .@tempo_desde_ultimo_check > ($TIMER_NORMAL / 1000 + 60)) {
+		// Possível problema - reinicia verificação
+		set #LAST_ONLINE_CHECK, .@tempo_atual;
+		callfunc "F_ScheduleNextCheck";
+		end;
+	}
+	
+	// ADICIONA o tempo online real (apenas quando está realmente online)
+	set #TEMPO_ONLINE_TOTAL, #TEMPO_ONLINE_TOTAL + .@tempo_desde_ultimo_check;
+	
+	// MODIFICAÇÃO: Adiciona tempo também ao progresso do ponto atual
+	set #PROGRESSO_PONTO_ATUAL, #PROGRESSO_PONTO_ATUAL + .@tempo_desde_ultimo_check;
+	
+	set #LAST_ONLINE_CHECK, .@tempo_atual;
+	
+	// Verifica se completou um ponto baseado no PROGRESSO DA SESSÃO ATUAL
+	if (#PROGRESSO_PONTO_ATUAL >= $SEGUNDOS_POR_PONTO) {
+		// Calcula quantos pontos foram ganhos
+		set .@pontos_ganhos, #PROGRESSO_PONTO_ATUAL / $SEGUNDOS_POR_PONTO;
+		
+		// Aplica limite diário
+		set .@pontos_antes_limite, #PONTOS_PRESENCA_TOTAL;
+		set #PONTOS_PRESENCA_TOTAL, #PONTOS_PRESENCA_TOTAL + .@pontos_ganhos;
+		
+		if ($MAX_PONTOS_DIA > 0) {
+			set .@limite_diario, callfunc("F_GetLimiteDiario");
+			if (#PONTOS_PRESENCA_TOTAL > .@limite_diario) {
+				set .@pontos_ganhos, .@limite_diario - .@pontos_antes_limite;
+				set #PONTOS_PRESENCA_TOTAL, .@limite_diario;
+			}
+		}
+		
+		// Ajusta o progresso (remove os segundos que já viraram pontos)
+		set #PROGRESSO_PONTO_ATUAL, #PROGRESSO_PONTO_ATUAL % $SEGUNDOS_POR_PONTO;
+		
+		if (.@pontos_ganhos > 0) {
+			set .@pontos_disponiveis, #PONTOS_PRESENCA_TOTAL - #PONTOS_PRESENCA_GASTOS;
+			
+			// Verifica se atingiu limite diário
+			if ($MAX_PONTOS_DIA > 0 && #PONTOS_PRESENCA_TOTAL >= .@limite_diario) {
+				dispbottom "^FFD700[Sistema de Presença]^000000 Limite diário de pontos atingido!";
+			} else {
+				// Mensagens de notificação normais
+				if ($SEGUNDOS_POR_PONTO >= 3600) {
+					dispbottom "^00FF00[Sistema de Presença]^000000 Você completou mais 1 hora de jogo online!";
+				} else {
+					dispbottom "^00FF00[Sistema de Presença]^000000 Você completou mais " + ($SEGUNDOS_POR_PONTO / 60) + " minuto(s) de jogo online!";
+				}
+			}
+			
+			dispbottom "^00FF00[Sistema de Presença]^000000 +^00FF00" + .@pontos_ganhos + "^000000 Ponto(s)! Total disponível: ^00FF00" + .@pontos_disponiveis + "^000000";
+			
+			// Efeito visual
+			specialeffect2 EF_HEAL;
+			unittalk getcharid(3), "Você recebeu +" + .@pontos_ganhos + " ponto(s) de presença!";
+		}
+	}
+	
+	// Reagenda próxima verificação de forma inteligente
+	callfunc "F_ScheduleNextCheck";
+	end;
+
+OnPCLogoutEvent:
+	set .@current_time, gettimetick(2);
+	
+	// Salva o timestamp de logout
+	set #LOGOUT_TICK, .@current_time;
+	
+	// Adiciona o tempo final online da sessão atual
+	set .@tempo_final_online, .@current_time - #LAST_ONLINE_CHECK;
+	if (.@tempo_final_online > 0 && .@tempo_final_online < 3600) { // Max 1 hora por check
+		set #TEMPO_ONLINE_TOTAL, #TEMPO_ONLINE_TOTAL + .@tempo_final_online;
+		// MODIFICAÇÃO: Adiciona também ao progresso do ponto atual
+		set #PROGRESSO_PONTO_ATUAL, #PROGRESSO_PONTO_ATUAL + .@tempo_final_online;
+	}
+	
+	// Salva tempo total da sessão (apenas informativo)
+	if (#SESSION_START_TICK > 0) {
+		set .@tempo_sessao_total, .@current_time - #SESSION_START_TICK;
+		if (.@tempo_sessao_total > 0 && .@tempo_sessao_total < $MAX_SESSAO_SEGUNDOS) {
+			// Este será usado apenas quando a sessão for definitivamente encerrada
+			// (não será salvo aqui para permitir continuidade em relogs rápidos)
+		}
+	}
+	
+	// Verifica se ganhou pontos no logout
+	if (#PROGRESSO_PONTO_ATUAL >= $SEGUNDOS_POR_PONTO) {
+		set .@pontos_ganhos, #PROGRESSO_PONTO_ATUAL / $SEGUNDOS_POR_PONTO;
+		set .@pontos_antes_limite, #PONTOS_PRESENCA_TOTAL;
+		set #PONTOS_PRESENCA_TOTAL, #PONTOS_PRESENCA_TOTAL + .@pontos_ganhos;
+		
+		// Aplica limite diário
+		if ($MAX_PONTOS_DIA > 0) {
+			set .@limite_diario, callfunc("F_GetLimiteDiario");
+			if (#PONTOS_PRESENCA_TOTAL > .@limite_diario) {
+				set #PONTOS_PRESENCA_TOTAL, .@limite_diario;
+			}
+		}
+		
+		// Ajusta o progresso
+		set #PROGRESSO_PONTO_ATUAL, #PROGRESSO_PONTO_ATUAL % $SEGUNDOS_POR_PONTO;
+	}
+	end;
+}
+
+//========== Funções Auxiliares ==========
+
+function	script	F_ScheduleNextCheck	{
+	// MODIFICAÇÃO: Calcula tempo para próximo ponto baseado no PROGRESSO DA SESSÃO ATUAL
+	set .@segundos_para_proximo, $SEGUNDOS_POR_PONTO - #PROGRESSO_PONTO_ATUAL;
+	
+	// Timer inteligente - verifica mais frequentemente quando próximo de ganhar ponto
+	if (.@segundos_para_proximo <= $MARGEM_PROXIMO) {
+		addtimer $TIMER_PROXIMO, "PresencaTimer::OnPresencaCheck";
+	} else {
+		addtimer $TIMER_NORMAL, "PresencaTimer::OnPresencaCheck";
+	}
+	return;
+}
+
+function	script	F_GetLimiteDiario	{
+	// Calcula limite baseado no dia atual e configuração
+	set .@dias_desde_inicio, (gettimetick(2) - 1640995200) / 86400; // Referência: 01/01/2022
+	return (.@dias_desde_inicio + 1) * $MAX_PONTOS_DIA;
+}
+
+function	script	F_CheckResetDiario	{
+	// Implementa reset diário se necessário (placeholder para futuras expansões)
+	return;
+}
+
+function	script	F_InitHistorico	{
+	// Inicializa arrays do histórico
+	setarray #HISTORICO_ITEM[0], 0;
+	setarray #HISTORICO_QTD[0], 0;
+	setarray #HISTORICO_TIME[0], 0;
+	set #HISTORICO_COUNT, 0;
+	return;
+}
+
+function	script	F_AddHistorico	{
+	// Adiciona item ao histórico (máximo 20 entradas)
+	set .@item_id, getarg(0);
+	set .@quantidade, getarg(1);
+	
+	// Shift arrays se necessário
+	if (#HISTORICO_COUNT >= 20) {
+		for (set .@i, 0; .@i < 19; set .@i, .@i + 1) {
+			set #HISTORICO_ITEM[.@i], #HISTORICO_ITEM[.@i + 1];
+			set #HISTORICO_QTD[.@i], #HISTORICO_QTD[.@i + 1];
+			set #HISTORICO_TIME[.@i], #HISTORICO_TIME[.@i + 1];
+		}
+		set #HISTORICO_COUNT, 19;
+	}
+	
+	// Adiciona nova entrada
+	set #HISTORICO_ITEM[#HISTORICO_COUNT], .@item_id;
+	set #HISTORICO_QTD[#HISTORICO_COUNT], .@quantidade;
+	set #HISTORICO_TIME[#HISTORICO_COUNT], gettimetick(2);
+	set #HISTORICO_COUNT, #HISTORICO_COUNT + 1;
+	return;
+}
+
+function	script	F_ShowHistorico	{
+	mes "^339966[Flor do Tempo]^000000";
+	mes "^ff0000Histórico das últimas compras:^000000";
+	
+	if (#HISTORICO_COUNT == 0) {
+		mes "Nenhuma compra realizada ainda.";
+		return;
+	}
+	
+	// Mostra até 10 últimas compras
+	set .@max_show, (#HISTORICO_COUNT > 10) ? 10 : #HISTORICO_COUNT;
+	
+	for (set .@i, #HISTORICO_COUNT - 1; .@i >= (#HISTORICO_COUNT - .@max_show); set .@i, .@i - 1) {
+		set .@item_name$, getitemname(#HISTORICO_ITEM[.@i]);
+		set .@tempo_passado, (gettimetick(2) - #HISTORICO_TIME[.@i]) / 60; // minutos
+		
+		if (.@tempo_passado < 60) {
+			mes "^00ff00[»]^000000 " + .@item_name$ + " x" + #HISTORICO_QTD[.@i] + " (há " + .@tempo_passado + "m)";
+		} else {
+			set .@horas, .@tempo_passado / 60;
+			mes "^00ff00[»]^000000 " + .@item_name$ + " x" + #HISTORICO_QTD[.@i] + " (há " + .@horas + "h)";
+		}
+	}
+	
+	mes " ";
+	mes "Total de compras realizadas: ^ff0000" + #TOTAL_PURCHASES + "^000000";
+	return;
+}
+
+//========== Comandos de Administração (GM) Melhorados ==========
+
+-	script	PresencaAdmin	-1,{
+
+OnInit:
+	bindatcmd "presenca", strnpcinfo(3)+"::OnPresencaCmd", 99, 99;
+	bindatcmd "resetpresenca", strnpcinfo(3)+"::OnResetCmd", 99, 99;
+	bindatcmd "configpresenca", strnpcinfo(3)+"::OnConfigCmd", 99, 99;
+	bindatcmd "statspresenca", strnpcinfo(3)+"::OnStatsCmd", 99, 99;
+	end;
+
+OnPresencaCmd:
+	set .@current_session, gettimetick(2) - #SESSION_START_TICK;
+	set .@total_segundos_info, #TOTAL_PLAYTIME + .@current_session;
+	set .@pontos_disponiveis, #PONTOS_PRESENCA_TOTAL - #PONTOS_PRESENCA_GASTOS;
+	
+	dispbottom "========== SISTEMA DE PRESENÇA ==========";
+	dispbottom "Tempo Sessão Atual: " + (.@current_session / 3600) + "h " + ((.@current_session % 3600) / 60) + "m";
+	dispbottom "Tempo Total (Info): " + (.@total_segundos_info / 3600) + "h " + ((.@total_segundos_info % 3600) / 60) + "m";
+	dispbottom "Tempo Online Real: " + (#TEMPO_ONLINE_TOTAL / 3600) + "h " + ((#TEMPO_ONLINE_TOTAL % 3600) / 60) + "m";
+	dispbottom "Progresso Ponto Atual: " + (#PROGRESSO_PONTO_ATUAL / 60) + "m de " + ($SEGUNDOS_POR_PONTO / 60) + "m";
+	dispbottom "Pontos Totais: " + #PONTOS_PRESENCA_TOTAL;
+	dispbottom "Pontos Gastos: " + #PONTOS_PRESENCA_GASTOS;
+	dispbottom "Pontos Disponíveis: " + .@pontos_disponiveis;
+	dispbottom "Total de Compras: " + #TOTAL_PURCHASES;
+	dispbottom "Início Sessão: " + #SESSION_START_TICK;
+	dispbottom "Último Check: " + #LAST_ONLINE_CHECK;
+	dispbottom "Último Logout: " + #LOGOUT_TICK;
+	dispbottom "Configuração: " + $SEGUNDOS_POR_PONTO + " segundos por ponto";
+	dispbottom "Tolerância Relog: " + $TOLERANCIA_RELOG + " segundos";
+	dispbottom "=====================================";
+	end;
+
+OnConfigCmd:
+	dispbottom "========== CONFIGURAÇÕES ATUAIS ==========";
+	dispbottom "Segundos por ponto: " + $SEGUNDOS_POR_PONTO;
+	dispbottom "Limite diário: " + $MAX_PONTOS_DIA + " pontos";
+	dispbottom "Máx sessão: " + ($MAX_SESSAO_SEGUNDOS / 3600) + " horas";
+	dispbottom "Cooldown compra: " + $COOLDOWN_COMPRA + " segundos";
+	dispbottom "Tolerância relog: " + ($TOLERANCIA_RELOG / 60) + " minutos";
+	dispbottom "=========================================";
+	end;
+
+OnStatsCmd:
+	// Estatísticas globais (requer implementação de sistema global)
+	dispbottom "========== ESTATÍSTICAS GLOBAIS ==========";
+	dispbottom "Funcionalidade em desenvolvimento...";
+	dispbottom "==========================================";
+	end;
+
+OnResetCmd:
+	set #TOTAL_PLAYTIME, 0;
+	set #TEMPO_ONLINE_TOTAL, 0;
+	set #PONTOS_PRESENCA_TOTAL, 0;
+	set #PONTOS_PRESENCA_GASTOS, 0;
+	set #SESSION_START_TICK, gettimetick(2);
+	set #LAST_ONLINE_CHECK, gettimetick(2);
+	set #LOGOUT_TICK, 0;
+	set #LAST_PURCHASE_TIME, 0;
+	set #TOTAL_PURCHASES, 0;
+	set #PROGRESSO_PONTO_ATUAL, 0;  // NOVA VARIÁVEL NO RESET
+	callfunc "F_InitHistorico";
+	dispbottom "[ADMIN] Sistema de presença resetado com sucesso!";
+	end;
+}

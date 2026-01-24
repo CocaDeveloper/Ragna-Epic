@@ -1,0 +1,75 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                   ODALISCA DANCA CIGANA
+//===============================================================
+
+malangdo,222,268,3	script	Odalisca#Dano1	485,3,3,{
+	end;
+	
+OnTouch:
+	if( .sbragi < gettimetick(2) ){			// triggered within area 7x7, start bragi if not on delay
+		unitskilluseid getnpcid(0),330,10;	// bragi(321) level 10
+		set .sbragi,gettimetick(2) + 10;	// delay 3 minute for npc to cast song
+	}
+	end;
+	
+OnInit:
+	setunitdata getnpcid(0),UNPC_INT,150;	// set npc INT 150
+	setunitdata getnpcid(0),UNPC_DEX,150;	// set NPC DEX 150
+	end;
+}
+
+malangdo,149,266,3	script	Odalisca#Dano2	485,3,3,{
+	end;
+	
+OnTouch:
+	if( .sbragi < gettimetick(2) ){			// triggered within area 7x7, start bragi if not on delay
+		unitskilluseid getnpcid(0),330,10;	// bragi(321) level 10
+		set .sbragi,gettimetick(2) + 10;	// delay 3 minute for npc to cast song
+	}
+	end;
+	
+OnInit:
+	setunitdata getnpcid(0),UNPC_INT,150;	// set npc INT 150
+	setunitdata getnpcid(0),UNPC_DEX,150;	// set NPC DEX 150
+	end;
+}
+
+malangdo,271,220,3	script	Odalisca#Emp1	485,3,3,{
+	end;
+	
+OnTouch:
+	if( .sbragi < gettimetick(2) ){			// triggered within area 7x7, start bragi if not on delay
+		unitskilluseid getnpcid(0),330,10;	// bragi(321) level 10
+		set .sbragi,gettimetick(2) + 10;	// delay 3 minute for npc to cast song
+	}
+	end;
+	
+OnInit:
+	setunitdata getnpcid(0),UNPC_INT,150;	// set npc INT 150
+	setunitdata getnpcid(0),UNPC_DEX,150;	// set NPC DEX 150
+	end;
+}
+
+malangdo,89,234,3	script	Odalisca#Emp2	485,3,3,{
+	end;
+	
+OnTouch:
+	if( .sbragi < gettimetick(2) ){			// triggered within area 7x7, start bragi if not on delay
+		unitskilluseid getnpcid(0),330,10;	// bragi(321) level 10
+		set .sbragi,gettimetick(2) + 10;	// delay 3 minute for npc to cast song
+	}
+	end;
+	
+OnInit:
+	setunitdata getnpcid(0),UNPC_INT,150;	// set npc INT 150
+	setunitdata getnpcid(0),UNPC_DEX,150;	// set NPC DEX 150
+	end;
+}

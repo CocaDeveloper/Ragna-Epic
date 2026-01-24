@@ -1,0 +1,359 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                    NPC UNIFICADO DE SERVIÇOS
+// ===================== Descrição: =============================
+// = Combina: Habilidades de Platina, Aluguel de Montarias,
+// = Removedora de Cartas e Resetadora de Stats/Skills
+//===============================================================
+
+prontera,174,183,3	script	Assistente de Prontera	124,{
+	
+	mes "^339966[Assistente de Prontera]^000000";
+	mes (gettime(3)>= 6&&gettime(3)<= 12?"Bom-dia":(gettime(3)>=13&&gettime(3)<=18?"Boa-tarde":"Boa-noite"))+", ^008aff"+strcharinfo(0)+"^000000 !";
+	mes "Eu ofereço diversos serviços úteis para aventureiros.";
+	mes "O que você gostaria de fazer hoje?";
+	next;
+	
+	switch(select("^339966[»]^000000 Habilidades de Platina:^339966[»]^000000 Aluguel de Montarias/Cart:^339966[»]^000000 Remoção de Cartas:^339966[»]^000000 Reset de Status/Skills:^ff0000[»] Sair^000000")) {
+	
+	case 1: // Habilidades de Platina
+		mes "^339966[Habilidades de Platina]^000000";
+		mes "Eu posso te ensinar algumas habilidades muito importantes.";
+		mes "^FF0000Você gostaria de aprender?^000000";
+		next;
+		if (select("^339966[»]^000000 Sim, por favor:^ff0000[»] Não, obrigado^000000") == 2) {
+			mes "^339966[Habilidades de Platina]^000000";
+			mes "Tudo bem! Tenha um bom dia...";
+			close;
+		}
+		
+		skill "NV_FIRSTAID",1,SKILL_PERM;
+		switch (BaseClass) {
+		case Job_Novice:
+			if (Class != Job_SuperNovice)
+				skill "NV_TRICKDEAD",1,SKILL_PERM;
+			break;
+		case Job_Swordman:
+			skill "SM_MOVINGRECOVERY",1,SKILL_PERM;
+			skill "SM_FATALBLOW",1,SKILL_PERM;
+			skill "SM_AUTOBERSERK",1,SKILL_PERM;
+			break;
+		case Job_Mage:
+			skill "MG_ENERGYCOAT",1,SKILL_PERM;
+			break;
+		case Job_Archer:
+			skill "AC_MAKINGARROW",1,SKILL_PERM;
+			skill "AC_CHARGEARROW",1,SKILL_PERM;
+			break;
+		case Job_Acolyte:
+			skill "AL_HOLYLIGHT",1,SKILL_PERM;
+			break;
+		case Job_Merchant:
+			skill "MC_CARTREVOLUTION",1,SKILL_PERM;
+			skill "MC_CHANGECART",1,SKILL_PERM;
+			skill "MC_LOUD",1,SKILL_PERM;
+			skill "MC_CARTDECORATE",5,SKILL_PERM;
+			break;
+		case Job_Thief:
+			skill "TF_SPRINKLESAND",1,SKILL_PERM;
+			skill "TF_BACKSLIDING",1,SKILL_PERM;
+			skill "TF_PICKSTONE",1,SKILL_PERM;
+			skill "TF_THROWSTONE",1,SKILL_PERM;
+			break;
+		default:
+			break;
+		}
+		switch (BaseJob) {
+		case Job_Knight:
+			skill "KN_CHARGEATK",1,SKILL_PERM;
+			break;
+		case Job_Priest:
+			skill "PR_REDEMPTIO",1,SKILL_PERM;
+			break;
+		case Job_Wizard:
+			skill "WZ_SIGHTBLASTER",1,SKILL_PERM;
+			break;
+		case Job_Blacksmith:
+			skill "BS_UNFAIRLYTRICK",1,SKILL_PERM;
+			skill "BS_GREED",1,SKILL_PERM;
+			break;
+		case Job_Hunter:
+			skill "HT_PHANTASMIC",1,SKILL_PERM;
+			break;
+		case Job_Assassin:
+			skill "AS_SONICACCEL",1,SKILL_PERM;
+			skill "AS_VENOMKNIFE",1,SKILL_PERM;
+			break;
+		case Job_Crusader:
+			skill "CR_SHRINK",1,SKILL_PERM;
+			break;
+		case Job_Monk:
+			skill "MO_KITRANSLATION",1,SKILL_PERM;
+			skill "MO_BALKYOUNG",1,SKILL_PERM;
+			break;
+		case Job_Sage:
+			skill "SA_CREATECON",1,SKILL_PERM;
+			skill "SA_ELEMENTWATER",1,SKILL_PERM;
+			skill "SA_ELEMENTGROUND",1,SKILL_PERM;
+			skill "SA_ELEMENTFIRE",1,SKILL_PERM;
+			skill "SA_ELEMENTWIND",1,SKILL_PERM;
+			break;
+		case Job_Rogue:
+			skill "RG_CLOSECONFINE",1,SKILL_PERM;
+			break;
+		case Job_Alchemist:
+			skill "AM_BIOETHICS",1,SKILL_PERM;
+			break;
+		case Job_Bard:
+			skill "BA_PANGVOICE",1,SKILL_PERM;
+			break;
+		case Job_Dancer:
+			skill "DC_WINKCHARM",1,SKILL_PERM;
+			break;
+		default:
+			break;
+		}
+		mes "^339966[Habilidades de Platina]^000000";
+		mes "Pronto, você acaba de aprender as suas novas Habilidades de Platina.";
+		close;
+		
+	case 2: // Aluguel de Montarias
+		if (ismounting()) {
+			if (#language == 0) {
+				message strcharinfo(0),"Você deve remover sua montaria.";
+			} else {
+				message strcharinfo(0),"You must first remove your mount.";
+			}
+			end;
+		} else if (((eaclass()&EAJ_THIRDMASK)==EAJ_RANGER) && !countitem(6124)) {
+			if (!checkfalcon() && getskilllv("HT_FALCON") && !checkwug()) {
+				if(select(" ~ Falcon: ~ Warg")==1) setfalcon;
+				else getitem 6124,1; //Flauta de lobo
+			} else getitem 6124,1; //Flauta de lobo
+		} else if (((eaclass()&EAJ_THIRDMASK)==EAJ_MECHANIC) && !checkcart() && getskilllv("MC_PUSHCART")) {
+			if (!checkmadogear() && getskilllv("NC_MADOLICENCE")) {
+				if(select(" ~ Cart: ~ Mado")==1) setcart;
+				else setmadogear;
+			} else setcart;
+		} else if (!checkcart() && getskilllv("MC_PUSHCART")) setcart;
+		else if (!checkfalcon() && getskilllv("HT_FALCON") && !checkwug()) setfalcon;
+		else if (!checkriding() && !checkdragon() && getskilllv("KN_RIDING")) {
+			if ((eaclass()&EAJ_THIRDMASK)==EAJ_RUNE_KNIGHT) setdragon;
+			else setriding;
+		} else if (!checkmadogear() && getskilllv("NC_MADOLICENCE")) setmadogear;
+		else {
+			if (#language == 0) {
+				message strcharinfo(0),"Você não atende aos requisitos para alugar.";
+			} else {
+				message strcharinfo(0),"You do not meet requirements to rent.";
+			}
+			end;
+		}
+		specialeffect2 EF_TEIHIT3;
+		mes "^339966[Aluguel de Montarias]^000000";
+		mes "Serviço realizado com sucesso!";
+		close;
+		
+	case 3: // Remoção de Cartas
+		set .zenycost,700000;    // Preço padrão para uso do serviço
+		set .percardcost,10000;  // Preço por carta
+		set .faildestroy,0;      // Sem chance de quebrar
+		
+		disable_items;
+		mes "^339966[Removedora de Cartas]^000000";
+		mes "Eu tenho o poder de remover cartas de quaisquer equipamentos.";
+		mes "Sem chance de quebrar. Essa ideia lhe agrada?";
+		next;
+		
+		switch(select("^3CB371[»]^000000 Sim.:^3CB371[»]^000000 Quanto você cobra?:^ff0000[»] Não, obrigado.^000000")) {
+		case 1:
+			mes "^339966[Removedora de Cartas]^000000";
+			mes "Muito bem, qual item você quer que eu examine?";
+			next;
+			setarray .@indices[1], EQI_HEAD_TOP, EQI_ARMOR, EQI_HAND_L, EQI_HAND_R, EQI_GARMENT, EQI_SHOES, EQI_ACC_L, EQI_ACC_R, EQI_HEAD_MID, EQI_HEAD_LOW;
+			for( set .@i,1; .@i <= 10; set .@i,.@i+1 ) {
+				if( getequipisequiped(.@indices[.@i]) )
+					set .@menu$, .@menu$ + F_getpositionname(.@indices[.@i]) + "-[" + getequipname(.@indices[.@i]) + "]";
+				set .@menu$, .@menu$ + ":";
+			}
+			set .@part, .@indices[ select(.@menu$) ];
+			if(!getequipisequiped(.@part)) {
+				mes "^339966[Removedora de Cartas]^000000";
+				mes "Não há nenhum equipamento na área selecionada.";
+				close;
+			}
+			if(getequipcardcnt(.@part) == 0) {
+				mes "^339966[Removedora de Cartas]^000000";
+				mes "Não há nenhuma carta anexada a este equipamento.";
+				close;
+			}
+			set .@cardcount,getequipcardcnt(.@part);
+			
+			if (!checkweight(1202,(.@cardcount+1))) { 
+				mes "^3355FFVocê está carregando muito material.";
+				mes "Coloque seus itens extras no storage.";
+				close;
+			}
+			mes "^339966[Removedora de Cartas]^000000";
+			mes "Este equipamento possui " + .@cardcount + " cartas.";
+			mes "Precisarei de " + (.zenycost+(.@cardcount * .percardcost)) + " zeny.";
+			next;
+			if(select("^3CB371[»]^000000 Muito bem. Faça.:^ff0000[»]^000000 Deixa pra lá.") == 2) {
+				mes "^339966[Removedora de Cartas]^000000";
+				mes "Tudo bem. Retorne se precisar.";
+				close;
+			}
+			if((zeny < (.zenycost+(.@cardcount * .percardcost)))) {
+				mes "^339966[Removedora de Cartas]^000000";
+				mes "Você não possui zeny suficiente.";
+				close;
+			}
+			
+			mes "^339966[Removedora de Cartas]^000000";
+			mes "Minha magia sempre será bem-sucedida.";
+			mes "Seus itens e cartas estão seguros.";
+			next;
+			set Zeny, Zeny - (.zenycost+(.@cardcount * .percardcost));
+			
+			successremovecards .@part;
+			mes "^339966[Removedora de Cartas]^000000";
+			mes "Processo concluído! Aqui está seu item e suas cartas.";
+			close;
+		case 2:
+			mes "^339966[Removedora de Cartas]^000000";
+			mes "Taxa fixa: "+callfunc("F_InsertComma",.zenycost)+" zeny";
+			mes "Mais: "+callfunc("F_InsertComma",.percardcost)+" zeny por carta.";
+			close;
+		case 3:
+			mes "^339966[Removedora de Cartas]^000000";
+			mes "Tudo bem. Retorne se precisar.";
+			close;
+		}
+		
+	case 4: // Reset de Stats/Skills
+		if (BaseLevel > 70) {
+			.@ResetStat = 1000000;	// Zeny para resetar atributos
+			.@ResetSkill = 1000000;	// Zeny para resetar habilidades
+			.@ResetBoth = 2000000;	// Zeny para resetar ambos
+		}
+		else{
+			.@ResetStat  = 0;	// Grátis para níveis baixos
+			.@ResetSkill = 0;
+			.@ResetBoth  = 0;
+		}
+		
+		if (#language == 0) {
+			mes "^339966[Resetadora]^000000";
+			mes "Eu sou a Garota do Reset.";
+			mes "Resetar Atributos: ^ff0000"  + callfunc("F_InsertComma", .@ResetStat)  + "z^000000";
+			mes "Resetar Habilidades: ^ff0000" + callfunc("F_InsertComma", .@ResetSkill) + "z^000000";
+			mes "Resetar Ambos: ^ff0000"   + callfunc("F_InsertComma", .@ResetBoth)  + "z^000000";
+			mes "Selecione o serviço desejado:";
+			next;
+			switch(select("^FF3355Resetar Habilidades:Resetar Atributos:Resetar Ambos^000000:Cancelar")) {
+			case 1:
+				mes "^339966[Resetadora]^000000";
+				if (Zeny < .@ResetSkill) {
+					mes "Você não tem Zeny suficiente.";
+					close;
+				}
+				Zeny -= .@ResetSkill;
+				sc_end SC_ALL;
+				resetskill;
+				mes "Aqui está!";
+				close;
+			case 2:
+				mes "^339966[Resetadora]^000000";
+				if (Zeny < .@ResetStat) {
+					mes "Você não tem Zeny suficiente.";
+					close;
+				}
+				Zeny -= .@ResetStat;
+				resetstatus;
+				mes "Aqui está!";
+				close;
+			case 3:
+				mes "^339966[Resetadora]^000000";
+				if (Zeny < .@ResetBoth) {
+					mes "Você não tem Zeny suficiente.";
+					close;
+				}
+				Zeny -= .@ResetBoth;
+				sc_end SC_ALL;
+				resetskill;
+				resetstatus;
+				mes "Aqui está!";
+				close;
+			case 4:
+				close;
+			}
+		} else {
+			mes "[Reset Girl]";
+			mes "I am the Reset Girl.";
+			mes "Reset Attributes: "  + callfunc("F_InsertComma", .@ResetStat)  + "z";
+			mes "Reset Skills: " + callfunc("F_InsertComma", .@ResetSkill) + "z";
+			mes "Reset Both: "   + callfunc("F_InsertComma", .@ResetBoth)  + "z";
+			mes "Please select the service you desire:";
+			next;
+			switch(select("^FF3355Reset Skills:Reset Attributes:Reset Both^000000:Cancel")) {
+			case 1:
+				mes "[Reset Girl]";
+				if (Zeny < .@ResetSkill) {
+					mes "Sorry, you don't have enough Zeny.";
+					close;
+				}
+				Zeny -= .@ResetSkill;
+				sc_end SC_ALL;
+				resetskill;
+				mes "Here you go!";
+				close;
+			case 2:
+				mes "[Reset Girl]";
+				if (Zeny < .@ResetStat) {
+					mes "Sorry, you don't have enough Zeny.";
+					close;
+				}
+				Zeny -= .@ResetStat;
+				resetstatus;
+				mes "Here you go!";
+				close;
+			case 3:
+				mes "[Reset Girl]";
+				if (Zeny < .@ResetBoth) {
+					mes "Sorry, you don't have enough Zeny.";
+					close;
+				}
+				Zeny -= .@ResetBoth;
+				sc_end SC_ALL;
+				resetskill;
+				resetstatus;
+				mes "Here you go!";
+				close;
+			case 4:
+				close;
+			}
+		}
+		
+	case 5: // Sair
+		mes "^339966[Assistente de Serviços]^000000";
+		mes "Até logo! Retorne sempre que precisar.";
+		close;
+	}
+
+OnInit:
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 65;	
+	setunittitle getnpcid(0), "[Serviços em Geral]";
+
+	while(1) {
+		showscript "[ Serviços em Geral ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}

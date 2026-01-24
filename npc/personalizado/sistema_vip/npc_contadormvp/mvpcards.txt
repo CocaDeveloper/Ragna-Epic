@@ -1,0 +1,336 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//=================== rAthena Script ============================
+//              RASTREADORA DE CARTAS MVPS
+//          VERSÃO CORRIGIDA E OTIMIZADA
+//===============================================================
+
+// NPC Principal - MVP Cards Tracker
+
+prontera,177,186,3	script	Rastreadora MVP	469,{
+	// Proteção anti-spam de consultas
+	if(#last_query > gettimetick(2) - 2) {
+		mes "^339966[Rastreadora de Cartas]^000000";
+		mes "^FF0000Aguarde 2 segundos entre consultas.^000000";
+		close;
+	}
+	set #last_query, gettimetick(2);
+	
+	mes "^339966[Rastreadora de Cartas]^000000";
+	mes "Olá, ^FFA500"+strcharinfo(0)+"^000000!";
+	mes "Eu mantenho o registro de todas as ^ff0000Cartas MVP^000000 que já foram dropadas no servidor.";
+	mes " ";
+	mes "O que você deseja fazer?";
+	next;
+	
+	menu "^339966[»]^000000 Ver Estatísticas Gerais",L_Stats,"^339966[»]^000000 Ver Cartas por Jogador",L_Player,"^339966[»]^000000 Ver Últimas Cartas Dropadas",L_Recent,"^339966[»]^000000 Ver Ranking de Sortudos",L_Ranking,"^339966[»]^000000 Sobre o Sistema",L_About,"^ff0000[»] Sair^000000",L_Exit;
+
+L_Stats:
+	mes "^339966[Rastreadora de Cartas]^000000";
+	mes "^ff0000ESTATÍSTICAS GERAIS:^000000";
+	
+	// Query otimizada - busca tudo em uma única consulta
+	set .@nb, query_sql("SELECT COUNT(*) as total, COUNT(DISTINCT player_name) as players, COUNT(DISTINCT card_id) as cards FROM mvp_cards_dropped", .@total, .@players, .@cards);
+	
+	mes " ";
+	mes "^339966[»]^000000 Total de cartas MVP dropadas: ^FF0000" + .@total + "^000000";
+	mes "^339966[»]^000000 Jogadores que droparam MVP: ^FF0000" + .@players + "^000000";
+	mes "^339966[»]^000000 Tipos diferentes de cartas: ^FF0000" + .@cards + "^000000";
+	close;
+
+L_Player:
+	mes "^339966[Rastreadora de Cartas]^000000";
+	mes "Digite o nome do jogador que deseja consultar:";
+	input .@player_name$;
+	
+	next;
+	
+	if(.@player_name$ == "") {
+		mes "^339966[Rastreadora de Cartas]^000000";
+		mes "Nome de jogador inválido!";
+		close;
+	}
+	
+	mes "^339966[Rastreadora de Cartas]^000000";
+	mes "^ff0000CARTAS DE " + .@player_name$ + ":^000000";
+	mes " ";
+	
+	// Busca com data formatada
+	set .@nb, query_sql("SELECT card_name, mvp_name, map_name, DATE_FORMAT(drop_time, '%d/%m/%Y %H:%i') FROM mvp_cards_dropped WHERE player_name = '" + escape_sql(.@player_name$) + "' ORDER BY id DESC LIMIT 15", .@cards$, .@mvps$, .@maps$, .@dates$);
+	
+	if(.@nb == 0) {
+		mes "Este jogador ainda não dropou nenhuma carta MVP.";
+	} else {
+		mes "Nº de cartas MVP encontradas: ^FF0000" + .@nb + "^000000";
+		mes " ";
+		mes "Listando carta(s)...";
+		next;
+		
+		for(set .@i, 0; .@i < .@nb; set .@i, .@i + 1) {
+			mes "^339966[Rastreadora de Cartas]^000000";
+			mes "^FF0000" + (.@i + 1) + "º^000000 " + .@cards$[.@i];
+			mes " ";
+			mes "^339966[»]^000000 ^ff0000MVP:^000000 " + .@mvps$[.@i];
+			mes "^339966[»]^000000 ^ff0000Mapa:^000000 " + .@maps$[.@i];
+			mes "^339966[»]^000000 ^ff0000Data:^000000 " + .@dates$[.@i];
+			if(.@i < .@nb - 1) next;
+		}
+	}
+	close;
+
+L_Recent:
+	mes "^339966[Rastreadora de Cartas]^000000";
+	mes "^ff0000ÚLTIMAS 10 CARTAS DROPADAS:^000000";
+	mes " ";
+	
+	set .@nb, query_sql("SELECT card_name, mvp_name, player_name, map_name, DATE_FORMAT(drop_time, '%d/%m/%Y %H:%i') FROM mvp_cards_dropped ORDER BY id DESC LIMIT 10", .@cards$, .@mvps$, .@players$, .@maps$, .@dates$);
+	
+	if(.@nb == 0) {
+		mes "Nenhuma carta MVP foi dropada ainda!";
+	} else {
+		for(set .@i, 0; .@i < .@nb; set .@i, .@i + 1) {
+			mes "^FF0000" + (.@i + 1) + "º^000000 " + .@cards$[.@i];
+			mes "^339966[»]^000000 Jogador: " + .@players$[.@i];
+			mes "^339966[»]^000000 MVP: " + .@mvps$[.@i] + " (" + .@maps$[.@i] + ")";
+			mes "^339966[»]^000000 Data: " + .@dates$[.@i];
+			mes "------------------------";
+			
+			if(.@i == 4 && .@nb > 5) {
+				next;
+				mes "^339966[Rastreadora de Cartas]^000000";
+				mes "^ff0000CONTINUAÇÃO:^000000";
+				mes " ";
+			}
+		}
+	}
+	close;
+
+L_Ranking:
+	mes "^339966[Rastreadora de Cartas]^000000";
+	mes "^ff0000RANKING DOS SORTUDOS:^000000";
+	mes " ";
+	mes "Top 10 jogadores com mais cartas MVP:";
+	next;
+	
+	set .@nb, query_sql("SELECT player_name, COUNT(*) FROM mvp_cards_dropped GROUP BY player_name ORDER BY COUNT(*) DESC LIMIT 10", .@players$, .@totals);
+	
+	mes "^339966[Rastreadora de Cartas]^000000";
+	if(.@nb == 0) {
+		mes "Nenhuma carta foi dropada ainda!";
+	} else {
+		for(set .@i, 0; .@i < .@nb; set .@i, .@i + 1) {
+			mes (.@i + 1) + "º ^FF0000" + .@players$[.@i] + "^000000: " + .@totals[.@i] + " carta" + ((.@totals[.@i] > 1)?"s":"");
+		}
+	}
+	close;
+
+L_About:
+	mes "^339966[Rastreadora de Cartas]^000000";
+	mes "^ff0000SOBRE O SISTEMA:^000000";
+	mes "• Este sistema rastreia automaticamente todas as cartas MVP que são dropadas no servidor.";
+	next;
+	mes "^339966[Rastreadora de Cartas]^000000";
+	mes "• As informações são salvas em tempo real no ^ff0000banco de dados^000000 e incluem:";
+	mes "- Nome da carta e do MVP;";
+	mes "- Jogador que recebeu o drop;";
+	mes "- Mapa onde ocorreu o drop;";
+	mes "- Data e hora do drop.";
+	next;
+	mes "^339966[Rastreadora de Cartas]^000000";
+	mes "• O sistema funciona através de um ^ff0000código altamente seguro^000000 que monitora os drops automaticamente.";
+	mes "• Todas as estatísticas são atualizadas em tempo real!";
+	close;
+	
+L_Exit:
+	mes "^339966[Rastreadora de Cartas]^000000";
+	mes "Tudo bem. Volte quando quiser!";
+	close;
+
+OnInit:
+	setunitdata(getnpcid(0), UNPC_GROUP_ID, 1017);	
+	setunittitle(getnpcid(0), "[Registro de Drop]");
+	
+	while(1) {
+		showscript("[ Rastreadora MVP ]", getnpcid(0));
+		sleep(100);
+	}
+	end;
+}
+
+// Sistema de detecção de cartas MVP - CORRIGIDO
+-	script	MVP_Drop_System	FAKE_NPC,{
+OnInit:
+	// Array completo e atualizado com todas as cartas MVP
+	setarray .mvp_cards[0], 
+		4144, // Osíris
+		4147, // Bafomé
+		4142, // Doppelganger
+		4132, // Abelha Rainha
+		4128, // Besouro-Ladrão Dourado
+		4143, // Orc Herói
+		4137, // Drake
+		4123, // Eddga
+		4146, // Maya
+		4131, // Flor do Luar
+		4148, // Faraó
+		4121, // Freeoni
+		4135, // Orc Lord
+		4318, // Cavaleiro da Tempestade
+		4324, // Hatii
+		4168, // Senhor das Trevas
+		4305, // General Tartaruga
+		4276, // Senhor dos Mortos
+		4134, // Drácula
+		4330, // Serpente Suprema
+		4263, // Samurai Encarnado
+		4236, // Amon Ra
+		4302, // Tao Gunka
+		4342, // RSX-0806
+		4372, // Lady Branca
+		4357, // Lorde Seyren
+		4359, // Algoz Eremes
+		4361, // Mestre Ferreiro Howard
+		4363, // Sumo Sacerdotisa Margaretha
+		4367, // Atiradora de Elite Cecil
+		4365, // Arquimaga Kathryne
+		4352, // Espadachim Egnigem
+		4374, // Vesper
+		4376, // Lady Tanee
+		4399, // Memória de Thanatos
+		4386, // Detardeurus
+		4403, // Kiel D-01
+		4407, // Valquíria Randgris
+		4408, // Pesar Noturno
+		4419, // Ktullanux
+		4425, // Atroce
+		4430, // Ifrit
+		4441, // Bispo Decadente
+		4145, // Belzebu
+		4140, // Maldito Maya
+		4150, // Senhor do Abismo
+		4151; // Egnigem Cenia
+	
+	// Cooldown de anúncios
+	set .last_announce, 0;
+	end;
+
+OnPCGetItemEvent:
+	// CORREÇÃO CRÍTICA: Obtém o item ID do evento
+	set .@item_id, getarg(0);
+	set .@amount, getarg(1);
+	
+	// Validação básica
+	if(.@item_id <= 0 || .@amount <= 0) end;
+	
+	// Verifica se é uma carta MVP
+	set .@is_mvp, 0;
+	for(set .@i, 0; .@i < getarraysize(.mvp_cards); set .@i, .@i + 1) {
+		if(.@item_id == .mvp_cards[.@i]) {
+			set .@is_mvp, 1;
+			break;
+		}
+	}
+	
+	// Se não for carta MVP, ignora
+	if(.@is_mvp == 0) end;
+	
+	// Coleta informações do drop
+	set .@card_id, .@item_id;
+	set .@card_name$, getitemname(.@card_id);
+	set .@player_name$, strcharinfo(PC_NAME);
+	set .@player_id, getcharid(CHAR_ID_CHAR);
+	set .@map_name$, strcharinfo(PC_MAP);
+	set .@mvp_name$, callfunc("GetMVPName", .@card_id);
+	
+	// Insere no banco de dados
+	query_sql("INSERT INTO mvp_cards_dropped (card_id, card_name, mvp_name, player_name, player_id, map_name, drop_time) VALUES (" + .@card_id + ", '" + escape_sql(.@card_name$) + "', '" + escape_sql(.@mvp_name$) + "', '" + escape_sql(.@player_name$) + "', " + .@player_id + ", '" + escape_sql(.@map_name$) + "', NOW())");
+	
+	// Cooldown de anúncios (3 segundos)
+	if(gettimetick(2) - .last_announce >= 3) {
+		announce "[Drop MVP] " + .@player_name$ + " dropou uma " + .@card_name$ + " de " + .@mvp_name$ + " em " + .@map_name$ + "!", bc_all, 0xFF6600;
+		set .last_announce, gettimetick(2);
+	}
+	
+	end;
+}
+
+// Função para obter nome do MVP - ATUALIZADA
+function	script	GetMVPName	{
+	set .@card_id, getarg(0);
+	
+	switch(.@card_id) {
+		case 4144: return "Osíris";
+		case 4147: return "Bafomé";				
+		case 4142: return "Doppelganger";
+		case 4132: return "Abelha Rainha";
+		case 4128: return "Besouro-Ladrão Dourado";
+		case 4143: return "Orc Herói";
+		case 4137: return "Drake";
+		case 4123: return "Eddga";
+		case 4146: return "Maya";
+		case 4131: return "Flor do Luar";
+		case 4148: return "Faraó";
+		case 4121: return "Freeoni";
+		case 4135: return "Orc Lord";
+		case 4318: return "Cavaleiro da Tempestade";
+		case 4324: return "Hatii";
+		case 4168: return "Senhor das Trevas";
+		case 4305: return "General Tartaruga";
+		case 4276: return "Senhor dos Mortos";
+		case 4134: return "Drácula";
+		case 4330: return "Serpente Suprema";
+		case 4263: return "Samurai Encarnado";
+		case 4236: return "Amon Ra";
+		case 4302: return "Tao Gunka";
+		case 4342: return "RSX-0806";
+		case 4372: return "Lady Branca";
+		case 4357: return "Lorde Seyren";
+		case 4359: return "Algoz Eremes";
+		case 4361: return "Mestre Ferreiro Howard";
+		case 4363: return "Sumo Sacerdotisa Margaretha";
+		case 4367: return "Atiradora de Elite Cecil";
+		case 4365: return "Arquimaga Kathryne";
+		case 4352: return "Espadachim Egnigem";		
+		case 4374: return "Vesper";
+		case 4376: return "Lady Tanee";
+		case 4399: return "Memória de Thanatos";
+		case 4386: return "Detardeurus";
+		case 4403: return "Kiel D-01";
+		case 4407: return "Valquíria Randgris";
+		case 4408: return "Pesar Noturno";
+		case 4419: return "Ktullanux";
+		case 4425: return "Atroce";
+		case 4430: return "Ifrit";
+		case 4441: return "Bispo Decadente";
+		case 4145: return "Belzebu";
+		case 4140: return "Maldito Maya";
+		case 4150: return "Senhor do Abismo";
+		case 4151: return "Egnigem Cenia";
+		default: return "Unknown MVP";
+	}
+}
+
+// NPC duplicado para mapa VIP
+1@herbs,295,96,4	duplicate(Rastreadora MVP)	Rastreadora MVP#VIP	469
+
+//===================================================================
+
+//	CREATE TABLE IF NOT EXISTS `mvp_cards_dropped` (
+//	  `id` INT AUTO_INCREMENT PRIMARY KEY,
+//	  `card_id` INT NOT NULL,
+//	  `card_name` VARCHAR(50) NOT NULL,
+//	  `mvp_name` VARCHAR(50) NOT NULL,
+//	  `player_name` VARCHAR(24) NOT NULL,
+//	  `player_id` INT NOT NULL,
+//	  `map_name` VARCHAR(50) NOT NULL,
+//	  `drop_time` DATETIME NOT NULL,
+//	  INDEX idx_player (`player_name`),
+//	  INDEX idx_card (`card_id`),
+//	  INDEX idx_time (`drop_time`)
+//	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

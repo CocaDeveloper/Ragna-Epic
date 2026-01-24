@@ -1,0 +1,73 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                    JORNAL SHIRO
+// ===================== Descrição: =============================
+
+-	script	Notícias	-1,{
+OnInit:
+set .Time,90;		// Anunciar a cada 90 segundos (1.5 minutos)
+setarray .News$[0],	// Mensagens variadas para o servidor
+		// === VOTAÇÃO NO SERVIDOR ===
+		"[Vote]: Ajude nosso servidor a crescer! Vote diariamente e ganhe recompensas exclusivas!",
+		"[Top Server]: Somos TOP graças a você! Continue votando em nosso servidor! ShiRO - Ragnarok Online!",
+		"[Vote]: Vote no servidor e receba pontos de voto para trocar por itens especiais!",
+		
+		// === EVENTOS DO SERVIDOR ===
+		"[WoE]: A Guerra do Emperium acontece todas às Quartas, Sextas e Domingo às 22h! Preparem suas Guilds!",
+		"[WoE]: A Guerra do Emperium Baby acontece todos os Sábados às 22h! Preparem suas Baby Guilds!",
+		"[Evento]: As Batalhas Campais estão ativas! Entre na batalha e ganhe Emblemas para trocar por itens exclusivos!",
+		"[Evento]: Eventos automáticos acontecem todo dia! Venham participar!",
+		"[PvP]: O PvP está sempre disponível! Digite @gopvp e pegue seu lugar no pódium",
+		"[Evento]: A Corrida de Morocc acontece aos Domingos! Fiquem atentos aos horários!",
+		
+		// === INSTÂNCIAS E DUNGEONS ===
+		"[Instâncias]: Torre Sem Fim disponível! Desafie os 100 andares e ganhe itens exclusivos!",
+		"[Instâncias]: Espaço do Infinito com drops únicos para quest's exclusivas!",
+		"[Instâncias]: As Minas de Moria estão repletas de tesouros! Explore-as agora mesmo!",
+		"[Instâncias]: Biolab 4 liberado! Forme sua PT agora mesmo!",
+		"[Instâncias]: Quer farmar uma grana? A Ilha do Zeny aparece 5 vezes ao dia. Fique ligado!",
+		
+		// === DOAÇÕES E VIP ===
+		"[Super VIP]: Super VIP disponível! +100% EXP, Storage expandido e benefícios únicos!",
+		"[Cash Shop]: Confira nossa Cash Shop! Itens exclusivos e visuais únicos!",
+		"[Doação]: Suas doações mantêm o servidor online 24/7! Obrigado pelo apoio!",
+		"[Benefícios]: VIPs ganham acesso a comandos exclusivos! Seja VIP agora mesmo!",
+		
+		// === INFORMAÇÕES GERAIS ===
+		"[Informativo]: Nosso Discord está sempre ativo! Junte-se à comunidade!",
+		"[Novatos]: Novo no servidor? Digite @commands para ver comandos úteis!",
+		"[Mercado]: Use @autotrade para vender itens mesmo offline!",
+		"[Guild]: Procurando uma guild? Anuncie para o servidor na Sala VIP!",
+		"[Rates]: EXP: 100x | DROP: 50x | Cards: 10x | Diversão garantida!",
+		"[Sistemas]: Reset de Stats/Skills disponível! Fale com a Reset Girl em Prontera!",
+		"[Aventura]: Use @go para se teletransportar rapidamente para as cidades!",
+		
+		// === SEGURANÇA E REGRAS ===
+		"[Segurança]: NUNCA compartilhe sua senha com ninguém! A STAFF nunca solicita dados pessoais!",
+		"[Regras]: Leia as regras do servidor! Respeite outros jogadores sempre!",
+		"[Reporte]: Viu algo de errado? Reporte imediatamente aos GMs!",
+		
+		// === SOCIAL E COMUNIDADE ===
+		"[Comunidade]: Siga-nos nas redes sociais para novidades e eventos especiais!",
+		"[Comunidade]: Compartilhe seus momentos épicos com a comunidade! Use #RagnarokShiro!",
+		"[Party]: Procurando party para dungeons? Anuncie para o servidor na Sala VIP!",
+		
+		// === DICAS ÚTEIS ===
+		"[Dicas]: Use @mi <monster> para ver informações detalhadas sobre monstros!",
+		"[Dicas]: @ii <item> mostra onde dropar o item que você procura!",
+		"[Dicas]: Salve pontos de teleporte com @memo para voltar rapidamente!",
+		"[Dicas]: Digite @time para ver o horário do servidor!";
+		
+while( 1 ){
+	announce .News$[ rand( getarraysize( .News$ ) ) ],bc_all | bc_blue;
+	sleep ( .Time * 90000 );
+	}
+end;
+}

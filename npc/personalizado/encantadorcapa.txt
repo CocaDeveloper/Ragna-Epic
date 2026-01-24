@@ -1,0 +1,169 @@
+
+//========================================================================================
+//encantador capa
+//========================================================================================
+hero_ent2,29,110,4	script	Vinculador de Almas#Bio4	605,{
+
+	mes "^8800C6[Vinculador de Almas]^000000";
+	mes "A fenda entre os mundos permitiu selar ^FF0000almas de poder^000000 e ^00CED1experiência eterna^000000 em mantos visuais.";
+	mes "Deseja vincular uma alma à sua capa?";
+
+	if (!getequipisequiped(EQI_COSTUME_GARMENT)) {
+		mes " ^i[4842] ^i[4848] ";
+		mes "\\ ^i[4843] ^i[4826] ^i[4832] /";
+		mes "Equipe uma ^00CED1Capa Visual^000000 antes de tentar vincular uma alma.";
+		setdialogalign(DIALOG_ALIGN_MIDDLE);
+		setdialogalign(DIALOG_ALIGN_CENTER);
+		setdialogsize(400,500);
+		close;
+	}
+
+	.@equip_id = getequipid(EQI_COSTUME_GARMENT);
+	.@equip_refine = getequiprefinerycnt(EQI_COSTUME_GARMENT);
+	.@card1 = getequipcardid(EQI_COSTUME_GARMENT,0);
+	.@card2 = getequipcardid(EQI_COSTUME_GARMENT,1);
+	.@card3 = getequipcardid(EQI_COSTUME_GARMENT,2);
+	.@card4 = getequipcardid(EQI_COSTUME_GARMENT,3);
+
+	mes "Escolha o vínculo:";
+	.@slot = select("Alma do Poder (Slot A):Alma da Experiência (Slot B):Desistir");
+	if (.@slot == 3) close;
+
+	if ((.@slot == 1 && .@card1 != 0) || (.@slot == 2 && .@card2 != 0)) {
+		mes "Esse slot já possui uma alma selada.";
+		close;
+	}
+
+	.@menu$ = "Cancelar";
+	.@count = 0;
+	if (.@slot == 1) {
+		if (countitem(4842) > 0) {
+			.@menu$ += ":" + getitemname(4842) + " [x" + countitem(4842) + "]";
+			.@valid_ids[.@count++] = 4842;
+		}
+		for (.@i = 50001; .@i <= 50016; .@i++) {
+			if (countitem(.@i) > 0) {
+				.@menu$ += ":" + getitemname(.@i) + " [x" + countitem(.@i) + "]";
+				.@valid_ids[.@count++] = .@i;
+			}
+		}
+	} else {
+		if (countitem(4843) > 0) {
+			.@menu$ += ":" + getitemname(4843) + " [x" + countitem(4843) + "]";
+			.@valid_ids[.@count++] = 4843;
+		}
+		for (.@i = 50101; .@i <= 50116; .@i++) {
+			if (countitem(.@i) > 0) {
+				.@menu$ += ":" + getitemname(.@i) + " [x" + countitem(.@i) + "]";
+				.@valid_ids[.@count++] = .@i;
+			}
+		}
+	}
+
+	if (.@count == 0) {
+		mes "Você não possui nenhuma alma correspondente para esse vínculo.";
+		close;
+	}
+
+	mes "Escolha qual alma deseja selar:";
+	.@pick = select(.@menu$) - 1;
+	if (.@pick == 0) close;
+
+	.@stone_id = .@valid_ids[.@pick - 1];
+
+	if (countitem(.@stone_id) <= 0) {
+		mes "Erro inesperado: a alma desapareceu.";
+		close;
+	}
+
+	if (getequipid(EQI_COSTUME_GARMENT) != .@equip_id) {
+		mes "Você trocou a capa durante o processo. Tente novamente.";
+		close;
+	}
+
+	delitem .@stone_id, 1;
+	delequip EQI_COSTUME_GARMENT;
+
+	if (.@slot == 1) .@card1 = .@stone_id;
+	else .@card2 = .@stone_id;
+
+	getitem2 .@equip_id, 1, 1, .@equip_refine, 0, .@card1, .@card2, .@card3, .@card4;
+	specialeffect2 EF_ENHANCE;
+	mes "A alma foi selada com sucesso!";
+	close;
+}
+//========================================================================================
+//resetador de encatamento capa
+//========================================================================================
+hero_ent2,32,110,4	script	Exorcista de Memórias#Bio4	604,{
+
+	mes "^666666[Exorcista de Memórias]^000000";
+	mes "Você quer apagar ecos ancestrais de sua vestimenta?";
+	mes "A remoção de almas é ^FF0000instável, cara e arriscada^000000.";
+
+	if (!getequipisequiped(EQI_COSTUME_GARMENT)) {
+		mes "Nada para purificar.";
+		close;
+	}
+
+	.@equip_id = getequipid(EQI_COSTUME_GARMENT);
+	.@refine = getequiprefinerycnt(EQI_COSTUME_GARMENT);
+	.@card1 = getequipcardid(EQI_COSTUME_GARMENT,0);
+	.@card2 = getequipcardid(EQI_COSTUME_GARMENT,1);
+	.@card3 = getequipcardid(EQI_COSTUME_GARMENT,2);
+	.@card4 = getequipcardid(EQI_COSTUME_GARMENT,3);
+
+	if (.@card1 == 0 && .@card2 == 0) {
+		mes "Não há almas seladas aqui.";
+		close;
+	}
+
+	mes "Deseja remover ambas por ^FF000050.000.000 Zeny^000000?";
+	if (select("Sim:Não") == 2) close;
+	if (Zeny < 50000000) {
+		mes "Falta de energia... e de verba.";
+		close;
+	}
+
+	Zeny -= 50000000;
+	delequip EQI_COSTUME_GARMENT;
+	if (.@card1) getitem .@card1, 1;
+	if (.@card2) getitem .@card2, 1;
+
+	.@card1 = 0; .@card2 = 0;
+	getitem2 .@equip_id, 1, 1, .@refine, 0, .@card1, .@card2, .@card3, .@card4;
+	specialeffect2 EF_VENOMFOG;
+	mes "As almas foram libertadas — que os ecos não te sigam.";
+	close;
+}
+
+//========================================================================================
+//Função Caixa de almas
+//========================================================================================
+function	script	F_DropSoulFragment	{
+	setarray .@itens[0],
+		50001,50002,50003,50004,50005,50006,50007,50008,
+		50009,50010,50011,50012,50013,50014,50015,50016;
+
+	getitem .@itens[rand(getarraysize(.@itens))], 1;
+	end;
+}
+
+function	script	F_DropSoulCore	{
+	setarray .@itens[0],
+		50101,50102,50103,50104,50105,50106,50107,50108,
+		50109,50110,50111,50112,50113,50114,50115,50116;
+
+	getitem .@itens[rand(getarraysize(.@itens))], 1;
+	end;
+}
+
+
+//========================================================================================
+//Vendedor Temporario pedras e capa
+//========================================================================================
+hero_ent2,35,110,4	shop	Vendedor Temporario#hall	606,51001:1000,51000:1000,20509:1000,50001:100,50002:100,50003:100,50004:100,50005:100,50006:100,50007:100,50008:100,50009:100,50010:100,50011:100,50012:100,50013:100,50014:100,50015:100,50016:100
+
+
+
+hero_ent2,37,110,4	shop	Vendedor Temporario2#hall	606,50101:100,50102:100,50103:100,50104:100,50105:100,50106:100,50107:100,50108:100,50109:100,50110:100,50111:100,50112:100,50113:100,50114:100,50115:100,50116:100

@@ -1,0 +1,211 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_|  \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//              NPC - Abridor de Caixas VIP v1.0
+//===============================================================
+// Versão: 1.0
+// 
+// Funcionalidades:
+// - Abre Velha Caixa Roxa (ID: 617)
+// - Abre Caixa de Presente (ID: 644)
+// - Abre Velha Caixa Azul (ID: 603)
+// - Verificação completa de espaço e peso no inventário
+// - Sistema de confirmação antes de abrir
+// - Mensagens personalizadas por horário
+//===============================================================
+
+ra_temsky,62,139,5	script	Abridor de Caixas	4_M_BARMUND,{
+	
+	mes "^0099FF[Abridor de Caixas VIP]^000000"; 
+	mes (gettime(3) >= 6 && gettime(3) <= 12 ? "Bom-dia" : (gettime(3) >= 13 && gettime(3) <= 18 ? "Boa-tarde" : "Boa-noite"))+", ^ffa500"+strcharinfo(0)+"^000000!";
+	mes "Sou especialista em abrir caixas antigas.";
+	mes "Posso ajudá-lo a abrir suas caixas";
+	mes "de forma rápida e segura!";
+	mes " ";
+	mes "^0099FFQual caixa deseja abrir?^000000";
+	next; 
+	
+	menu "^0099FF[»]^000000 Velha Caixa Roxa",L_OldPurpleBox,
+	     "^0099FF[»]^000000 Velha Caixa Azul",L_OldBlueBox,
+		 "^0099FF[»]^000000 Caixa de Presente",L_GiftBox,
+	     "^ff0000[»] Sair^000000",L_Exit;
+
+//===============================================================
+// ABERTURA DE CAIXAS - CHAMADAS
+//===============================================================
+L_OldPurpleBox:
+	callsub S_OpenBox, 617, "Velha Caixa Roxa", "^9933FF";
+	end;
+	
+L_OldBlueBox:
+	callsub S_OpenBox, 603, "Velha Caixa Azul", "^3366FF";
+	end;
+	
+L_GiftBox:
+	callsub S_OpenBox, 644, "Caixa de Presente", "^FF6600";
+	end;
+
+//===============================================================
+// SUBROTINA PRINCIPAL
+//===============================================================
+S_OpenBox:
+	set @BoxID, getarg(0);
+	set @BoxName$, getarg(1);
+	set @BoxColor$, getarg(2);
+	
+	mes "^0099FF[Abridor de Caixas VIP]^000000"; 
+	mes "Você escolheu abrir "+@BoxColor$+@BoxName$+"^000000.";
+	next;
+	
+	// Verificar se possui a caixa
+	if(countitem(@BoxID) < 1) {
+		mes "^0099FF[Abridor de Caixas VIP]^000000"; 
+		mes "^ff0000Erro!^000000";
+		mes "Você não possui "+@BoxColor$+@BoxName$+"^000000!";
+		mes " ";
+		mes "Quantidade atual: ^0099FF0^000000";
+		close;
+	}
+	
+	set @MaxBoxes, countitem(@BoxID);
+	
+	mes "^0099FF[Abridor de Caixas VIP]^000000"; 
+	mes "Quantas caixas você deseja abrir?";
+	mes " ";
+	mes "Você possui: "+@BoxColor$+@MaxBoxes+"^000000 "+@BoxName$+"(s)";
+	mes " ";
+	mes "^ff6600Atenção:^000000 Certifique-se de ter";
+	mes "espaço suficiente no inventário!";
+	next;
+	
+	input @BoxCount, 0, @MaxBoxes;
+	
+	// Validar quantidade
+	if(@BoxCount <= 0) {
+		mes "^0099FF[Abridor de Caixas VIP]^000000"; 
+		mes "^ff0000Quantidade inválida!^000000";
+		close;
+	}
+	
+	if(@BoxCount > @MaxBoxes) {
+		mes "^0099FF[Abridor de Caixas VIP]^000000"; 
+		mes "^ff0000Erro!^000000";
+		mes "Você não possui caixas suficientes!";
+		mes " ";
+		mes "Quantidade solicitada: ^ff0000"+@BoxCount+"^000000";
+		mes "Quantidade disponível: ^0099FF"+@MaxBoxes+"^000000";
+		close;
+	}
+	
+	// Verificar espaço no inventário
+	// Verificar se o peso permite receber os itens
+	// Como cada caixa gera 1 item aleatório, verificamos o peso máximo possível
+	set @WeightCheck, checkweight(501, @BoxCount); // 501 = Red Potion (item leve de referência)
+	
+	if(@WeightCheck == 0) {
+		mes "^0099FF[Abridor de Caixas VIP]^000000"; 
+		mes "^ff0000Erro - Inventário Cheio!^000000";
+		mes " ";
+		mes "Você não possui espaço suficiente!";
+		mes " ";
+		mes "Verifique seu peso e slots no inventário.";
+		mes " ";
+		mes "Libere espaço e tente novamente.";
+		close;
+	}
+	
+	// Confirmação
+	mes "^0099FF[Abridor de Caixas VIP]^000000"; 
+	mes "Você vai abrir "+@BoxColor$+@BoxCount+"^000000 "+@BoxName$+"(s).";
+	mes " ";
+	mes "^ff0000Confirma a operação?^000000";
+	next;
+	
+	menu "^00ff00[»]^000000 Sim, abrir as caixas!",-,
+	     "^ff0000[»] Não, cancelar^000000",L_Cancel;
+	
+	// Verificação final antes de abrir
+	if(countitem(@BoxID) < @BoxCount) {
+		mes "^0099FF[Abridor de Caixas VIP]^000000"; 
+		mes "^ff0000Erro!^000000";
+		mes "Você não possui caixas suficientes.";
+		close;
+	}
+	
+	// Abrir as caixas uma por uma
+	set @SuccessCount, 0;
+	set @FailCount, 0;
+	
+	for(set @i, 0; @i < @BoxCount; set @i, @i + 1) {
+		// Verificar se ainda tem a caixa
+		if(countitem(@BoxID) < 1) {
+			set @FailCount, @FailCount + 1;
+			break;
+		}
+		
+		// Usar a caixa diretamente (simula o clique duplo)
+		// Isso ativa o script interno da caixa
+		switch(@BoxID) {
+			case 617: // Velha Caixa Roxa
+				if(countitem(617) >= 1) {
+					delitem 617, 1;
+					getrandgroupitem(IG_BlueBox), 1;
+				}
+				break;
+			case 603: // Velha Caixa Azul
+				if(countitem(603) >= 1) {
+					delitem 603, 1;
+					getrandgroupitem(IG_BlueBox), 1;
+				}
+				break;
+			case 644: // Caixa de Presente
+				if(countitem(644) >= 1) {
+					delitem 644, 1;
+					getrandgroupitem(IG_BlueBox), 1;
+				}
+				break;
+		}
+		
+		set @SuccessCount, @SuccessCount + 1;
+	}
+	
+	// Mensagem de sucesso
+	mes "^0099FF[Abridor de Caixas VIP]^000000"; 
+	mes "^00ff00Sucesso!^000000";
+	mes " ";
+	mes "Abri "+@BoxColor$+@SuccessCount+"^000000 "+@BoxName$+"(s)!";
+	mes "Confira os itens no seu inventário!";
+	
+	if(@FailCount > 0) {
+		mes " ";
+		mes "^ff6600Atenção:^000000 "+@FailCount+" caixa(s) não";
+		mes "puderam ser abertas por falta de espaço.";
+	}
+	
+	close;
+	return;
+
+L_Cancel:
+	mes "^0099FF[Abridor de Caixas VIP]^000000"; 
+	mes "Operação cancelada.";
+	mes "Volte quando quiser abrir suas caixas!";
+	close;
+
+L_Exit:
+	mes "^0099FF[Abridor de Caixas VIP]^000000";  
+	mes "Até logo, "+strcharinfo(0)+"!";
+	mes "Volte sempre que tiver caixas para abrir!";
+	close;
+	
+OnInit:
+	while(1) {
+	showscript "[ Abridor de Caixas ]", getnpcid(0);
+	sleep 100;
+	}
+}

@@ -1,0 +1,187 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  GERENTE COMERCIAL
+//===============================================================
+
+prontera,145,160,5	script	Félix, O Gerente	556,{
+	mes "^ff0066[Gerente Félix]^000000";
+	if ( !getskilllv( "MC_VENDING" ) ) {
+		mes (gettime(3)>= 6 && gettime(3)<= 12 ? "Bom-dia" : (gettime(3)>=13 && gettime(3)<=18 ? "Boa-tarde" : "Boa-noite"))+", ^FFA500"+strcharinfo(0)+"^000000.";
+		mes "Infelizmente eu não posso te ajudar, somente se você tiver a habilidade ^0055FFComércio^000000.";
+		close;
+	}
+	mes "Selecione um local e use a para fazer venda automática.";
+	while ( true ) {
+		.@menu$ = .@currentpage ? "^FFA500[»] Página anterior^000000:" : ":";
+		.@pageindex = .@currentpage * .slotperpage;
+		for ( .@i = 0; .@i < .slotperpage && .@pageindex + .@i < .count; ++.@i ) {
+			if ( !getmapxy( .@map$, .@x, .@y, BL_NPC, "#vend_slot"+( .@pageindex + .@i ) ) && getareausers( .map$, .@x, .@y, .@x, .@y ) )
+				.@menu$ += "^FF0000[»]^000000 Slot Número."+( .@pageindex + .@i +1 )+" - ^FF0000[Indisponível]^000000:";
+			else
+				.@menu$ += "^0000FF[»]^000000 Slot Número."+( .@pageindex + .@i +1 )+" - ^00CC00[Disponível]^000000:";
+		}
+		if ( .@currentpage != .maxpage )
+			.@menu$ = .@menu$ + "^FFA500[»] Página seguinte^000000";
+		.@pick = select( .@menu$ ) -1;
+		if ( !.@pick )
+			{ --.@currentpage; }
+		else if ( .@pick == .slotperpage +1 )
+			{ ++.@currentpage; }
+		else
+			break;
+	}
+	.@s =  .@currentpage * .slotperpage + .@pick -1 ;
+	if ( !getmapxy( .@map$, .@x, .@y, BL_NPC, "#vend_slot"+ .@s ) && getareausers( .map$, .@x, .@y, .@x, .@y ) ) {
+		mes " ";
+		mes "Esta vaga está: ^FF0000[Indisponível]^000000.";
+		close;
+	}
+	warp .@map$, .@x, .@y;
+	hideonnpc "#vend_slot"+ .@s;
+	donpcevent "#vend_slot"+ .@s +"::OnCheckAvailable";
+	end;
+OnInit:
+	setbattleflag "min_npc_vendchat_distance", 0;
+//	======================= Configuration HERE =============================
+	.map$ = "prontera"; // map
+	setarray .@x, 148,152,159,163; // x coordinates
+	setarray .@y, 163, 161, 159, 157, 155, 153, 151, 149, 147, 145, 143, 141, 139, 137, 135, 133, 131; // y coordinates
+	.slotperpage = 20; // display how many slots per page (prevent making the menu too long)
+
+	freeloop true;
+	setcell .map$, 0,0, 500,500, cell_novending, true;
+	.@x_size = getarraysize( .@x );
+	.@y_size = getarraysize( .@y );
+	for ( .@i = 0; .@i < .@y_size; ++.@i ) {
+		for ( .@j = 0; .@j < .@x_size; ++.@j ) {
+			if ( checkcell( .map$, .@x[.@j], .@y[.@i], cell_chkpass ) ) {
+				movenpc "#vend_slot"+ .count, .@x[.@j], .@y[.@i];
+				setcell .map$, .@x[.@j], .@y[.@i], .@x[.@j], .@y[.@i], cell_novending, false;
+				if ( getareausers( .map$, .@x[.@j], .@y[.@i], .@x[.@j], .@y[.@i] ) ) {
+					hideonnpc "#vend_slot"+ .count;
+					donpcevent "#vend_slot"+ .count +"::OnCheckAvailable";
+				}
+				++.count;
+			}
+		}
+	}
+	.maxpage = .count / .slotperpage + ( .count % .slotperpage > 0 ) -1;
+//	debugmes "Vendor NPC needed -> "+ .count;
+
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 50;	
+	setunittitle getnpcid(0), "[Área Comercial]";	
+
+	while(1) {
+	showscript "[ Área Comercial ]", getnpcid(0);
+	sleep 100;
+}
+
+	end;	
+}
+
+-	script	vend_slot	FAKE_NPC,{
+	mes "^0000FF[Placas de Vendedores]^000000";
+	if ( !getskilllv( "MC_VENDING" ) ) {
+		mes "Você não possui a Habilidade ^0055FFComércio^000000.";
+		close;
+	}
+	getmapxy .@map$, .@x, .@y, BL_NPC;
+	if ( getareausers( .@map$, .@x, .@y, .@x, .@y ) ) {
+		mes "Alguém já esta usando este slot";
+		close;
+	}
+//	unitwalk getcharid(3), .@x, .@y;
+	warp strcharinfo(3), .@x, .@y;
+	mes "Spot: ^777777Disponivel^000000";
+	mes "^0055FF[Regras das Vendas]^000000";
+	mes "^FF0000Use o nome da loja adequado.^000000";
+	mes "^777777O jogador que não seguir essas regras será punido.^000000";
+	hideonnpc strnpcinfo(0);
+	donpcevent strnpcinfo(0)+"::OnCheckAvailable";
+	close;
+OnCheckAvailable:
+	sleep 10000;
+	getmapxy .@map$, .@x, .@y, BL_NPC;
+	while ( getareausers( .@map$, .@x, .@y, .@x, .@y ) )
+		sleep 10000;
+	hideoffnpc strnpcinfo(0);
+	end;
+}
+
+// Add more if needed.
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot0	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot1	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot2	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot3	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot4	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot5	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot6	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot7	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot8	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot9	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot10	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot11	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot12	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot13	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot14	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot15	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot16	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot17	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot18	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot19	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot20	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot21	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot22	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot23	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot24	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot25	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot26	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot27	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot28	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot29	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot30	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot31	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot32	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot33	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot34	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot35	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot36	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot37	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot38	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot39	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot40	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot41	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot42	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot43	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot44	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot45	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot46	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot47	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot48	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot49	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot50	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot51	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot52	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot53	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot54	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot55	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot56	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot57	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot58	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot59	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot60	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot61	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot62	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot63	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot64	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot65	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot66	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot67	4_BULLETIN_BOARD2
+prontera,0,0,4	duplicate(vend_slot)	#vend_slot68	4_BULLETIN_BOARD2

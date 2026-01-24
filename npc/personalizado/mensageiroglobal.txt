@@ -1,0 +1,172 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  NPC - MENSAGEIRO GLOBAL
+//===============================================================
+//= Desenvolvedor rAthena 2023
+//===== Current Version: =====================================
+//= 1.0
+//===== Description: =========================================
+//= NPC para enviar mensagens globais no servidor
+//= Consome megafone (12221) - Grátis para VIP
+//= Cooldown de 3 minutos entre mensagens
+//=========================================================
+
+prontera,159,194,4	script	Mensageiro Global	888,{
+	// Verifica se o jogador é VIP
+	// ALTERE AQUI: Substitua pela sua verificação de VIP
+	.@is_vip = (getgroupid() >= 1) ? 1 : 0; // Mude conforme seu sistema VIP
+	
+	// Verifica cooldown (3 minutos = 180 segundos)
+	if (gettimetick(2) < @mensagem_delay) {
+		.@tempo_restante = @mensagem_delay - gettimetick(2);
+		.@minutos = .@tempo_restante / 60;
+		.@segundos = .@tempo_restante % 60;
+		mes "^339966[Mensageiro Global]^000000";
+		mes "Você precisa aguardar mais " + .@minutos + " minuto(s) e " + .@segundos + " segundo(s) antes de enviar outra mensagem!";
+		if (!.@is_vip) {
+			mes "^0000FFJogadores VIP não possuem esta limitação!^000000";
+		}
+		close;
+	}
+	
+	mes "^339966[Mensageiro Global]^000000";
+	mes "Olá, ^FFA500"+strcharinfo(0)+"^000000! Eu sou o ^ff0000Mensageiro Global^000000 do servidor.";
+	mes "Posso enviar a sua mensagem para todos os jogadores online!";
+	next;
+	
+	// Mostra informações baseadas no status VIP
+	if (.@is_vip) {
+		mes "^339966[Mensageiro Global]^000000";
+		mes "Como você é um ^00FF00Jogador VIP^000000, meus serviços serão totalmente gratuitos!";
+		mes "Você poderá enviar mensagens sem custo algum.";
+	} else {
+		mes "^339966[Mensageiro Global]^000000";
+		mes "^FF0000Para jogadores normais:^000000";
+		mes "• Custo: 1x Megafone";
+		mes "• Cooldown: 3 minutos entre mensagens";
+		mes "^0000FFJogadores VIP's e SUPERVIP's enviam mensagens gratuitamente!^000000";
+	}
+	next;
+	
+	// Verifica se tem megafone (apenas para não-VIP)
+	if (!.@is_vip) {
+		if (countitem(12221) < 1) {
+			mes "^339966[Mensageiro Global]^000000";
+			mes "^FF0000Você não possui um Megafone!^000000";
+			mes "Você precisa de 1x Megafone para enviar uma mensagem global.";
+			next;
+			mes "^339966[Mensageiro Global]^000000";
+			mes "Você pode adquirir megafones nas máquinas de cash, em eventos ou se tornar VIP para usar este serviço gratuitamente!";
+			close;
+		}
+	}
+	
+	mes "^339966[Mensageiro Global]^000000";
+	mes "Você deseja enviar uma mensagem global agora?";
+	next;
+	
+	switch(select("^3CB371[>]^000000 Sim, enviar mensagem.:^ff0000[>] Não, cancelar!^000000")) {
+		case 1:
+			mes "^339966[Mensageiro Global]^000000";
+			mes "Digite a sua mensagem:";
+			mes "^FF0000Atenção: Mensagens ofensivas podem resultar em punição!^000000";
+			next;
+			
+			// Input da mensagem
+			input .@mensagem$;
+			
+			// Verifica se a mensagem não está vazia
+			if (.@mensagem$ == "") {
+				mes "^339966[Mensageiro Global]^000000";
+				mes "Você não pode enviar uma mensagem vazia!";
+				close;
+			}
+			
+			// Verifica comprimento da mensagem (máximo 100 caracteres)
+			if (getstrlen(.@mensagem$) > 100) {
+				mes "^339966[Mensageiro Global]^000000";
+				mes "Sua mensagem é muito longa! Máximo 100 caracteres.";
+				mes "Caracteres atuais: " + getstrlen(.@mensagem$);
+				close;
+			}
+			
+			// Filtro básico de palavras ofensivas (opcional)
+			if (compare(.@mensagem$, "fdp") || compare(.@mensagem$, "puta") || compare(.@mensagem$, "merda")) {
+				mes "^339966[Mensageiro Global]^000000";
+				mes "^FF0000Sua mensagem contém palavras inadequadas!^000000";
+				mes "Por favor, reformule sua mensagem.";
+				close;
+			}
+			
+			// Confirmação da mensagem
+			mes "^339966[Mensageiro Global]^000000";
+			mes "Sua mensagem será:";
+			mes "^0000FF" + .@mensagem$ + "^000000";
+			next;
+			
+			mes "^339966[Mensageiro Global]^000000";
+			if (.@is_vip) {
+				mes "^00FF00[VIP] Envio gratuito!^000000";
+			} else {
+				mes "^FF0000Custo: 1x Megafone^000000";
+			}
+			mes "Confirmar o envio?";
+			next;
+			
+			switch(select("^3CB371[>]^000000 Sim, confirmar.:^ff0000[>] Não, cancelar!^000000")) {
+				case 1:
+					// Consome megafone apenas para não-VIP
+					if (!.@is_vip) {
+						delitem 12221, 1;
+					}
+					
+					// Define cooldown (3 minutos)
+					@mensagem_delay = gettimetick(2) + 180;
+					
+					// Envia mensagem global
+					if (.@is_vip) {
+						announce "[VIP] " + strcharinfo(0) + ": " + .@mensagem$, bc_all, 0xFFFF00;
+					} else {
+						announce "[Global] " + strcharinfo(0) + ": " + .@mensagem$, bc_all, 0xFFFF00;
+					}
+					
+					// Efeito visual no jogador
+					misceffect 247;
+					
+					mes "^339966[Mensageiro Global]^000000";
+					mes "^00FF00Mensagem enviada com sucesso!^000000";
+					mes "Sua mensagem foi transmitida para todos no servidor.";
+					if (!.@is_vip) {
+						mes "Próxima mensagem em: 3 minutos";
+					}
+					close;
+					
+				case 2:
+					mes "^339966[Mensageiro Global]^000000";
+					mes "Envio cancelado.";
+					close;
+			}
+			
+		case 2:
+			mes "^339966[Mensageiro Global]^000000";
+			mes "Volte sempre que quiser enviar uma mensagem!";
+			close;
+	}
+OnInit:
+
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 47;	
+	setunittitle getnpcid(0), "[Correio YoYo]";
+
+while(1) {
+		showscript "[ Mensageiro Global ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}

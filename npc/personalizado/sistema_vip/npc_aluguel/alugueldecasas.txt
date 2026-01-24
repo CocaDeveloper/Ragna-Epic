@@ -1,0 +1,2317 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//              Sistema de Aluguel de Casas v2.5
+//===============================================================
+// Versão: 2.5 - Correções Completas e Funcionalidades Admin
+//===============================================================
+
+//===== NPC: Corretor de Imóveis =====
+1@herbs,276,63,5	script	Corretor de Imóveis	853,{
+	mes "^339966[Corretor de Imóveis]^000000";
+	mes "Saudações, ^FFA500"+strcharinfo(0)+"^000000!"; 
+	mes "Bem-vindo ao sistema de aluguel de casas exclusivas!";
+	mes "Aqui sua guild pode alugar um mapa totalmente privativo.";
+	next;
+	
+MenuPrincipal:
+	// Verificar guilds dissolvidas e liberar casas
+	callsub(CheckDissolvedGuilds);
+	
+	// Carregar dados salvos
+	callsub(LoadHouseData);
+	
+	// Verificar se o jogador está em uma guild
+	if (!getcharid(2)) {
+		// Jogador não está em guild - apenas pode ver lista
+		mes "^339966[Corretor de Imóveis]^000000";
+		mes "^ff0000[AVISO]^000000";
+		mes "Você não está em uma guild.";
+		mes "Você só poderá visualizar as casas disponíveis.";
+		next;
+		
+		.@choice = select("^339966[»]^000000 Ver Lista de Casas:^ff0000[»] Sair^000000");
+		
+		if (.@choice == 1) {
+			callsub(ListarCasasInterativa);
+		}
+		close;
+	}
+	
+	// Verifica se é líder da guild
+	.@is_leader = (getguildmaster(getcharid(2)) == strcharinfo(0));
+	.@guild_master$ = getguildmaster(getcharid(2));
+	.@guild_name$ = getguildname(getcharid(2));
+	
+	mes "^339966[Corretor de Imóveis]^000000";
+	mes "Você pertence à Guild: ^ff0000" + .@guild_name$ + "^000000";
+	mes "G-Líder: ^ff0000" + .@guild_master$ + "^000000";
+	if (.@is_leader) {
+		mes "Seu Status: ^ff0000Líder^000000";
+	} else {
+		mes "Seu Status: ^ff0000Membro^000000";
+	}
+	next;
+	
+	// Verifica se a guild já possui uma casa
+	.@guild_id = getcharid(2);
+	.@house_id = 0;
+	for (.@i = 1; .@i <= .max_houses; .@i++) {
+		if (.house_owner[.@i] == .@guild_id) {
+			.@house_id = .@i;
+			break;
+		}
+	}
+	
+	if (.@house_id > 0) {
+		// Guild já possui uma casa
+		mes "^339966[Corretor de Imóveis]^000000";
+		mes "Sua guild já possui uma casa: ^ff0000Clã " + .@guild_name$ + " #" + .@house_id + "^000000";
+		mes "Senha atual: ^ff0000" + .house_password$[.@house_id] + "^000000";
+		.@days_left = (.house_expire[.@house_id] - gettimetick(2)) / 86400;
+		mes "Dias restantes: ^ff0000" + .@days_left + "^000000";
+		next;
+		
+		.@menu$ = "^339966[»]^000000 Ver Lista de Casas:^339966[»]^000000 Ir para Casa:";
+		
+		if (.@is_leader) {
+			.@menu$ += "^339966[»]^000000 Renovar Aluguel:^339966[»]^000000 Alterar Senha:^339966[»]^000000 Cancelar Aluguel:^339966[»]^000000 Alterar Cor da Guild:^339966[»]^000000 Gerenciar PvP:^339966[»]^000000 Expulsar Visitantes:";
+		}
+		
+		.@menu$ += "^ff0000[»] Sair^000000";
+		
+		.@choice = select(.@menu$);
+		
+		if (.@choice == 1) {
+			// Ver lista de casas
+			callsub(ListarCasasInterativa);
+			goto MenuPrincipal;
+		} else if (.@choice == 2) {
+			// Ir para casa
+			callsub(IrParaCasa, .@house_id);
+			goto MenuPrincipal;
+		} else if (.@is_leader) {
+			// Opções exclusivas do G-Líder
+			switch(.@choice - 2) {
+				case 1: // Renovar
+					callsub(RenovarCasa, .@house_id);
+					goto MenuPrincipal;
+				case 2: // Alterar senha
+					callsub(AlterarSenha, .@house_id);
+					goto MenuPrincipal;
+				case 3: // Cancelar
+					callsub(CancelarAluguel, .@house_id);
+					goto MenuPrincipal;
+				case 4: // Alterar cor
+					callsub(AlterarCorGuild, .@house_id);
+					goto MenuPrincipal;
+				case 5: // Gerenciar PvP
+					callsub(GerenciarPvP, .@house_id);
+					goto MenuPrincipal;
+				case 6: // Expulsar visitantes
+					callsub(ExpulsarVisitantes, .@house_id);
+					goto MenuPrincipal;
+				default: // Sair
+					close;
+			}
+		} else {
+			close;
+		}
+	} else {
+		mes "^339966[Corretor de Imóveis]^000000";
+		mes "Sua guild não possui nenhuma casa alugada.";
+		mes " ";
+		mes "Gostaria de alugar uma?";
+
+		switch(select("^339966[»]^000000 Sim:^ff0000[»] Não^000000")) {
+			case 1:
+				// Continua para exibir as casas
+				break;
+			case 2:
+				next;
+				mes "^339966[Corretor de Imóveis]^000000";
+				mes "Tudo bem. Volte quando quiser!";
+				close;
+		}
+		next;
+		mes "^339966[Corretor de Imóveis]^000000";
+		mes "O valor do aluguel é de: ^ff6600" + .rental_price + " Zeny^000000 por ^00cc0030 dias^000000.";
+		next;
+
+		// Usar o novo sistema de lista interativa
+		callsub(ListarCasasParaAlugar);
+		goto MenuPrincipal;
+	}
+
+// ===== SUB-ROTINAS MELHORADAS =====
+
+CheckDissolvedGuilds:
+	// Verificar se alguma guild foi dissolvida e liberar a casa
+	for (.@i = 1; .@i <= .max_houses; .@i++) {
+		if (.house_owner[.@i] > 0) {
+			.@guild_name$ = getguildname(.house_owner[.@i]);
+			// Se a guild não existe mais (nome vazio), liberar a casa
+			if (.@guild_name$ == "") {
+				mes "[^ffcc00Sistema^000000]";
+				mes "A Guild da Casa #" + .@i + " foi dissolvida.";
+				mes "A casa foi automaticamente liberada.";
+				next;
+				
+				// Liberar a casa
+				.house_owner[.@i] = 0;
+				.house_password$[.@i] = "";
+				.house_expire[.@i] = 0;
+				.house_color$[.@i] = "";
+				.house_pvp[.@i] = 0;
+				
+				donpcevent "FlagManager::OnUpdateSingleFlag(" + .@i + ")";
+				
+				// Remover PvP se estiver ativo
+				removemapflag .house_map$[.@i], mf_pvp;
+				
+				// Limpar lista de banidos
+				setd "$house_banned_" + .@i + "$", "";
+				
+				// Log do sistema
+				logmes "Casa #" + .@i + " foi liberada automaticamente - Guild dissolvida";
+			}
+		}
+	}
+	
+	// Salvar mudanças
+	callsub(SaveHouseData);
+	return;
+
+ListarCasasInterativa:
+	mes "^339966[Corretor de Imóveis]^000000";
+	mes "^ff0000LISTA INTERATIVA DE CASAS^000000";
+	mes "Selecione uma casa para ver detalhes:";
+	next;
+	
+	// Construir menu de casas
+	.@menu$ = "";
+	for (.@i = 1; .@i <= .max_houses; .@i++) {
+		if (.house_owner[.@i] == 0 || .house_expire[.@i] < gettimetick(2)) {
+			// Casa disponível
+			.@menu$ += "^00cc00Casa #" + .@i + " - DISPONÍVEL^000000 (" + .house_map$[.@i] + "):";
+		} else {
+			// Casa ocupada
+			.@guild_name$ = getguildname(.house_owner[.@i]);
+			.@color$ = .house_color$[.@i];
+			if (.@color$ == "") .@color$ = "^339966";
+			.@days_left = (.house_expire[.@i] - gettimetick(2)) / 86400;
+			.@menu$ += .@color$ + "Clã " + .@guild_name$ + "^000000 #" + .@i + " ^ff0000OCUPADA^000000 (" + .@days_left + " dias):";
+		}
+	}
+	.@menu$ += "^ff0000[»] Voltar^000000";
+	
+	.@choice = select(.@menu$);
+	
+	if (.@choice == .max_houses + 1) {
+		// Voltar
+		return;
+	}
+	
+	// Mostrar detalhes da casa selecionada
+	.@selected = .@choice;
+	callsub(MostrarDetalhesCasa, .@selected);
+	return;
+
+MostrarDetalhesCasa:
+	.@house_id = getarg(0);
+	
+	mes "^339966[Corretor de Imóveis]^000000";
+	mes "^0066ccDetalhes da Casa #" + .@house_id + ":^000000";
+	mes "Mapa: ^00cc00" + .house_map$[.@house_id] + "^000000";
+	mes "Coordenadas: ^339966(" + .house_x[.@house_id] + ", " + .house_y[.@house_id] + ")^000000";
+	
+	if (.house_owner[.@house_id] == 0 || .house_expire[.@house_id] < gettimetick(2)) {
+		mes "Status: ^00cc00DISPONÍVEL^000000";
+		mes "Preço: ^ff6600" + .rental_price + " Zeny^000000 por 30 dias.";
+	} else {
+		.@guild_name$ = getguildname(.house_owner[.@house_id]);
+		.@color$ = .house_color$[.@house_id];
+		if (.@color$ == "") .@color$ = "^339966";
+		.@days_left = (.house_expire[.@house_id] - gettimetick(2)) / 86400;
+		.@guild_master$ = getguildmaster(.house_owner[.@house_id]);
+		
+		mes "Status: ^ff0000OCUPADA^000000";
+		mes "Proprietário: " + .@color$ + "Clã " + .@guild_name$ + "^000000";
+		mes "Guild Líder: ^00cc00" + .@guild_master$ + "^000000";
+		mes "Dias Restantes: ^ff0000" + .@days_left + "^000000";
+		mes "PvP: " + (.house_pvp[.@house_id] ? "^ff0000ATIVADO^000000" : "^00cc00DESATIVADO^000000");
+	}
+	
+	next;
+	return;
+
+ListarCasasParaAlugar:
+	mes "^339966[Corretor de Imóveis]^000000";
+	mes "^ff0000Casas Disponíveis para Aluguel.^000000";
+	mes "Selecione uma casa para alugar:";
+	next;
+	
+	// Construir menu de casas disponíveis
+	.@menu$ = "";
+	.@available_count = 0;
+	setarray .@available_houses[0], 0;
+	
+	for (.@i = 1; .@i <= .max_houses; .@i++) {
+		if (.house_owner[.@i] == 0 || .house_expire[.@i] < gettimetick(2)) {
+			// Casa disponível
+			.@menu$ += "^00cc00Casa #" + .@i + " - DISPONÍVEL^000000 (" + .house_map$[.@i] + "):";
+			.@available_houses[.@available_count] = .@i;
+			.@available_count++;
+		}
+	}
+	
+	if (.@available_count == 0) {
+		mes "^339966[Corretor de Imóveis]^000000";
+		mes "^ff0000[AVISO]^000000";
+		mes "Não há casas disponíveis no momento.";
+		mes "Todas as casas estão ocupadas.";
+		next;
+		return;
+	}
+	
+	.@menu$ += "^ff0000[»] Cancelar^000000";
+	
+	.@choice = select(.@menu$);
+	
+	if (.@choice == .@available_count + 1) {
+		// Cancelar
+		return;
+	} else {
+		// Alugar casa selecionada
+		.@selected_house = .@available_houses[.@choice - 1];
+		callsub(AlugarCasa, .@selected_house);
+	}
+	return;
+
+//===== SISTEMA DE EXPULSÃO CORRIGIDO v2.5 =====
+
+ExpulsarVisitantes:
+	.@house_id = getarg(0);
+	.@original_aid = getcharid(3); // Salvar AID original
+	
+	mes "^339966[Segurança das Casas]^000000";
+	mes "^ff0000SISTEMA DE EXPULSÃO^000000";
+	mes "Como deseja gerenciar os visitantes?";
+	next;
+	
+	.@choice = select("^339966[»]^000000 Expulsar todos os visitantes.:^339966[»]^000000 Expulsar jogador específico.:^339966[»]^000000 Gerenciar lista de banidos.:^FF0000[»] Voltar^000000");
+	
+	switch(.@choice) {
+		case 1: // Expulsar todos
+			callsub(ExpulsarTodosVisitantes, .@house_id, .@original_aid);
+			break;
+		case 2: // Expulsar específico
+			callsub(ExpulsarVisitEspecifico, .@house_id, .@original_aid);
+			break;
+		case 3: // Gerenciar banidos
+			callsub(GerenciarListaBanidos, .@house_id, .@original_aid);
+			break;
+		case 4: // Cancelar
+			return;
+	}
+	return;
+
+// EXPULSÃO EM MASSA TOTALMENTE CORRIGIDA v2.5
+ExpulsarTodosVisitantes:
+	.@house_id = getarg(0);
+	.@original_aid = getarg(1);
+	.@guild_id = getcharid(2);
+	.@house_map$ = .house_map$[.@house_id];
+	.@leader_name$ = strcharinfo(0);
+	
+	mes "^339966[Segurança das Casas]^000000";
+	mes "Deseja expulsar ^ff0000todos^000000 os visitantes da casa?";
+	mes "Mapa da casa: ^00cc00" + .@house_map$ + "^000000";
+	mes " ";
+	mes "^ff0000Membros da sua guild não serão afetados.^000000";
+	
+	if (select("^339966[»]^000000 Sim, expulsar todos.:^ff0000[»] Não, cancelar!^000000") == 2) {
+		close;
+	}
+	
+	// Obter lista de jogadores no mapa
+	query_sql("SELECT `account_id`, `char_id`, `name`, `guild_id` FROM `char` WHERE `online` = 1 AND `last_map` = '" + escape_sql(.@house_map$) + "'", .@aids, .@cids, .@names$, .@guild_ids);
+	.@total_players = getarraysize(.@aids);
+	
+	if (.@total_players <= 0) {
+		next;
+		mes "^339966[Segurança das Casas]^000000";
+		mes "^ff0000ATENÇÃO GUILD LIDER^000000";
+		mes "Não há jogadores no mapa da casa.";
+		close;
+	}
+	
+	// Anunciar no mapa da casa
+	mapannounce .@house_map$, "ATENÇÃO: Os visitantes serão expulsos em 3 segundos pelo Guild Líder " + .@leader_name$ + "!", bc_map, 0xFF0000;
+	sleep 500;
+	
+	// Expulsar jogadores individualmente (mais confiável)
+	.@expelled_count = 0;
+	.@guild_members_found = 0;
+	
+	for (.@i = 0; .@i < .@total_players; .@i++) {
+		// Verificar se ainda está online e no mapa
+		if (isloggedin(.@aids[.@i], .@cids[.@i])) {
+			if (attachrid(.@aids[.@i])) {
+				if (strcharinfo(3) == .@house_map$ && getcharid(2) != .@guild_id) {
+					// É visitante - expulsar
+					warp "prontera", 150, 185;
+					message strcharinfo(0), "Você foi expulso da casa do Clã " + getguildname(.@guild_id) + " pelo Guild Líder.";
+					.@expelled_count++;
+				} else if (getcharid(2) == .@guild_id) {
+					// É membro da guild
+					.@guild_members_found++;
+				}
+				detachrid();
+			}
+		}
+	}
+	
+	// Restaurar attachrid original
+	attachrid(.@original_aid);
+	
+	// Confirmar execução
+	next;
+	mes "^339966[Segurança das Casas]^000000";
+	mes "^00cc00SUCESSO!^000000";
+	mes "Expulsão em massa executada com sucesso!";
+	mes "Visitantes Expulsos: ^ff0000" + .@expelled_count + "^000000";
+	mes "Membros da Guild Preservados: ^00cc00" + .@guild_members_found + "^000000";
+	mes "Membros da sua guild podem retornar normalmente.";
+	
+	// Anunciar resultado no mapa
+	mapannounce .@house_map$, "Expulsão concluída! " + .@expelled_count + " visitante(s) foram removidos.", bc_map, 0x00FF00;
+	
+	// Log detalhado
+	logmes "EXPULSÃO MASSA v2.5 - Guild: " + getguildname(.@guild_id) + " | Líder: " + .@leader_name$ + " | Casa #" + .@house_id + " | Expulsos: " + .@expelled_count + " | Preservados: " + .@guild_members_found;
+	close;
+
+// EXPULSÃO INDIVIDUAL CORRIGIDA v2.5
+ExpulsarVisitEspecifico:
+	.@house_id = getarg(0);
+	.@original_aid = getarg(1);
+	.@guild_id = getcharid(2);
+	.@house_map$ = .house_map$[.@house_id];
+	
+	mes "^339966[Segurança das Casas]^000000";
+	mes "Deseja expulsar um visitante específico indesejado?";
+	if (select("^339966[»]^000000 Sim, quero expulsar.:^ff0000[»] Não, cancelar!^000000") == 2) {
+		close;
+	}
+	next;
+	mes "^339966[Segurança das Casas]^000000";
+	mes "Entendido, Comandante!";
+	mes "Digite o nome EXATO do jogador:";
+	mes "^ff0000Diferencie as letras maiúsculas e minúsculas.^000000";
+	next;
+	
+	input .@target_name$;
+	
+	// Validação do nome
+	if (.@target_name$ == "" || getstrlen(.@target_name$) < 4) {
+		mes "^339966[Segurança das Casas]^000000";
+		mes "^ff0000ERRO NA EXPULSÃO^000000";
+		mes "Nome do jogador inválido. Use pelo menos 4 caracteres.";
+		close;
+	}
+	
+	// Verificar se não está tentando expulsar a si mesmo
+	if (.@target_name$ == strcharinfo(0)) {
+		mes "^339966[Segurança das Casas]^000000";
+		mes "^ff0000ERRO NA EXPULSÃO^000000";
+		mes "Você não pode expulsar a si mesmo!";
+		close;
+	}
+	
+	// Verificar se o jogador existe e está online
+	query_sql("SELECT `account_id`, `char_id` FROM `char` WHERE `name` = '" + escape_sql(.@target_name$) + "'", .@target_aid, .@target_cid);
+	
+	if (!.@target_aid) {
+		mes "^339966[Segurança das Casas]^000000";
+		mes "^ff0000ERRO NA EXPULSÃO^000000";
+		mes "Jogador ^ffcc00'" + .@target_name$ + "'^000000 não encontrado.";
+		close;
+	}
+	
+	// Verificar se está online
+	if (!isloggedin(.@target_aid, .@target_cid)) {
+		mes "^339966[Segurança das Casas]^000000";
+		mes "^ff0000ERRO NA EXPULSÃO^000000";
+		mes "O jogador ^ffcc00'" + .@target_name$ + "'^000000 não está online.";
+		close;
+	}
+	
+	// Obter dados do jogador alvo
+	.@target_map$ = "";
+	.@target_guild = 0;
+	if (attachrid(.@target_aid)) {
+		.@target_map$ = strcharinfo(3);
+		.@target_guild = getcharid(2);
+		detachrid();
+	} else {
+		mes "^339966[Segurança das Casas]^000000";
+		mes "^ff0000ERRO NA EXPULSÃO^000000";
+		mes "Não foi possível acessar os dados do jogador.";
+		close;
+	}
+	
+	// Restaurar attachrid original
+	attachrid(.@original_aid);
+	
+	// Verificar se o jogador está no mapa da casa
+	if (.@target_map$ != .@house_map$) {
+		mes "^339966[Segurança das Casas]^000000";
+		mes "^ff0000ERRO NA EXPULSÃO^000000";
+		mes "O jogador ^ffcc00'" + .@target_name$ + "'^000000 não está na sua casa.";
+		mes "Localização atual: ^ffcc00" + .@target_map$ + "^000000";
+		close;
+	}
+	
+	// Verificar se não é membro da própria guild
+	if (.@target_guild == .@guild_id) {
+		mes "^339966[Segurança das Casas]^000000";
+		mes "^ff0000ERRO NA EXPULSÃO^000000";
+		mes "Você não pode expulsar membros da própria guild.";
+		close;
+	}
+	
+	// Confirmação final
+	mes "^339966[Segurança das Casas]^000000";
+	mes "^ff0000CONFIRMAÇÃO FINAL^000000";
+	mes "Expulsar o jogador: ^ffcc00" + .@target_name$ + "^000000";
+	.@target_guild_name$ = getguildname(.@target_guild);
+	if (.@target_guild_name$ != "") {
+		mes "Guild do jogador: ^ffcc00" + .@target_guild_name$ + "^000000";
+	} else {
+		mes "O jogador não possui guild.";
+	}
+	mes "Localização: ^ffcc00" + .@target_map$ + "^000000";
+	mes " ";
+	mes "O que deseja fazer?";
+	next;
+	
+	.@final_choice = select("^339966[»]^000000 Expulsar jogador.:^339966[»]^000000 Expulsar e banir.:^ff0000[»] Cancelar^000000");
+	
+	if (.@final_choice == 3) {
+		close;
+	}
+	
+	// Executar expulsão
+	if (attachrid(.@target_aid)) {
+		warp "prontera", 155, 191;
+		
+		// Se escolheu banir também
+		if (.@final_choice == 2) {
+			message strcharinfo(0), "Você foi expulso e BANIDO da casa do Clã " + getguildname(.@guild_id) + ".";
+			detachrid();
+			attachrid(.@original_aid); // Restaurar antes de chamar função de banimento
+			callsub(AdicionarJogadorBanido, .@house_id, .@target_name$);
+		} else {
+			// Apenas expulsar
+			message strcharinfo(0), "Você foi expulso da casa do Clã " + getguildname(.@guild_id) + ".";
+			detachrid();
+		}
+	}
+	
+	// Restaurar attachrid original
+	attachrid(.@original_aid);
+	
+	// Sucesso
+	mes "^339966[Segurança das Casas]^000000";
+	mes "^00cc00AÇÃO CONCLUÍDA COM SUCESSO^000000";
+	mes "O jogador ^ffcc00'" + .@target_name$ + "'^000000 foi expulso da casa!";
+	if (.@final_choice == 2) {
+		mes "^ff0000O jogador também foi adicionado à lista de banidos.^000000";
+	}
+		
+	// Anunciar no mapa da casa
+	mapannounce .@house_map$, "O visitante " + .@target_name$ + " foi expulso pelo Guild Líder.", bc_map, 0xFFCC00;
+	
+	// Log detalhado
+	.@action$ = (.@final_choice == 2) ? "EXPULSO+BANIDO" : "EXPULSO";
+	logmes "EXPULSÃO INDIVIDUAL v2.5 - Guild: " + getguildname(.@guild_id) + " | Líder: " + strcharinfo(0) + " | Casa #" + .@house_id + " | " + .@action$ + ": " + .@target_name$;
+	close;
+
+// ===== SISTEMA DE BANIMENTO TOTALMENTE CORRIGIDO v2.5 =====
+
+GerenciarListaBanidos:
+	.@house_id = getarg(0);
+	.@original_aid = getarg(1);
+	
+	while(1) { // Loop para manter o menu ativo
+		mes "^339966[Segurança das Casas]^000000";
+		mes "^ff0000SISTEMA DE BANIMENTO";
+		mes "Gerenciar Lista de Banidos - ^ffcc00Casa #" + .@house_id + "^000000";
+		mes " ";
+		mes " ";
+		mes "O que deseja fazer?";
+		next;
+		
+		.@choice = select("^339966[»]^000000 Banir jogador.:^339966[»]^000000 Ver lista de banidos.:^339966[»]^000000 Desbanir jogador.:^339966[»]^000000 Limpar lista completa.:^ff0000[»] Voltar^000000");
+		
+		switch(.@choice) {
+			case 1: // Banir jogador
+				callsub(BanirJogador, .@house_id, .@original_aid);
+				break;
+			case 2: // Ver lista
+				callsub(VerListaBanidos, .@house_id);
+				break;
+			case 3: // Desbanir
+				callsub(DesbanirJogador, .@house_id, .@original_aid);
+				break;
+			case 4: // Limpar lista
+				callsub(LimparListaBanidos, .@house_id, .@original_aid);
+				break;
+			case 5: // Voltar
+				return;
+		}
+	}
+	return;
+
+BanirJogador:
+	.@house_id = getarg(0);
+	.@original_aid = getarg(1);
+	
+	mes "^339966[Segurança das Casas]^000000";
+	mes "^ff0000BANIR JOGADOR^000000";
+	mes "Digite o nome do jogador que deseja banir:";
+	mes "^ffcc00O jogador não poderá mais entrar na casa.^000000";
+	next;
+	
+	input .@ban_name$;
+	
+	if (.@ban_name$ == "" || getstrlen(.@ban_name$) < 4) {
+		mes "^339966[Segurança das Casas]^000000";
+		mes "^ff0000ERRO AO BANIR JOGADOR^000000";
+		mes "Nome do jogador inválido!";
+		close;
+	}
+	
+	if (.@ban_name$ == strcharinfo(0)) {
+		mes "^339966[Segurança das Casas]^000000";
+		mes "^ff0000ERRO AO BANIR JOGADOR^000000";
+		mes "Você não pode banir a si mesmo!";
+		close;
+	}
+	
+	// Verificar se já está banido usando nova função corrigida
+	if (callsub(VerificarJogadorBanido, .@house_id, .@ban_name$)) {
+		mes "^339966[Segurança das Casas]^000000";
+		mes "^ff0000ERRO AO BANIR JOGADOR^000000";
+		mes "O jogador ^ffcc00'" + .@ban_name$ + "'^000000 já está banido.";
+		close;
+	}
+	
+	mes "^339966[Segurança das Casas]^000000";
+	mes "^ff0000CONFIRMAÇÃO FINAL^000000";
+	mes "Banir o jogador: ^00cc00" + .@ban_name$ + "^000000";
+	mes "^ffcc00O jogador não poderá mais acessar sua casa.^000000";
+	
+	if (select("^339966[»]^000000 Confirmar banimento.:^ff0000[»] Cancelar^000000") == 2) {
+		close;
+	}
+	
+	callsub(AdicionarJogadorBanido, .@house_id, .@ban_name$);
+	
+	next;
+	mes "^339966[Segurança das Casas]^000000";
+	mes "^00cc00AÇÃO CONCLUÍDA COM SUCESSO^000000";
+	mes "O jogador ^ffcc00'" + .@ban_name$ + "'^000000 foi banido da casa!";
+		
+	// Se o jogador estiver na casa, expulsá-lo
+	query_sql("SELECT `account_id`, `char_id` FROM `char` WHERE `name` = '" + escape_sql(.@ban_name$) + "' AND `online` = 1", .@target_aid, .@target_cid);
+	
+	if (.@target_aid && isloggedin(.@target_aid, .@target_cid)) {
+		if (attachrid(.@target_aid)) {
+			if (strcharinfo(3) == .house_map$[.@house_id]) {
+				warp "prontera", 155, 191;
+				message strcharinfo(0), "Você foi banido da casa do Clã " + getguildname(getcharid(2)) + ".";
+			}
+			detachrid();
+		}
+	}
+	
+	// Restaurar attachrid original
+	attachrid(.@original_aid);
+	
+	logmes "BANIMENTO v2.5 - Guild: " + getguildname(getcharid(2)) + " | Líder: " + strcharinfo(0) + " | Casa #" + .@house_id + " | Banido: " + .@ban_name$;
+	close;
+
+// FUNÇÃO CORRIGIDA PARA VERIFICAR SE JOGADOR ESTÁ BANIDO
+VerificarJogadorBanido:
+	.@house_id = getarg(0);
+	.@player_name$ = getarg(1);
+	
+	.@ban_list$ = getd("$house_banned_" + .@house_id + "$");
+	
+	if (.@ban_list$ == "") {
+		return 0; // Lista vazia, jogador não está banido
+	}
+	
+	// Dividir a lista e verificar cada nome
+	.@count = explode(.@banned_players$, .@ban_list$, "|");
+	
+	for (.@i = 0; .@i < .@count; .@i++) {
+		if (.@banned_players$[.@i] == .@player_name$) {
+			return 1; // Jogador encontrado na lista de banidos
+		}
+	}
+	
+	return 0; // Jogador não está banido
+
+AdicionarJogadorBanido:
+	.@house_id = getarg(0);
+	.@player_name$ = getarg(1);
+	
+	.@ban_list$ = getd("$house_banned_" + .@house_id + "$");
+	
+	if (.@ban_list$ == "") {
+		.@ban_list$ = .@player_name$;
+	} else {
+		.@ban_list$ = .@ban_list$ + "|" + .@player_name$;
+	}
+	
+	setd "$house_banned_" + .@house_id + "$", .@ban_list$;
+	return;
+
+// FUNÇÃO CORRIGIDA PARA EXIBIR LISTA DE BANIDOS
+VerListaBanidos:
+	.@house_id = getarg(0);
+	
+	.@ban_list$ = getd("$house_banned_" + .@house_id + "$");
+	
+	mes "^339966[Segurança das Casas]^000000";
+	mes "Lista de Jogadores Banidos - ^ffcc00Casa #" + .@house_id + "^000000";
+	
+	if (.@ban_list$ == "") {
+		next;
+		mes "^339966[Segurança das Casas]^000000";
+		mes "Não há jogadores banidos nesta casa.";
+		mes " ";
+		mes "Total: ^ff00000^000000 jogador(es) banido(s)";
+	} else {
+		mes "^999999--------------------^000000";
+		
+		.@count = explode(.@banned_players$, .@ban_list$, "|");
+		
+		for (.@i = 0; .@i < .@count; .@i++) {
+			if (.@banned_players$[.@i] != "") { // Verificar se não é string vazia
+				mes "^ff0000•^000000 " + .@banned_players$[.@i];
+			}
+		}
+		
+		mes "^999999--------------------^000000";
+		mes "Total: ^ff0000" + .@count + "^000000 jogador(es) banido(s)";
+	}
+	
+	close;
+
+DesbanirJogador:
+	.@house_id = getarg(0);
+	.@original_aid = getarg(1);
+	
+	.@ban_list$ = getd("$house_banned_" + .@house_id + "$");
+	
+	if (.@ban_list$ == "") {
+		mes "^339966[Segurança das Casas]^000000";
+		mes "Não há jogadores banidos nesta casa.";
+		close;
+	}
+	
+	mes "^339966[Segurança das Casas]^000000";
+	mes "^ff0000DESBANIR JOGADOR^000000";
+	mes "Digite o nome do jogador para desbanir:";
+	next;
+	
+	input .@unban_name$;
+	
+	if (.@unban_name$ == "") {
+		return;
+	}
+	
+	// Verificar se está na lista usando função corrigida
+	if (!callsub(VerificarJogadorBanido, .@house_id, .@unban_name$)) {
+		mes "^339966[Segurança das Casas]^000000";
+		mes "^ff0000ERRO AO DESBANIR JOGADOR^000000";
+		mes "O jogador ^ffcc00'" + .@unban_name$ + "'^000000 não está banido.";
+		close;
+	}
+	
+	// Remover da lista
+	.@new_list$ = "";
+	.@count = explode(.@banned_players$, .@ban_list$, "|");
+	
+	for (.@i = 0; .@i < .@count; .@i++) {
+		if (.@banned_players$[.@i] != .@unban_name$ && .@banned_players$[.@i] != "") {
+			if (.@new_list$ == "") {
+				.@new_list$ = .@banned_players$[.@i];
+			} else {
+				.@new_list$ = .@new_list$ + "|" + .@banned_players$[.@i];
+			}
+		}
+	}
+	
+	setd "$house_banned_" + .@house_id + "$", .@new_list$;
+	
+	mes "^339966[Segurança das Casas]^000000";
+	mes "^00cc00AÇÃO CONCLUÍDA COM SUCESSO^000000";
+	mes "o jogador ^ffcc00'" + .@unban_name$ + "'^000000 foi desbanido!";
+	next;
+	
+	logmes "DESBANIMENTO v2.5 - Guild: " + getguildname(getcharid(2)) + " | Líder: " + strcharinfo(0) + " | Casa #" + .@house_id + " | Desbanido: " + .@unban_name$;
+	close;
+
+LimparListaBanidos:
+	.@house_id = getarg(0);
+	.@original_aid = getarg(1);
+	
+	.@ban_list$ = getd("$house_banned_" + .@house_id + "$");
+	
+	if (.@ban_list$ == "") {
+		mes "^339966[Segurança das Casas]^000000";
+		mes "A lista de banidos já está vazia.";
+		close;
+	}
+	
+	mes "^339966[Segurança das Casas]^000000";
+	mes "Deseja limpar TODA a lista de banidos?";
+	mes "^ff0000Esta ação não pode ser desfeita!^000000";
+	
+	if (select("^339966[»]^000000 Sim, limpar tudo.:^ff0000[»] Cancelar^000000") == 2) {
+		close;
+	}
+	
+	setd "$house_banned_" + .@house_id + "$", "";
+	mes " ";
+	mes "^00cc00Lista de banidos limpa com sucesso!^000000";
+	
+	logmes "LIMPEZA BANIMENTOS v2.5 - Guild: " + getguildname(getcharid(2)) + " | Líder: " + strcharinfo(0) + " | Casa #" + .@house_id;
+	close;
+
+AlugarCasa:
+	.@house_id = getarg(0);
+	
+	mes "^339966[Corretor de Imóveis]^000000";
+	mes "Você escolheu a ^00cc00Casa #" + .@house_id + "^000000";
+	mes "Mapa: ^00cc00" + .house_map$[.@house_id] + "^000000";
+	mes "Preço: ^ff6600" + .rental_price + " Zeny^000000";
+	next;
+	
+	if (Zeny < .rental_price) {
+		mes "^339966[Corretor de Imóveis]^000000";
+		mes "^ff0000ERRO NO ALUGUEL^000000";
+		mes "Você não possui Zeny suficiente.";
+		mes " ";
+		mes "Valor necessário: ^ff6600" + .rental_price + " Zeny.^000000";
+		close;
+	}
+	
+	mes "^339966[Corretor de Imóveis]^000000";
+	mes "Defina uma senha para sua casa:";
+	mes "^ff0000(Entre 4 e 15 caracteres).^000000";
+	input .@password$, 4, 15;
+	
+	if (.@password$ == "" || getstrlen(.@password$) < 4) {
+		next;
+		mes "^339966[Corretor de Imóveis]^000000";
+		mes "^ff0000ERRO NO ALUGUEL^000000";
+		mes "A senha deve conter entre 4 e 15 caracteres.";
+		close;
+	}
+	
+	next;
+	mes "^339966[Corretor de Imóveis]^000000";
+	mes "^ff0000ESCOLHA DA COR^000000";
+	mes "Escolha a cor para o nome da sua guild no menu:";
+	.@color_choice = select("^339966[»]^000000 ^ff0000Vermelho^000000:^339966[»]^000000 ^00ff00Verde^000000:^339966[»]^000000 ^0000ffAzul^000000:^339966[»]^000000 ^ffff00Amarelo^000000:^339966[»]^000000 ^ff00ffRosa^000000:^339966[»]^000000 ^00ffffCiano^000000:^339966[»]^000000 ^ffa500Laranja^000000:^339966[»]^000000 ^339966Verde Escuro^000000");
+	
+	switch(.@color_choice) {
+		case 1: .@color$ = "^ff0000"; break;
+		case 2: .@color$ = "^00ff00"; break;
+		case 3: .@color$ = "^0000ff"; break;
+		case 4: .@color$ = "^ffff00"; break;
+		case 5: .@color$ = "^ff00ff"; break;
+		case 6: .@color$ = "^00ffff"; break;
+		case 7: .@color$ = "^ffa500"; break;
+		case 8: .@color$ = "^339966"; break;
+	}
+	
+	next;
+	mes "^339966[Corretor de Imóveis]^000000";
+	mes "^ff0000CONFIRMAÇÃO NECESSÁRIA^000000";
+	mes "Casa: ^ff6600#" + .@house_id + "^000000";
+	mes "Senha: ^ff6600" + .@password$ + "^000000";
+	mes "Cor da Guild: " + .@color$ + "Clã " + getguildname(getcharid(2)) + "^000000";
+	mes " ";
+	mes "Deseja confirmar o aluguel da casa?";
+	
+	if (select("^339966[»]^000000 Sim:^ff0000[»] Não^000000") == 2) {
+		close;
+	}
+	
+	// Processar aluguel
+	Zeny -= .rental_price;
+	.house_owner[.@house_id] = getcharid(2);
+	.house_password$[.@house_id] = .@password$;
+	.house_expire[.@house_id] = gettimetick(2) + (30 * 86400); // 30 dias
+	.house_color$[.@house_id] = .@color$;
+	
+	// Atualizar bandeira imediatamente
+	set $@house_id$, .@house_id + "";
+	donpcevent "FlagManager::OnUpdateSingleFlag";
+	
+	// Salvar dados
+	callsub(SaveHouseData);
+	
+	next;
+	mes "^339966[Corretor de Imóveis]^000000";
+	mes "^00cc00Aluguel realizado com sucesso!^000000";
+	mes "Sua guild agora possui a ^ffcc00Casa #" + .@house_id + "^000000.";
+	mes " ";
+	mes "Compartilhe a senha de acesso com os membros da sua guild.";
+		
+	// Log do sistema
+	logmes "ALUGUEL v2.5 - Guild: " + getguildname(getcharid(2)) + " | Líder: " + strcharinfo(0) + " | Casa #" + .@house_id + " | Preço: " + .rental_price;
+	close;
+
+RenovarCasa:
+	.@house_id = getarg(0);
+	
+	if (Zeny < .rental_price) {
+		mes "^339966[Corretor de Imóveis]^000000";
+		mes "^ff0000ERRO NA RENOVAÇÃO^000000";
+		mes "Você não possui Zeny suficiente para renovar o aluguel.";
+		close;
+	}
+	
+	mes "^339966[Corretor de Imóveis]^000000";
+	mes "^ff0000RENOVAR ALUGUEL^000000";
+	mes "Deseja renovar o aluguel por mais ^ffcc0030 dias?^000000";
+	mes "Custo: ^ff6600" + .rental_price + " Zeny^000000.";
+	
+	if (select("^339966[»]^000000 Sim:^ff0000[»] Não^000000") == 2) {
+		close;
+	}
+	
+	Zeny -= .rental_price;
+	.house_expire[.@house_id] += (30 * 86400);
+	
+	// Salvar dados
+	callsub(SaveHouseData);
+	
+	mes "^00cc00Aluguel renovado com sucesso!^000000";
+	
+	// Log do sistema
+	logmes "RENOVAÇÃO v2.5 - Guild: " + getguildname(getcharid(2)) + " | Líder: " + strcharinfo(0) + " | Casa #" + .@house_id;
+	close;
+
+AlterarSenha:
+	.@house_id = getarg(0);
+	
+	mes "^339966[Segurança das Casas]^000000";
+	mes "^ff0000ALTERAR SENHA^000000";
+	mes "Digite a nova senha:";
+	mes "^ff0000(Entre 4 e 15 caracteres)^000000";
+	input .@new_password$, 4, 15;
+	
+	if (.@new_password$ == "" || getstrlen(.@new_password$) < 4) {
+		mes "^ff0000Senha inválida! Use entre 4 e 15 caracteres.^000000";
+		close;
+	}
+	
+	.house_password$[.@house_id] = .@new_password$;
+	
+	// Salvar dados
+	callsub(SaveHouseData);
+	
+	mes "^00cc00Senha alterada com sucesso!^000000";
+	mes "Nova senha: ^ff0000" + .@new_password$ + "^000000";
+	
+	// Log do sistema
+	logmes "ALTERAÇÃO SENHA v2.5 - Guild: " + getguildname(getcharid(2)) + " | Líder: " + strcharinfo(0) + " | Casa #" + .@house_id;
+	close;
+
+AlterarCorGuild:
+	.@house_id = getarg(0);
+	
+	mes "^339966[Corretor de Imóveis]^000000";
+	mes "^ff0000ALTERAR COR DA GUILD^000000";
+	mes "Escolha a nova cor para o nome da sua guild:";
+	.@color_choice = select("^ff0000[»] Vermelho^000000:^00ff00[»] Verde^000000:^0000ff[»] Azul^000000:^ffff00[»] Amarelo^000000:^ff00ff[»] Rosa^000000:^00ffff[»] Ciano^000000:^ffa500[»] Laranja^000000:^339966[»] Verde Escuro^000000");
+	
+	switch(.@color_choice) {
+		case 1: .@color$ = "^ff0000"; break;
+		case 2: .@color$ = "^00ff00"; break;
+		case 3: .@color$ = "^0000ff"; break;
+		case 4: .@color$ = "^ffff00"; break;
+		case 5: .@color$ = "^ff00ff"; break;
+		case 6: .@color$ = "^00ffff"; break;
+		case 7: .@color$ = "^ffa500"; break;
+		case 8: .@color$ = "^339966"; break;
+	}
+	
+	.house_color$[.@house_id] = .@color$;
+	
+	// Salvar dados
+	callsub(SaveHouseData);
+	
+	mes "^00cc00Cor alterada com sucesso!^000000";
+	mes "Nova cor: " + .@color$ + "Clã " + getguildname(getcharid(2)) + "^000000";
+	
+	// Log do sistema
+	logmes "ALTERAÇÃO COR v2.5 - Guild: " + getguildname(getcharid(2)) + " | Líder: " + strcharinfo(0) + " | Casa #" + .@house_id;
+	close;
+
+GerenciarPvP:
+	.@house_id = getarg(0);
+	
+	mes "^339966[Segurança das Casas]^000000";
+	mes "^ff0000GERENCIAR PVP^000000";
+	mes "Mapa: ^ffcc00" + .house_map$[.@house_id] + "^000000";
+	mes "Status PvP atual: " + (.house_pvp[.@house_id] ? "^ff0000ATIVADO^000000" : "^00cc00DESATIVADO^000000");
+	next;
+	
+	.@choice = select("^339966[»]^000000 Ativar PvP:^339966[»]^000000 Desativar PvP:^FF0000[»] Cancelar^000000");
+	
+	switch(.@choice) {
+		case 1: // Ativar PvP
+			.house_pvp[.@house_id] = 1;
+			setmapflag .house_map$[.@house_id], mf_pvp;
+			mapannounce .house_map$[.@house_id], "PvP foi ATIVADO neste mapa pela guild " + getguildname(getcharid(2)), bc_map, 0xFF0000;
+			mes "^339966[Segurança das Casas]^000000";
+			mes "^ff0000PVP ATIVADO^000000";
+			mes "O PvP foi ativado neste mapa.";
+			logmes "PVP ATIVADO v2.5 - Guild: " + getguildname(getcharid(2)) + " | Líder: " + strcharinfo(0) + " | Casa #" + .@house_id;
+			break;
+		case 2: // Desativar PvP
+			.house_pvp[.@house_id] = 0;
+			removemapflag .house_map$[.@house_id], mf_pvp;
+			mapannounce .house_map$[.@house_id], "PvP foi DESATIVADO neste mapa pela guild " + getguildname(getcharid(2)), bc_map, 0x00CC00;
+			mes "^339966[Segurança das Casas]^000000";
+			mes "^00cc00PVP DESATIVADO^000000";
+			mes "O PvP foi desativado neste mapa.";
+			logmes "PVP DESATIVADO v2.5 - Guild: " + getguildname(getcharid(2)) + " | Líder: " + strcharinfo(0) + " | Casa #" + .@house_id;
+			break;
+		case 3: // Cancelar
+			close;
+	}
+	
+	// Salvar dados
+	callsub(SaveHouseData);
+	close;
+
+IrParaCasa:
+	.@house_id = getarg(0);
+	
+	if (.house_expire[.@house_id] < gettimetick(2)) {
+		mes "^339966[Corretor de Imóveis]^000000";
+		mes "^ff0000ATENÇÃO JOGADOR^000000";
+		mes "O aluguel da casa sua expirou!";
+		close;
+	}
+	
+	mes "^339966[Corretor de Imóveis]^000000";
+	mes "Teleportando você para sua casa...";
+	close2;
+	warp .house_map$[.@house_id], .house_x[.@house_id], .house_y[.@house_id];
+	end;
+
+CancelarAluguel:
+	.@house_id = getarg(0);
+	
+	mes "^339966[Corretor de Imóveis]^000000";
+	mes "^ff0000CANCELAR ALUGUEL^000000";
+	mes "Tem certeza que deseja cancelar o aluguel da sua casa?";
+	mes "^ff0000Atenção: Não haverá reembolso!^000000";
+	
+	if (select("^339966[»]^000000 Sim, cancelar.:^ff0000[»] Não^000000") == 2) {
+		close;
+	}
+	
+	// Log antes de limpar
+	logmes "CANCELAMENTO v2.5 - Guild: " + getguildname(getcharid(2)) + " | Líder: " + strcharinfo(0) + " | Casa #" + .@house_id;
+	
+	// Limpar dados da casa
+	.house_owner[.@house_id] = 0;
+	.house_password$[.@house_id] = "";
+	.house_expire[.@house_id] = 0;
+	.house_color$[.@house_id] = "";
+	.house_pvp[.@house_id] = 0;
+	
+	// Atualizar bandeira imediatamente
+	set $@house_id$, .@house_id + "";
+	donpcevent "FlagManager::OnUpdateSingleFlag";
+	
+	// Limpar lista de banidos
+	setd "$house_banned_" + .@house_id + "$", "";
+	
+	// Remover PvP se estiver ativo
+	removemapflag .house_map$[.@house_id], mf_pvp;
+	
+	// Expulsar todos da casa
+	mapwarp .house_map$[.@house_id], "prontera", 155, 191;
+	
+	// Salvar dados
+	callsub(SaveHouseData);
+	
+	mes "^00cc00Aluguel cancelado com sucesso.^000000";
+	close;
+
+// Sistema de salvamento de dados melhorado
+SaveHouseData:
+	for (.@i = 1; .@i <= .max_houses; .@i++) {
+		setd "$house_owner_" + .@i, .house_owner[.@i];
+		setd "$house_password_" + .@i + "$", .house_password$[.@i];
+		setd "$house_expire_" + .@i, .house_expire[.@i];
+		setd "$house_color_" + .@i + "$", .house_color$[.@i];
+		setd "$house_pvp_" + .@i, .house_pvp[.@i];
+	}
+	return;
+
+LoadHouseData:
+	for (.@i = 1; .@i <= .max_houses; .@i++) {
+		.house_owner[.@i] = getd("$house_owner_" + .@i);
+		.house_password$[.@i] = getd("$house_password_" + .@i + "$");
+		.house_expire[.@i] = getd("$house_expire_" + .@i);
+		.house_color$[.@i] = getd("$house_color_" + .@i + "$");
+		.house_pvp[.@i] = getd("$house_pvp_" + .@i);
+		
+		// Restaurar PvP se estava ativo e a casa ainda está válida
+		if (.house_pvp[.@i] && .house_owner[.@i] > 0 && .house_expire[.@i] > gettimetick(2)) {
+			setmapflag .house_map$[.@i], mf_pvp;
+		}
+	}
+	return;
+
+// EVENTOS DE SUPORTE ADMINISTRATIVO v2.5
+OnResetArrays:
+	// Resetar todos os arrays internos
+	for (.@i = 1; .@i <= .max_houses; .@i++) {
+		.house_owner[.@i] = 0;
+		.house_password$[.@i] = "";
+		.house_expire[.@i] = 0;
+		.house_color$[.@i] = "";
+		.house_pvp[.@i] = 0;
+	}
+	logmes "SISTEMA v2.5 - Arrays internos resetados por comando administrativo";
+	end;
+
+OnForceUpdate:
+	// Recarregar dados salvos
+	callsub(LoadHouseData);
+	logmes "SISTEMA v2.5 - Dados recarregados por comando administrativo";
+	end;
+	
+OnInit:
+	// ===== CONFIGURAÇÕES =====
+	.max_houses = 10; // Número máximo de casas
+	.rental_price = 1000000; // 1M de Zeny por 30 dias
+	
+	// ===== MAPAS DAS CASAS =====
+	.house_map$[1] = "guildmap_01"; .house_x[1] = 109; .house_y[1] = 48;
+	.house_map$[2] = "guildmap_02"; .house_x[2] = 109; .house_y[2] = 48;
+	.house_map$[3] = "guildmap_03"; .house_x[3] = 109; .house_y[3] = 48;
+	.house_map$[4] = "guildmap_04"; .house_x[4] = 109; .house_y[4] = 48;
+	.house_map$[5] = "guildmap_05"; .house_x[5] = 109; .house_y[5] = 48;
+	.house_map$[6] = "guildmap_06"; .house_x[6] = 109; .house_y[6] = 48;
+	.house_map$[7] = "guildmap_07"; .house_x[7] = 109; .house_y[7] = 48;
+	.house_map$[8] = "guildmap_08"; .house_x[8] = 109; .house_y[8] = 48;
+	.house_map$[9] = "guildmap_09"; .house_x[9] = 109; .house_y[9] = 48;
+	.house_map$[10] = "guildmap_10"; .house_x[10] = 109; .house_y[10] = 48;
+	
+	// Arrays para controle das casas
+	setarray .house_owner[1], 0; // ID da guild dona
+	setarray .house_password$[1], ""; // Senha da casa
+	setarray .house_expire[1], 0; // Timestamp de expiração
+	setarray .house_color$[1], ""; // Cor da guild
+	setarray .house_pvp[1], 0; // Status PvP
+	
+	// Carregar dados salvos
+	callsub(LoadHouseData);
+	
+	// Inicializar arrays de banimento
+	for (.@i = 1; .@i <= .max_houses; .@i++) {
+		if (getd("$house_banned_" + .@i + "$") == "") {
+			setd "$house_banned_" + .@i + "$", "";
+		}
+	}
+	
+	// Log de inicialização
+	logmes "SISTEMA v2.5 - Sistema de Aluguel de Casas v2.5 iniciado com " + .max_houses + " casas";
+
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 75;	
+		setunittitle getnpcid(0), "[Aluguel de Casas]";
+
+		while(1) {
+		showscript "[ Corretor de Imóveis ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+//===== NPC: Portal de Acesso às Casas - CORRIGIDO v2.5 =====
+prontera,146,199,3	script	Segurança das Casas	899,{
+	mes "^339966[Segurança das Casas]^000000";
+	mes "Olá, ^FFA500"+strcharinfo(0)+"^000000!";
+	mes "Eu sou o ^ff0000Segurança das Casas^000000.";
+	mes "Acesse qualquer casa alugada com a senha correta!";
+	next;
+	
+	// Verificar guilds dissolvidas primeiro
+	callsub(CheckDissolvedGuilds);
+	
+	mes "^339966[Segurança das Casas]^000000";
+	mes "Escolha a casa que deseja acessar:";
+	next;
+	
+	// Construir menu de casas ocupadas
+	.@menu$ = "";
+	.@occupied_count = 0;
+	setarray .@occupied_houses[0], 0;
+	
+	.@max_houses = getvariableofnpc(.max_houses, "Corretor de Imóveis");
+	
+	for (.@i = 1; .@i <= .@max_houses; .@i++) {
+		.@owner_id = getd("$house_owner_" + .@i);
+		.@expire_time = getd("$house_expire_" + .@i);
+		
+		if (.@owner_id > 0 && .@expire_time > gettimetick(2)) {
+			.@guild_name$ = getguildname(.@owner_id);
+			.@color$ = getd("$house_color_" + .@i + "$");
+			if (.@color$ == "") .@color$ = "^339966";
+			
+			.@menu$ += .@color$ + "Clã " + .@guild_name$ + "^000000 - Casa #" + .@i + ":";
+			.@occupied_houses[.@occupied_count] = .@i;
+			.@occupied_count++;
+		}
+	}
+	
+	if (.@occupied_count == 0) {
+		mes "^339966[Segurança das Casas]^000000";
+		mes "^ff0000ATENÇÃO JOGADOR^000000";
+		mes "Não há casas ocupadas no momento.";
+		mes "Todas as casas estão disponíveis para aluguel.";
+		close;
+	}
+	
+	.@menu$ += "^339966[»] Ver casas disponíveis.^000000:^ff0000[»] Cancelar^000000";
+	
+	.@choice = select(.@menu$);
+	
+	if (.@choice == .@occupied_count + 1) {
+		// Ver casas disponíveis
+		callsub(MostrarCasasDisponiveis);
+		close;
+	} else if (.@choice == .@occupied_count + 2) {
+		// Cancelar
+		close;
+	} else {
+		// Acessar casa selecionada
+		.@selected_house = .@occupied_houses[.@choice - 1];
+		callsub(AcessarCasa, .@selected_house);
+	}
+	close;
+
+CheckDissolvedGuilds:
+	// Verificação rápida de guilds dissolvidas
+	.@max_houses = getvariableofnpc(.max_houses, "Corretor de Imóveis");
+	for (.@i = 1; .@i <= .@max_houses; .@i++) {
+		.@owner_id = getd("$house_owner_" + .@i);
+		if (.@owner_id > 0) {
+			.@guild_name$ = getguildname(.@owner_id);
+			if (.@guild_name$ == "") {
+				// Guild foi dissolvida - liberar casa
+				setd "$house_owner_" + .@i, 0;
+				setd "$house_password_" + .@i + "$", "";
+				setd "$house_expire_" + .@i, 0;
+				setd "$house_color_" + .@i + "$", "";
+				setd "$house_pvp_" + .@i, 0;
+				setd "$house_banned_" + .@i + "$", "";
+				
+				// Remover PvP
+				.@map$ = getvariableofnpc(.house_map$[.@i], "Corretor de Imóveis");
+				removemapflag .@map$, mf_pvp;
+				
+				logmes "PORTAL v2.5 - Casa #" + .@i + " liberada automaticamente (Guild dissolvida)";
+			}
+		}
+	}
+	return;
+
+MostrarCasasDisponiveis:
+	mes "^339966[Segurança das Casas]^000000";
+	mes "^FF0000CASAS DISPONÍVEIS^000000";
+	mes "Lista de casas que podem ser alugadas:";
+	next;
+	
+	.@max_houses = getvariableofnpc(.max_houses, "Corretor de Imóveis");
+	.@available_count = 0;
+	
+	// Arrays para armazenar informações das casas disponíveis
+	setarray .@available_houses[0], 0;
+	setarray .@available_maps$[0], "";
+	.@menu$ = "";
+	
+	// Coleta todas as casas disponíveis e monta o menu
+	for (.@i = 1; .@i <= .@max_houses; .@i++) {
+		.@owner_id = getd("$house_owner_" + .@i);
+		.@expire_time = getd("$house_expire_" + .@i);
+		
+		if (.@owner_id == 0 || .@expire_time < gettimetick(2)) {
+			.@map$ = getvariableofnpc(.house_map$[.@i], "Corretor de Imóveis");
+			.@available_houses[.@available_count] = .@i;
+			.@available_maps$[.@available_count] = .@map$;
+			.@menu$ += "^339966[»]^000000 Casa #" + .@i + " (" + .@map$ + ") - ^00cc00DISPONÍVEL:^000000";
+			.@available_count++;
+		}
+	}
+	
+	// Verifica se há casas disponíveis
+	if (.@available_count == 0) {
+		mes "^ff0000Todas as casas estão ocupadas no momento.^000000";
+		return;
+	}
+	
+	// Adiciona opção de fechar o menu
+	.@menu$ += "^ff0000[»] Sair^000000";
+	
+	// Exibe o menu de seleção
+	mes "^339966[Segurança das Casas]^000000";
+	mes "Selecione uma casa para ver os detalhes:";
+	.@choice = select(.@menu$);
+	next;
+	
+	// Se escolheu "Fechar"
+	if (.@choice > .@available_count) {
+		mes "^339966[Segurança das Casas]^000000";
+		mes "^ff0000Para alugar uma casa, fale com o Corretor de Imóveis!^000000";
+		close;
+	}
+	
+	// Mostra detalhes da casa selecionada
+	.@selected_house = .@available_houses[.@choice - 1];
+	.@selected_map$ = .@available_maps$[.@choice - 1];
+	
+	mes "^339966[Detalhes da Casa]^000000";
+	mes "Casa ^ffcc00#" + .@selected_house + "^000000";
+	mes "Localização: ^ffcc00" + .@selected_map$ + "^000000";
+	mes "Status: ^00cc00DISPONÍVEL^000000";
+	mes " ";
+	mes "^ff0000Para alugar esta casa, fale com o Corretor de Imóveis!^000000";
+	close;
+
+// FUNÇÃO DE ACESSO CORRIGIDA v2.5
+AcessarCasa:
+	.@house_id = getarg(0);
+	
+	.@owner_id = getd("$house_owner_" + .@house_id);
+	.@expire_time = getd("$house_expire_" + .@house_id);
+	.@correct_password$ = getd("$house_password_" + .@house_id + "$");
+	
+	// Verificar se ainda está válida
+	if (.@owner_id == 0 || .@expire_time < gettimetick(2)) {
+		mes "^339966[Segurança das Casas]^000000";
+		mes "^ff0000ERRO AO ACESSAR^000000";
+		mes "Esta casa não está mais ocupada ou o aluguel expirou.";
+		close;
+	}
+	
+	// VERIFICAÇÃO CORRIGIDA: Checar se o jogador está banido usando nova função
+	.@player_name$ = strcharinfo(0);
+	
+	if (callsub(VerificarJogadorBanido, .@house_id, .@player_name$)) {
+		mes "^339966[Segurança das Casas]^000000";
+		mes "^ff0000ACESSO NEGADO^000000";
+		mes "Você foi BANIDO desta casa pelo Guild Líder.";
+		mes "Não é possível acessar mesmo com a senha correta.";
+		close;
+	}
+	
+	.@guild_name$ = getguildname(.@owner_id);
+	.@color$ = getd("$house_color_" + .@house_id + "$");
+	if (.@color$ == "") .@color$ = "^339966";
+	
+	mes "^339966[Segurança das Casas]^000000";
+	mes "^FF0000Acesso à Casa^000000 ^ffcc00#" + .@house_id + ":^000000";
+	mes "Proprietário: " + .@color$ + "Clã " + .@guild_name$ + "^000000";
+	mes "Digite a senha:";
+	input .@password$;
+	next;
+	
+	if (.@password$ != .@correct_password$) {
+		
+		mes "^339966[Segurança das Casas]^000000";
+		mes "^ff0000ACESSO NEGADO^000000";
+		mes "A senha inserida está incorreta!";
+		
+		// Log de tentativa de acesso inválida
+		logmes "ACESSO NEGADO v2.5 - Jogador: " + strcharinfo(0) + " | Casa #" + .@house_id + " | Senha incorreta";
+		close;
+	}
+	
+	// Verificar se o jogador pertence à guild dona
+	.@player_guild = getcharid(2);
+	.@is_owner = (.@player_guild == .@owner_id);
+	
+	mes "^339966[Segurança das Casas]^000000";
+	mes "^00cc00ACESSO LIBERADO^000000";
+	
+	if (.@is_owner) {
+		mes "Olá, ^FFA500"+strcharinfo(0)+"^000000.";
+		mes "Bem-vindo de volta à casa da sua guild!";
+	} else {
+		mes "Olá! Seja bem-vindo à casa do " + .@color$ + "Clã " + .@guild_name$ + "^000000!";
+		mes "^ffcc00Você é um visitante.^000000";
+	}
+	
+	mes " ";
+	mes "^ff0000Teleportando...^000000";
+	close2;
+	
+	// Teleportar
+	.@map$ = getvariableofnpc(.house_map$[.@house_id], "Corretor de Imóveis");
+	.@x = getvariableofnpc(.house_x[.@house_id], "Corretor de Imóveis");
+	.@y = getvariableofnpc(.house_y[.@house_id], "Corretor de Imóveis");
+	
+	warp .@map$, .@x, .@y;
+	
+	// Mensagem após teleporte
+	sleep2 1000;
+	if (.@is_owner) {
+		dispbottom "Bem-vindo de volta à casa do " + .@color$ + "Clã " + .@guild_name$ + "^000000!";
+	} else {
+		dispbottom "Você está visitando a casa do " + .@color$ + "Clã " + .@guild_name$ + "^000000!";
+	}
+	
+	// Log de acesso
+	logmes "ACESSO CASA v2.5 - Jogador: " + strcharinfo(0) + " | Casa #" + .@house_id + " | Status: " + (.@is_owner ? "Proprietário" : "Visitante");
+	end;
+
+// FUNÇÃO AUXILIAR PARA VERIFICAÇÃO DE BANIMENTO NO PORTAL
+VerificarJogadorBanido:
+	.@house_id = getarg(0);
+	.@player_name$ = getarg(1);
+	
+	.@ban_list$ = getd("$house_banned_" + .@house_id + "$");
+	
+	if (.@ban_list$ == "") {
+		return 0; // Lista vazia, jogador não está banido
+	}
+	
+	// Dividir a lista e verificar cada nome
+	.@count = explode(.@banned_players$, .@ban_list$, "|");
+	
+	for (.@i = 0; .@i < .@count; .@i++) {
+		if (.@banned_players$[.@i] == .@player_name$) {
+			return 1; // Jogador encontrado na lista de banidos
+		}
+	}
+	
+	return 0; // Jogador não está banido
+	
+OnInit:
+
+setunitdata getnpcid(0), UNPC_GROUP_ID, 55;	
+setunittitle getnpcid(0), "[Salão das Guilds]";
+
+	while(1) {
+	showscript "[ Segurança Guild ]", getnpcid(0);
+	sleep 100;
+	}
+	end;
+}
+
+//===== Sistema de PvP nas Casas - MELHORADO v2.5 =====
+guildmap_01	mapflag	noexp
+guildmap_01	mapflag	nobranch
+guildmap_01	mapflag	nopenalty
+
+guildmap_02	mapflag	noexp
+guildmap_02	mapflag	nobranch
+guildmap_02	mapflag	nopenalty
+
+guildmap_03	mapflag	noexp
+guildmap_03	mapflag	nobranch
+guildmap_03	mapflag	nopenalty
+
+guildmap_04	mapflag	noexp
+guildmap_04	mapflag	nobranch
+guildmap_04	mapflag	nopenalty
+
+guildmap_05	mapflag	noexp
+guildmap_05	mapflag	nobranch
+guildmap_05	mapflag	nopenalty
+
+guildmap_06	mapflag	noexp
+guildmap_06	mapflag	nobranch
+guildmap_06	mapflag	nopenalty
+
+guildmap_07	mapflag	noexp
+guildmap_07	mapflag	nobranch
+guildmap_07	mapflag	nopenalty
+
+guildmap_08	mapflag	noexp
+guildmap_08	mapflag	nobranch
+guildmap_08	mapflag	nopenalty
+
+guildmap_09	mapflag	noexp
+guildmap_08	mapflag	nobranch
+guildmap_08	mapflag	nopenalty
+
+guildmap_10	mapflag	noexp
+guildmap_10	mapflag	nobranch
+guildmap_10	mapflag	nopenalty
+
+
+// Controle de PvP melhorado
+guildmap_01,0,0,0	script	PvP_House_Control	-1,{
+OnPCKillEvent:
+	// Verificar se está em um mapa de casa
+	.@map$ = strcharinfo(3);
+	.@max_houses = getvariableofnpc(.max_houses, "Corretor de Imóveis");
+	
+	for (.@i = 1; .@i <= .@max_houses; .@i++) {
+		.@house_map$ = getvariableofnpc(.house_map$[.@i], "Corretor de Imóveis");
+		if (.@map$ == .@house_map$) {
+			// Está em uma casa - não contabilizar pontos
+			dispbottom "PvP de treino - nenhum ponto foi contabilizado.";
+			
+			// Log do PvP
+			logmes "PVP CASA v2.5 - Mapa: " + .@map$ + " | Killer: " + strcharinfo(0) + " | Victim: " + rid2name(killedrid);
+			end;
+		}
+	}
+	end;
+}
+
+// Duplicar controle para todos os mapas
+guildmap_02,0,0,0	duplicate(PvP_House_Control)	PvP_House_Control#2	-1
+guildmap_03,0,0,0	duplicate(PvP_House_Control)	PvP_House_Control#3	-1
+guildmap_04,0,0,0	duplicate(PvP_House_Control)	PvP_House_Control#4	-1
+guildmap_05,0,0,0	duplicate(PvP_House_Control)	PvP_House_Control#5	-1
+guildmap_06,0,0,0	duplicate(PvP_House_Control)	PvP_House_Control#6	-1
+guildmap_07,0,0,0	duplicate(PvP_House_Control)	PvP_House_Control#7	-1
+guildmap_08,0,0,0	duplicate(PvP_House_Control)	PvP_House_Control#8	-1
+guildmap_09,0,0,0	duplicate(PvP_House_Control)	PvP_House_Control#9	-1
+guildmap_10,0,0,0	duplicate(PvP_House_Control)	PvP_House_Control#10	-1
+
+//===== Comandos Especiais para G-Líderes - CORRIGIDOS v2.5 =====
+-	script	HouseCommands	-1,{
+OnInit:
+	bindatcmd "pvpyes", strnpcinfo(3) + "::OnPvPOn", 0, 100;
+	bindatcmd "pvpno", strnpcinfo(3) + "::OnPvPOff", 0, 100;
+	bindatcmd "housekick", strnpcinfo(3) + "::OnHouseKick", 0, 100;
+	bindatcmd "houseinfo", strnpcinfo(3) + "::OnHouseInfo", 0, 100;
+	bindatcmd "houseban", strnpcinfo(3) + "::OnHouseBan", 0, 100;
+	end;
+
+OnHouseBan:
+	// Verificar se é G-Líder
+	if (getguildmaster(getcharid(2)) != strcharinfo(0)) {
+		dispbottom "Apenas o Guild Líder pode usar este comando.";
+		end;
+	}
+	
+	// Verificar se está em uma casa da própria guild
+	.@map$ = strcharinfo(3);
+	.@guild_id = getcharid(2);
+	.@house_found = 0;
+	.@max_houses = getvariableofnpc(.max_houses, "Corretor de Imóveis");
+	
+	for (.@i = 1; .@i <= .@max_houses; .@i++) {
+		.@house_map$ = getvariableofnpc(.house_map$[.@i], "Corretor de Imóveis");
+		if (.@map$ == .@house_map$) {
+			.@owner_id = getd("$house_owner_" + .@i);
+			if (.@owner_id == .@guild_id) {
+				.@house_found = 1;
+				.@house_id = .@i;
+				break;
+			}
+		}
+	}
+	
+	if (!.@house_found) {
+		dispbottom "Você só pode usar este comando na casa da sua guild.";
+		end;
+	}
+	
+	// Mostrar lista de banidos usando função corrigida
+	.@ban_list$ = getd("$house_banned_" + .@house_id + "$");
+	
+	dispbottom "=== LISTA DE BANIDOS (CASA #" + .@house_id + ") ===";
+	
+	if (.@ban_list$ == "") {
+		dispbottom "Nenhum jogador banido.";
+		dispbottom "Total: 0 jogador(es) banido(s)";
+	} else {
+		.@count = explode(.@banned_players$, .@ban_list$, "|");
+		for (.@i = 0; .@i < .@count; .@i++) {
+			if (.@banned_players$[.@i] != "") {
+				dispbottom "• " + .@banned_players$[.@i];
+			}
+		}
+		dispbottom "Total: " + .@count + " jogador(es) banido(s)";
+	}
+	dispbottom "Use o Corretor de Imóveis para gerenciar a lista.";
+	end;
+
+OnPvPOn:
+	// Verificar se é G-Líder
+	if (getguildmaster(getcharid(2)) != strcharinfo(0)) {
+		dispbottom "Apenas o Guild Líder pode usar este comando.";
+		end;
+	}
+	
+	// Verificar se está em uma casa da própria guild
+	.@map$ = strcharinfo(3);
+	.@guild_id = getcharid(2);
+	.@house_found = 0;
+	.@max_houses = getvariableofnpc(.max_houses, "Corretor de Imóveis");
+	
+	for (.@i = 1; .@i <= .@max_houses; .@i++) {
+		.@house_map$ = getvariableofnpc(.house_map$[.@i], "Corretor de Imóveis");
+		if (.@map$ == .@house_map$) {
+			.@owner_id = getd("$house_owner_" + .@i);
+			if (.@owner_id == .@guild_id) {
+				// Casa pertence à guild do jogador
+				setd "$house_pvp_" + .@i, 1;
+				setmapflag .@map$, mf_pvp;
+				mapannounce .@map$, "PvP ATIVADO pelo Guild Líder " + strcharinfo(0) + "!", bc_map, 0xFF0000;
+				dispbottom "PvP ativado com sucesso na sua casa!";
+				.@house_found = 1;
+				logmes "COMANDO PVP ON v2.5 - Guild: " + getguildname(.@guild_id) + " | Líder: " + strcharinfo(0) + " | Casa #" + .@i;
+				break;
+			}
+		}
+	}
+	
+	if (!.@house_found) {
+		dispbottom "Você só pode usar este comando na casa da sua guild.";
+	}
+	end;
+
+OnPvPOff:
+	// Verificar se é G-Líder
+	if (getguildmaster(getcharid(2)) != strcharinfo(0)) {
+		dispbottom "Apenas o Guild Líder pode usar este comando.";
+		end;
+	}
+	
+	// Verificar se está em uma casa da própria guild
+	.@map$ = strcharinfo(3);
+	.@guild_id = getcharid(2);
+	.@house_found = 0;
+	.@max_houses = getvariableofnpc(.max_houses, "Corretor de Imóveis");
+	
+	for (.@i = 1; .@i <= .@max_houses; .@i++) {
+		.@house_map$ = getvariableofnpc(.house_map$[.@i], "Corretor de Imóveis");
+		if (.@map$ == .@house_map$) {
+			.@owner_id = getd("$house_owner_" + .@i);
+			if (.@owner_id == .@guild_id) {
+				// Casa pertence à guild do jogador
+				setd "$house_pvp_" + .@i, 0;
+				removemapflag .@map$, mf_pvp;
+				mapannounce .@map$, "PvP DESATIVADO pelo Guild Líder " + strcharinfo(0) + "!", bc_map, 0x00CC00;
+				dispbottom "PvP desativado com sucesso na sua casa!";
+				.@house_found = 1;
+				logmes "COMANDO PVP OFF v2.5 - Guild: " + getguildname(.@guild_id) + " | Líder: " + strcharinfo(0) + " | Casa #" + .@i;
+				break;
+			}
+		}
+	}
+	
+	if (!.@house_found) {
+		dispbottom "Você só pode usar este comando na casa da sua guild.";
+	}
+	end;
+
+// COMANDO DE EXPULSÃO TOTALMENTE CORRIGIDO v2.5
+OnHouseKick:
+	// Verificar se é G-Líder
+	if (getguildmaster(getcharid(2)) != strcharinfo(0)) {
+		dispbottom "Apenas o Guild Líder pode usar este comando.";
+		end;
+	}
+	
+	// Verificar se está em uma casa da própria guild
+	.@map$ = strcharinfo(3);
+	.@guild_id = getcharid(2);
+	.@house_found = 0;
+	.@max_houses = getvariableofnpc(.max_houses, "Corretor de Imóveis");
+	
+	for (.@i = 1; .@i <= .@max_houses; .@i++) {
+		.@house_map$ = getvariableofnpc(.house_map$[.@i], "Corretor de Imóveis");
+		if (.@map$ == .@house_map$) {
+			.@owner_id = getd("$house_owner_" + .@i);
+			if (.@owner_id == .@guild_id) {
+				// Casa pertence à guild do jogador - expulsar todos os visitantes
+				.@house_found = 1;
+				.@house_id = .@i;
+				
+				// Anunciar expulsão
+				mapannounce .@map$, "Todos os visitantes serão expulsos em 3 segundos!", bc_map, 0xFF0000;
+				sleep 1000;
+				
+				// Contar e expulsar visitantes usando método aprimorado
+				query_sql("SELECT `account_id`, `char_id`, `name`, `guild_id` FROM `char` WHERE `online` = 1 AND `last_map` = '" + escape_sql(.@map$) + "'", .@aids, .@cids, .@names$, .@guild_ids);
+				.@total_players = getarraysize(.@aids);
+				.@expelled_count = 0;
+				.@leader_aid = getcharid(3);
+				
+				for (.@j = 0; .@j < .@total_players; .@j++) {
+					if (isloggedin(.@aids[.@j], .@cids[.@j])) {
+						if (attachrid(.@aids[.@j])) {
+							if (strcharinfo(3) == .@map$ && getcharid(2) != .@guild_id) {
+								// É visitante - expulsar
+								warp "prontera", 150, 185;
+								message strcharinfo(0), "Você foi expulso pelo Guild Líder via comando.";
+								.@expelled_count++;
+							}
+							detachrid();
+						}
+					}
+				}
+				
+				// Restaurar attachrid do líder
+				attachrid(.@leader_aid);
+				
+				// Teleportar o líder de volta se foi expulso acidentalmente
+				if (strcharinfo(3) == "prontera") {
+					.@x = getvariableofnpc(.house_x[.@i], "Corretor de Imóveis");
+					.@y = getvariableofnpc(.house_y[.@i], "Corretor de Imóveis");
+					warp .@map$, .@x, .@y;
+				}
+				
+				mapannounce .@map$, "Expulsão concluída! " + .@expelled_count + " visitante(s) removidos.", bc_map, 0x00FF00;
+				dispbottom "Comando de expulsão executado! " + .@expelled_count + " visitante(s) expulsos.";
+				logmes "COMANDO KICK v2.5 - Guild: " + getguildname(.@guild_id) + " | Líder: " + strcharinfo(0) + " | Casa #" + .@i + " | Expulsos: " + .@expelled_count;
+				break;
+			}
+		}
+	}
+	
+	if (!.@house_found) {
+		dispbottom "Você só pode usar este comando na casa da sua guild.";
+	}
+	end;
+
+OnHouseInfo:
+	// Mostrar informações da casa atual
+	.@map$ = strcharinfo(3);
+	.@max_houses = getvariableofnpc(.max_houses, "Corretor de Imóveis");
+	.@house_found = 0;
+	
+	for (.@i = 1; .@i <= .@max_houses; .@i++) {
+		.@house_map$ = getvariableofnpc(.house_map$[.@i], "Corretor de Imóveis");
+		if (.@map$ == .@house_map$) {
+			.@owner_id = getd("$house_owner_" + .@i);
+			.@expire_time = getd("$house_expire_" + .@i);
+			.@house_found = 1;
+			
+			if (.@owner_id > 0 && .@expire_time > gettimetick(2)) {
+				.@guild_name$ = getguildname(.@owner_id);
+				.@color$ = getd("$house_color_" + .@i + "$");
+				if (.@color$ == "") .@color$ = "^339966";
+				.@days_left = (.@expire_time - gettimetick(2)) / 86400;
+				.@pvp_status = getd("$house_pvp_" + .@i);
+				.@guild_master$ = getguildmaster(.@owner_id);
+				.@ban_list$ = getd("$house_banned_" + .@i + "$");
+				.@banned_count = 0;
+				
+				if (.@ban_list$ != "") {
+					.@banned_count = explode(.@temp_array$, .@ban_list$, "|");
+				}
+				
+				dispbottom "=== INFORMAÇÕES DA CASA #" + .@i + " ===";
+				dispbottom "Proprietário: " + .@color$ + "Clã " + .@guild_name$;
+				dispbottom "Guild Líder: " + .@guild_master$;
+				dispbottom "Dias restantes: " + .@days_left;
+				dispbottom "Status PvP: " + (.@pvp_status ? "ATIVADO" : "DESATIVADO");
+				dispbottom "Jogadores no mapa: " + getmapusers(.@map$);
+				dispbottom "Jogadores banidos: " + .@banned_count;
+			} else {
+				dispbottom "Esta casa não está ocupada ou o aluguel expirou.";
+			}
+			break;
+		}
+	}
+	
+	if (!.@house_found) {
+		dispbottom "Você não está em uma casa alugada.";
+	}
+	end;
+}
+
+//===== Sistema de Limpeza Automática - MELHORADO v2.5 =====
+-	script	HouseCleanup	-1,{
+OnInit:
+	// Executar limpeza a cada 30 minutos
+	initnpctimer;
+	end;
+
+OnTimer1800000: // 30 minutos
+	callsub(CleanupExpiredHouses);
+	initnpctimer; // Reiniciar timer
+	end;
+
+CleanupExpiredHouses:
+	.@cleaned = 0;
+	.@max_houses = getvariableofnpc(.max_houses, "Corretor de Imóveis");
+	
+	for (.@i = 1; .@i <= .@max_houses; .@i++) {
+		.@owner_id = getd("$house_owner_" + .@i);
+		.@expire_time = getd("$house_expire_" + .@i);
+		
+		if (.@owner_id > 0) {
+			// Verificar se a guild ainda existe
+			.@guild_name$ = getguildname(.@owner_id);
+			
+			// Se guild foi dissolvida ou aluguel expirou
+			if (.@guild_name$ == "" || .@expire_time < gettimetick(2)) {
+				// Liberar casa
+				setd "$house_owner_" + .@i, 0;
+				setd "$house_password_" + .@i + "$", "";
+				setd "$house_expire_" + .@i, 0;
+				setd "$house_color_" + .@i + "$", "";
+				setd "$house_pvp_" + .@i, 0;
+				setd "$house_banned_" + .@i + "$", "";
+				
+				donpcevent "FlagManager::OnUpdateSingleFlag(" + .@i + ")";
+								
+				// Remover PvP
+				.@map$ = getvariableofnpc(.house_map$[.@i], "Corretor de Imóveis");
+				removemapflag .@map$, mf_pvp;
+				
+				// Expulsar jogadores da casa
+				mapwarp .@map$, "prontera", 155, 191;
+				
+				.@cleaned++;
+				
+				if (.@guild_name$ == "") {
+					logmes "LIMPEZA AUTO v2.5 - Casa #" + .@i + " liberada (Guild dissolvida)";
+				} else {
+					logmes "LIMPEZA AUTO v2.5 - Casa #" + .@i + " liberada (Aluguel expirado)";
+				}
+			}
+		}
+	}
+	
+	if (.@cleaned > 0) {
+		logmes "SISTEMA v2.5 - Limpeza automática concluída: " + .@cleaned + " casa(s) liberada(s)";
+	}
+	return;
+}
+
+//===== Sistema de Backup de Dados - MELHORADO v2.5 =====
+-	script	HouseBackup	-1,{
+OnInit:
+	// Fazer backup a cada 2 horas
+	initnpctimer;
+	end;
+
+OnTimer7200000: // 2 horas
+	callsub(BackupHouseData);
+	initnpctimer; // Reiniciar timer
+	end;
+
+BackupHouseData:
+	.@max_houses = getvariableofnpc(.max_houses, "Corretor de Imóveis");
+	.@occupied = 0;
+	.@total_banned = 0;
+	
+	for (.@i = 1; .@i <= .@max_houses; .@i++) {
+		.@owner_id = getd("$house_owner_" + .@i);
+		if (.@owner_id > 0) {
+			.@occupied++;
+		}
+		
+		// Contar jogadores banidos
+		.@ban_list$ = getd("$house_banned_" + .@i + "$");
+		if (.@ban_list$ != "") {
+			.@count = explode(.@temp_array$, .@ban_list$, "|");
+			.@total_banned += .@count;
+		}
+	}
+	
+	logmes "BACKUP v2.5 - Sistema de casas: " + .@occupied + "/" + .@max_houses + " casas ocupadas | " + .@total_banned + " jogadores banidos";
+	return;
+}
+
+//===== Sistema de Estatísticas - MELHORADO v2.5 =====
+-	script	HouseStats	-1,{
+OnInit:
+	bindatcmd "housestats", strnpcinfo(3) + "::OnHouseStats", 99, 100; // Apenas GM
+	bindatcmd "houseadmin", strnpcinfo(3) + "::OnHouseAdmin", 99, 100; // Apenas GM
+	end;
+
+OnHouseStats:
+	if (getgmlevel() < 99) {
+		dispbottom "Comando disponível apenas para GMs.";
+		end;
+	}
+	
+	.@max_houses = getvariableofnpc(.max_houses, "Corretor de Imóveis");
+	.@occupied = 0;
+	.@expired = 0;
+	.@pvp_active = 0;
+	.@total_banned = 0;
+	
+	dispbottom "=== ESTATÍSTICAS DO SISTEMA DE CASAS v2.5 ===";
+	
+	for (.@i = 1; .@i <= .@max_houses; .@i++) {
+		.@owner_id = getd("$house_owner_" + .@i);
+		.@expire_time = getd("$house_expire_" + .@i);
+		.@pvp_status = getd("$house_pvp_" + .@i);
+		
+		if (.@owner_id > 0) {
+			if (.@expire_time > gettimetick(2)) {
+				.@occupied++;
+				if (.@pvp_status) .@pvp_active++;
+			} else {
+				.@expired++;
+			}
+		}
+		
+		// Contar jogadores banidos por casa
+		.@ban_list$ = getd("$house_banned_" + .@i + "$");
+		if (.@ban_list$ != "") {
+			.@count = explode(.@temp_array$, .@ban_list$, "|");
+			.@total_banned += .@count;
+		}
+	}
+	
+	.@available = .@max_houses - .@occupied - .@expired;
+	
+	dispbottom "Total de casas: " + .@max_houses;
+	dispbottom "Casas ocupadas: " + .@occupied;
+	dispbottom "Casas disponíveis: " + .@available;
+	dispbottom "Casas com aluguel expirado: " + .@expired;
+	dispbottom "Casas com PvP ativo: " + .@pvp_active;
+	dispbottom "Total de jogadores banidos: " + .@total_banned;
+	dispbottom "Taxa de ocupação: " + ((.@occupied * 100) / .@max_houses) + "%";
+	end;
+
+OnHouseAdmin:
+	if (getgmlevel() < 99) {
+		dispbottom "Comando disponível apenas para GMs.";
+		end;
+	}
+	
+	dispbottom "=== ADMINISTRAÇÃO DE CASAS v2.5 ===";
+	dispbottom "Comandos disponíveis:";
+	dispbottom "@housestats - Ver estatísticas completas";
+	dispbottom "@houseforce <casa_id> - Liberar casa específica";
+	dispbottom "@housereset - Resetar TODAS as casas";
+	dispbottom "@houselist - Ver lista detalhada de todas as casas";
+	dispbottom "@housebanlist - Ver todos os jogadores banidos";
+	dispbottom "@housemonitor - Monitor em tempo real";
+	end;
+}
+
+//===== COMANDOS ADMINISTRATIVOS MELHORADOS v2.5 =====
+-	script	HouseAdminCommands	-1,{
+OnInit:
+	bindatcmd "houseforce", strnpcinfo(3) + "::OnHouseForce", 99, 100;
+	bindatcmd "housereset", strnpcinfo(3) + "::OnHouseReset", 99, 100; // NOVO COMANDO DE RESET
+	bindatcmd "houselist", strnpcinfo(3) + "::OnHouseList", 99, 100;
+	bindatcmd "housebanlist", strnpcinfo(3) + "::OnHouseBanList", 99, 100;
+	bindatcmd "housemonitor", strnpcinfo(3) + "::OnHouseMonitor", 99, 100;
+	end;
+
+// NOVO SISTEMA DE RESET COMPLETO PARA ADMINS
+OnHouseReset:
+	if (getgmlevel() < 99) {
+		dispbottom "Comando disponível apenas para GMs.";
+		end;
+	}
+	
+	donpcevent "FlagManager::OnResetAllFlags";
+	
+	// Confirmação de segurança
+	.@confirm_code = rand(1000, 9999);
+	dispbottom "=== RESET COMPLETO DO SISTEMA DE CASAS ===";
+	dispbottom "ATENÇÃO: Esta ação é IRREVERSÍVEL!";
+	dispbottom "Todas as casas serão liberadas e dados apagados.";
+	dispbottom "Para confirmar, digite: @housereset " + .@confirm_code;
+	
+	// Verificar se foi fornecido código de confirmação
+	if (!getarg(0)) {
+		end;
+	}
+	
+	.@input_code = atoi(getarg(0));
+	if (.@input_code != .@confirm_code) {
+		dispbottom "Código de confirmação incorreto. Reset cancelado.";
+		end;
+	}
+	
+	// Executar reset completo
+	.@max_houses = getvariableofnpc(.max_houses, "Corretor de Imóveis");
+	.@reset_count = 0;
+	.@total_banned_cleared = 0;
+	
+	dispbottom "Iniciando reset completo do sistema...";
+	
+	for (.@i = 1; .@i <= .@max_houses; .@i++) {
+		.@owner_id = getd("$house_owner_" + .@i);
+		
+		if (.@owner_id > 0) {
+			.@guild_name$ = getguildname(.@owner_id);
+			.@reset_count++;
+			
+			// Log antes de limpar
+			logmes "ADMIN RESET v2.5 - GM: " + strcharinfo(0) + " | Casa #" + .@i + " resetada | Guild: " + .@guild_name$;
+		}
+		
+		// Contar banidos antes de limpar
+		.@ban_list$ = getd("$house_banned_" + .@i + "$");
+		if (.@ban_list$ != "") {
+			.@count = explode(.@temp_array$, .@ban_list$, "|");
+			.@total_banned_cleared += .@count;
+		}
+		
+		// Limpar completamente todos os dados da casa
+		setd "$house_owner_" + .@i, 0;
+		setd "$house_password_" + .@i + "$", "";
+		setd "$house_expire_" + .@i, 0;
+		setd "$house_color_" + .@i + "$", "";
+		setd "$house_pvp_" + .@i, 0;
+		setd "$house_banned_" + .@i + "$", "";
+		
+		// Obter dados do mapa e limpar flags
+		.@map$ = getvariableofnpc(.house_map$[.@i], "Corretor de Imóveis");
+		
+		// Remover PvP se estiver ativo
+		removemapflag .@map$, mf_pvp;
+		
+		// Expulsar todos os jogadores da casa
+		mapwarp .@map$, "prontera", 155, 191;
+		
+		// Anunciar no mapa
+		mapannounce .@map$, "Esta casa foi resetada pelo administrador do servidor.", bc_map, 0xFF0000;
+	}
+	
+	// Resetar também os arrays do NPC principal
+	donpcevent "Corretor de Imóveis::OnResetArrays";
+	
+	// Resultados do reset
+	dispbottom "=== RESET COMPLETO EXECUTADO ===";
+	dispbottom "Casas resetadas: " + .@reset_count + " de " + .@max_houses;
+	dispbottom "Jogadores desbanidos: " + .@total_banned_cleared;
+	dispbottom "Todos os jogadores foram teleportados para Prontera.";
+	dispbottom "Sistema completamente limpo e pronto para uso.";
+	
+	// Log geral do reset
+	logmes "RESET COMPLETO v2.5 - GM: " + strcharinfo(0) + " | " + .@reset_count + " casas resetadas | " + .@total_banned_cleared + " banimentos limpos";
+	
+	// Anunciar para todos os jogadores online
+	announce "O sistema de casas foi resetado pelo administrador. Todas as casas estão novamente disponíveis.", bc_all, 0x00FF00;
+	end;
+
+OnHouseForce:
+	if (getgmlevel() < 99) {
+		dispbottom "Comando disponível apenas para GMs.";
+		end;
+	}
+	
+	if (!getarg(0)) {
+		dispbottom "Uso: @houseforce <casa_id>";
+		dispbottom "Exemplo: @houseforce 1";
+		end;
+	}
+	
+	.@house_id = atoi(getarg(0));
+	.@max_houses = getvariableofnpc(.max_houses, "Corretor de Imóveis");
+	
+	if (.@house_id < 1 || .@house_id > .@max_houses) {
+		dispbottom "Casa ID inválido. Use de 1 a " + .@max_houses;
+		end;
+	}
+	
+	.@owner_id = getd("$house_owner_" + .@house_id);
+	
+	if (.@owner_id == 0) {
+		dispbottom "Casa #" + .@house_id + " já está disponível.";
+		end;
+	}
+	
+	.@guild_name$ = getguildname(.@owner_id);
+	
+	// Liberar casa forçadamente
+	setd "$house_owner_" + .@house_id, 0;
+	setd "$house_password_" + .@house_id + "$", "";
+	setd "$house_expire_" + .@house_id, 0;
+	setd "$house_color_" + .@house_id + "$", "";
+	setd "$house_pvp_" + .@house_id, 0;
+	setd "$house_banned_" + .@house_id + "$", "";
+	
+	// Atualizar bandeira imediatamente
+	set $@house_id$, .@house_id + "";
+	donpcevent "FlagManager::OnUpdateSingleFlag";
+	
+	// Remover PvP e expulsar jogadores
+	.@map$ = getvariableofnpc(.house_map$[.@house_id], "Corretor de Imóveis");
+	removemapflag .@map$, mf_pvp;
+	mapwarp .@map$, "prontera", 155, 191;
+	
+	// Atualizar arrays do NPC principal
+	donpcevent "Corretor de Imóveis::OnForceUpdate";
+	
+	dispbottom "Casa #" + .@house_id + " foi liberada forçadamente.";
+	dispbottom "Guild anterior: " + .@guild_name$;
+	
+	logmes "ADMIN FORCE v2.5 - GM: " + strcharinfo(0) + " | Casa #" + .@house_id + " liberada | Guild anterior: " + .@guild_name$;
+	end;
+
+OnHouseList:
+	if (getgmlevel() < 99) {
+		dispbottom "Comando disponível apenas para GMs.";
+		end;
+	}
+	
+	.@max_houses = getvariableofnpc(.max_houses, "Corretor de Imóveis");
+	
+	dispbottom "=== LISTA COMPLETA DE CASAS v2.5 ===";
+	
+	for (.@i = 1; .@i <= .@max_houses; .@i++) {
+		.@owner_id = getd("$house_owner_" + .@i);
+		.@map$ = getvariableofnpc(.house_map$[.@i], "Corretor de Imóveis");
+		
+		if (.@owner_id > 0) {
+			.@expire_time = getd("$house_expire_" + .@i);
+			.@guild_name$ = getguildname(.@owner_id);
+			.@pvp_status = getd("$house_pvp_" + .@i);
+			.@days_left = (.@expire_time - gettimetick(2)) / 86400;
+			.@ban_list$ = getd("$house_banned_" + .@i + "$");
+			.@banned_count = 0;
+			
+			if (.@ban_list$ != "") {
+				.@banned_count = explode(.@temp_array$, .@ban_list$, "|");
+			}
+			
+			.@players_online = getmapusers(.@map$);
+			
+			dispbottom "Casa #" + .@i + " (" + .@map$ + ") - OCUPADA";
+			dispbottom "  Guild: " + .@guild_name$ + " | Dias: " + .@days_left + " | PvP: " + (.@pvp_status ? "ON" : "OFF");
+			dispbottom "  Banidos: " + .@banned_count + " | Online: " + .@players_online + " jogador(es)";
+		} else {
+			dispbottom "Casa #" + .@i + " (" + .@map$ + ") - DISPONÍVEL";
+		}
+	}
+	end;
+
+OnHouseBanList:
+	if (getgmlevel() < 99) {
+		dispbottom "Comando disponível apenas para GMs.";
+		end;
+	}
+	
+	.@max_houses = getvariableofnpc(.max_houses, "Corretor de Imóveis");
+	.@total_banned = 0;
+	
+	dispbottom "=== LISTA DE JOGADORES BANIDOS v2.5 ===";
+	
+	for (.@i = 1; .@i <= .@max_houses; .@i++) {
+		.@ban_list$ = getd("$house_banned_" + .@i + "$");
+		
+		if (.@ban_list$ != "") {
+			.@owner_id = getd("$house_owner_" + .@i);
+			.@guild_name$ = getguildname(.@owner_id);
+			
+			.@count = explode(.@banned_players$, .@ban_list$, "|");
+			
+			dispbottom "Casa #" + .@i + " (" + .@guild_name$ + ") - " + .@count + " banido(s):";
+			
+			for (.@j = 0; .@j < .@count; .@j++) {
+				if (.@banned_players$[.@j] != "") {
+					dispbottom "  • " + .@banned_players$[.@j];
+					.@total_banned++;
+				}
+			}
+		}
+	}
+	
+	if (.@total_banned == 0) {
+		dispbottom "Nenhum jogador está banido no momento.";
+	} else {
+		dispbottom "Total geral: " + .@total_banned + " jogador(es) banido(s)";
+	}
+	end;
+
+OnHouseMonitor:
+	if (getgmlevel() < 99) {
+		dispbottom "Comando disponível apenas para GMs.";
+		end;
+	}
+	
+	.@max_houses = getvariableofnpc(.max_houses, "Corretor de Imóveis");
+	
+	dispbottom "=== MONITORAMENTO EM TEMPO REAL v2.5 ===";
+	
+	for (.@i = 1; .@i <= .@max_houses; .@i++) {
+		.@owner_id = getd("$house_owner_" + .@i);
+		
+		if (.@owner_id > 0) {
+			.@map$ = getvariableofnpc(.house_map$[.@i], "Corretor de Imóveis");
+			.@players_online = getmapusers(.@map$);
+			.@guild_name$ = getguildname(.@owner_id);
+			
+			if (.@players_online > 0) {
+				dispbottom "Casa #" + .@i + " (" + .@guild_name$ + ") - " + .@players_online + " jogador(es) online";
+				
+				// Listar jogadores no mapa (apenas para GMs)
+				query_sql("SELECT `name` FROM `char` WHERE `online` = 1 AND `last_map` = '" + escape_sql(.@map$) + "'", .@player_names$);
+				.@count = getarraysize(.@player_names$);
+				
+				for (.@j = 0; .@j < .@count; .@j++) {
+					dispbottom "  • " + .@player_names$[.@j];
+				}
+			}
+		}
+	}
+	end;
+}
+
+// EVENTOS ESPECIAIS PARA SUPORTE AO RESET
+-	script	HouseSystemEvents	-1,{
+OnInit:
+	end;
+
+// Evento chamado quando o NPC principal precisa resetar arrays
+OnResetArrays:
+	donpcevent "Corretor de Imóveis::OnResetArrays";
+	end;
+
+// Evento para forçar atualização dos dados
+OnForceUpdate:
+	donpcevent "Corretor de Imóveis::OnForceUpdate";
+	end;
+}
+
+//===== SISTEMA DE ATUALIZAÇÃO DE BANDEIRAS - CORRIGIDO v2.5 =====
+-	script	FlagManager	-1,{
+
+OnInit:
+	logmes "FlagManager v2.5 - Sistema iniciado com sucesso";
+	end;
+
+// Função para atualizar bandeira específica
+OnUpdateSingleFlag:
+	.@house_id = atoi($@house_id$);
+	
+	// Log para debug
+	logmes "FlagManager - Atualizando bandeira da casa #" + .@house_id;
+	
+	// Array com nomes dos NPCs das bandeiras principais
+	setarray .@npc_names$[1], 
+		"Bandeira da Guild#01", 
+		"Bandeira da Guild#05", 
+		"Bandeira da Guild#09", 
+		"Bandeira da Guild#013", 
+		"Bandeira da Guild#017", 
+		"Bandeira da Guild#021", 
+		"Bandeira da Guild#025", 
+		"Bandeira da Guild#029", 
+		"Bandeira da Guild#033", 
+		"Bandeira da Guild#037";
+	
+	// Verificar se o house_id é válido
+	if (.@house_id >= 1 && .@house_id <= 10) {
+		.@npc_name$ = .@npc_names$[.@house_id];
+		
+		// Verificar se o NPC existe antes de chamar o evento
+		if (getnpcid(0, .@npc_name$) > 0) {
+			donpcevent .@npc_name$ + "::OnUpdateFlag";
+			logmes "FlagManager - Bandeira da casa #" + .@house_id + " atualizada: " + .@npc_name$;
+		} else {
+			logmes "FlagManager - ERRO: NPC não encontrado: " + .@npc_name$;
+		}
+	} else {
+		logmes "FlagManager - ERRO: House ID inválido: " + .@house_id;
+	}
+	end;
+
+// Função para atualizar todas as bandeiras
+OnUpdateAllFlags:
+	logmes "FlagManager - Atualizando todas as bandeiras";
+	
+	setarray .@npc_names$[1], 
+		"Bandeira da Guild#01", 
+		"Bandeira da Guild#05", 
+		"Bandeira da Guild#09", 
+		"Bandeira da Guild#013", 
+		"Bandeira da Guild#017", 
+		"Bandeira da Guild#021", 
+		"Bandeira da Guild#025", 
+		"Bandeira da Guild#029", 
+		"Bandeira da Guild#033", 
+		"Bandeira da Guild#037";
+	
+	for (.@i = 1; .@i <= 10; .@i++) {
+		if (getnpcid(0, .@npc_names$[.@i]) > 0) {
+			donpcevent .@npc_names$[.@i] + "::OnUpdateFlag";
+		}
+	}
+	
+	logmes "FlagManager - Todas as bandeiras foram atualizadas";
+	end;
+
+// Função para resetar todas as bandeiras
+OnResetAllFlags:
+	logmes "FlagManager - Resetando todas as bandeiras";
+	
+	setarray .@npc_names$[1], 
+		"Bandeira da Guild#01", 
+		"Bandeira da Guild#05", 
+		"Bandeira da Guild#09", 
+		"Bandeira da Guild#013", 
+		"Bandeira da Guild#017", 
+		"Bandeira da Guild#021", 
+		"Bandeira da Guild#025", 
+		"Bandeira da Guild#029", 
+		"Bandeira da Guild#033", 
+		"Bandeira da Guild#037";
+	
+	for (.@i = 1; .@i <= 10; .@i++) {
+		if (getnpcid(0, .@npc_names$[.@i]) > 0) {
+			donpcevent .@npc_names$[.@i] + "::OnUpdateFlag";
+		}
+	}
+	
+	logmes "FlagManager - Todas as bandeiras foram resetadas";
+	end;
+}
+
+// ADICIONAR AO NPC PRINCIPAL - Eventos de suporte
+/*
+Adicione estas funções ao final do NPC "Corretor de Imóveis", antes do último }:
+
+OnResetArrays:
+	// Resetar todos os arrays internos
+	for (.@i = 1; .@i <= .max_houses; .@i++) {
+		.house_owner[.@i] = 0;
+		.house_password$[.@i] = "";
+		.house_expire[.@i] = 0;
+		.house_color$[.@i] = "";
+		.house_pvp[.@i] = 0;
+	}
+	logmes "SISTEMA v2.5 - Arrays internos resetados por comando administrativo";
+	end;
+
+OnForceUpdate:
+	// Recarregar dados salvos
+	callsub(LoadHouseData);
+	logmes "SISTEMA v2.5 - Dados recarregados por comando administrativo";
+	end;
+*/

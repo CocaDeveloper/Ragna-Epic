@@ -1,0 +1,122 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  NPC - Removedora VIP
+//===============================================================
+
+//===== rAthena Script =======================================
+//= Card Removal NPC
+//===== By: ==================================================
+//= TyrNemesis^
+//===== Current Version: =====================================
+//= 1.2a
+//===== Compatible With: =====================================
+//= rAthena Project
+//===== Description: =========================================
+//= Removes cards from equipped items.
+//===== Additional Comments: =================================
+//= 1.0 First version. [TyrNemesis^]
+//= 1.2 Optimized and fixed getequipname menu. [Kisuka]
+//= 1.2a Added 'disable_items' command. [Euphy]
+//============================================================
+
+1@herbs,271,67,5	script	Removedora VIP	535,{
+
+	disable_items;
+
+inicio:
+	mes "^339966[Velha Anciã]^000000";
+	mes (gettime(3) >= 6 && gettime(3) <= 12 ? "Bom-dia" : (gettime(3) >= 13 && gettime(3) <= 18 ? "Boa-tarde" : "Boa-noite"))+", ^ffa500"+strcharinfo(0)+"^000000!";
+	mes "Eu tenho o poder de remover as cartas de qualquer equipamento, sem chances de falha.";
+	mes " ";
+	mes "Deseja remover uma carta agora?";
+	next;
+
+	switch(select("^339966[»]^000000 Sim.:^ff0000[»] Não, obrigado.^000000")) {
+	case 1:
+		mes "^339966[Velha Anciã]^000000";
+		mes "Muito bem, qual item você quer que eu examine?";
+		next;
+
+		setarray .@indices[1], EQI_HEAD_TOP, EQI_HEAD_MID, EQI_HEAD_LOW, EQI_ARMOR, EQI_HAND_L, EQI_HAND_R, EQI_GARMENT, EQI_SHOES, EQI_ACC_L, EQI_ACC_R;
+		.@menu$ = "";
+		for (set .@i, 1; .@i <= 10; set .@i, .@i + 1) {
+			if (getequipisequiped(.@indices[.@i]))
+				.@menu$ = .@menu$ + F_getpositionname(.@indices[.@i]) + "-[" + getequipname(.@indices[.@i]) + "]";
+			else
+				.@menu$ = .@menu$ + "[Slot vazio]";
+			.@menu$ = .@menu$ + ":";
+		}
+		.@menu$ += "^ff0000Voltar";
+
+		.@sel = select(.@menu$);
+		if (.@sel == 11) goto inicio;
+
+		set .@part, .@indices[.@sel];
+		if (!getequipisequiped(.@part)) {
+			mes "^339966[Velha Anciã]^000000";
+			mes "Calma aí, jovem... não há nenhum equipamento na área selecionada.";
+			close;
+		}
+		if (getequipcardcnt(.@part) == 0) {
+			mes "^339966[Velha Anciã]^000000";
+			mes "Hmm... não há nenhuma carta anexada a esse equipamento.";
+			close;
+		}
+
+		set .@cardcount, getequipcardcnt(.@part);
+
+		if (!checkweight(1202, (.@cardcount + 1))) {
+			mes "^3355FFSó um minuto!";
+			mes "Você está carregando peso demais.";
+			mes "Guarde alguns itens e volte.";
+			close;
+		}
+
+		mes "^339966[Velha Anciã]^000000";
+		mes "Este equipamento possui ^FF0000" + .@cardcount + "^000000 carta(s) equipada(s).";
+		mes "Minha magia está pronta para agir!";
+		mes " ";
+		mes "O que deseja fazer?";
+		next;
+
+		if (select("^339966[»]^000000 Remover cartas.:^ff0000[»] Cancelar") == 2) {
+			mes "^339966[Velha Anciã]^000000";
+			mes "Tudo bem! Retorne se você precisar dos meus serviços.";
+			close;
+		}
+
+		mes "^339966[Velha Anciã]^000000";
+		mes "Vamos nessa. Iniciando o processo mágico... não se preocupe, será um sucesso!";
+		next;
+
+		successremovecards .@part;
+		specialeffect2 154;
+
+		mes "^339966[Velha Anciã]^000000";
+		mes "Cartas removidas com sucesso! Cuide bem delas.";
+		close;
+
+	case 2:
+		mes "^339966[Velha Anciã]^000000";
+		mes "Tudo bem! Retorne se você precisar dos meus serviços.";
+		close;
+	}
+
+OnInit:
+	
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 64;	
+	setunittitle getnpcid(0), "[Removedora]";
+	
+	while(1) {
+		showscript "[ Removedora VIP ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}

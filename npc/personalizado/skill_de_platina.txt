@@ -1,0 +1,138 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                 HABILIDADES DE PLATINA
+// ===================== Descrição: =============================
+// ===== Coment rios adicionais: ===================================
+// = 1.0 Vers o inicial. [Keichii] [DarkChild]
+// = 2.0 Classes avan adas adicionadas. [ShadowLady]
+// = 2.1 Adicionadas classes de beb s. [Midas]
+// = 2.2 Verifica  es de trabalho simplificadas. [Silentdragon]
+// = 2,3 Thehell? Limpei o script, removeu a maldade. Tamb m adicionou habilidades de renascimento. [Spre]
+// = 2.4 Adicionadas habilidades avan adas. [Spre]
+// = 2.5 Di logo adicionado para se o usu rio n o for nenhum dos trabalhos listados. [Kisuka]
+// = 2.6 2  classes avan adas corrigidas n o sendo capazes de obter suas habilidades avan adas. [Ancyker]
+// = 2.7 Reescrito para dar todas as habilidades corretas a todas as classes adequadas. [Paradox924X]
+// = 2.8 Condicionais agrupados substitu dos por switch para incluir todos os tipos superiores. [Euphy]
+// = 2.9 Adicionado MC_CARTDECORATE para a classe Merchant. [mazvi]
+// = 3.0 Migrar / integrar para fun  es globais. [mazvi]
+//============================================================
+
+prontera,177,186,9	script	Livro de Habilidades	94,{
+	mes "^339966[Habilidades de Platina]^000000";
+	mes (gettime(3)>= 6&&gettime(3)<= 12?"Bom-dia":(gettime(3)>=13&&gettime(3)<=18?"Boa-tarde":"Boa-noite"))+", ^008aff"+strcharinfo(0)+"^000000 !";
+	mes "Eu posso te ensinar algumas habilidades muito importantes.";
+	mes "^FF0000Você gostaria de aprender?^000000";
+	next;
+	if (select("^339966[»]^000000 Sim, por favor:^ff0000[»] Não, obrigado^000000") == 2) {
+		mes "^339966[Habilidades de Platina]^000000";
+		mes "Tudo bem! Tenha um bom dia...";
+		close;
+	}
+	skill "NV_FIRSTAID",1,SKILL_PERM;
+	switch (BaseClass) {
+	case Job_Novice:
+		if (Class != Job_SuperNovice)
+			skill "NV_TRICKDEAD",1,SKILL_PERM;
+		break;
+	case Job_Swordman:
+		skill "SM_MOVINGRECOVERY",1,SKILL_PERM;
+		skill "SM_FATALBLOW",1,SKILL_PERM;
+		skill "SM_AUTOBERSERK",1,SKILL_PERM;
+		break;
+	case Job_Mage:
+		skill "MG_ENERGYCOAT",1,SKILL_PERM;
+		break;
+	case Job_Archer:
+		skill "AC_MAKINGARROW",1,SKILL_PERM;
+		skill "AC_CHARGEARROW",1,SKILL_PERM;
+		break;
+	case Job_Acolyte:
+		skill "AL_HOLYLIGHT",1,SKILL_PERM;
+		break;
+	case Job_Merchant:
+		skill "MC_CARTREVOLUTION",1,SKILL_PERM;
+		skill "MC_CHANGECART",1,SKILL_PERM;
+		skill "MC_LOUD",1,SKILL_PERM;
+		skill "MC_CARTDECORATE",5,SKILL_PERM;
+		break;
+	case Job_Thief:
+		skill "TF_SPRINKLESAND",1,SKILL_PERM;
+		skill "TF_BACKSLIDING",1,SKILL_PERM;
+		skill "TF_PICKSTONE",1,SKILL_PERM;
+		skill "TF_THROWSTONE",1,SKILL_PERM;
+		break;
+	default:
+		break;
+	}
+	switch (BaseJob) {
+	case Job_Knight:
+		skill "KN_CHARGEATK",1,SKILL_PERM;
+		break;
+	case Job_Priest:
+		skill "PR_REDEMPTIO",1,SKILL_PERM;
+		break;
+	case Job_Wizard:
+		skill "WZ_SIGHTBLASTER",1,SKILL_PERM;
+		break;
+	case Job_Blacksmith:
+		skill "BS_UNFAIRLYTRICK",1,SKILL_PERM;
+		skill "BS_GREED",1,SKILL_PERM;
+		break;
+	case Job_Hunter:
+		skill "HT_PHANTASMIC",1,SKILL_PERM;
+		break;
+	case Job_Assassin:
+		skill "AS_SONICACCEL",1,SKILL_PERM;
+		skill "AS_VENOMKNIFE",1,SKILL_PERM;
+		break;
+	case Job_Crusader:
+		skill "CR_SHRINK",1,SKILL_PERM;
+		break;
+	case Job_Monk:
+		skill "MO_KITRANSLATION",1,SKILL_PERM;
+		skill "MO_BALKYOUNG",1,SKILL_PERM;
+		break;
+	case Job_Sage:
+		skill "SA_CREATECON",1,SKILL_PERM;
+		skill "SA_ELEMENTWATER",1,SKILL_PERM;
+		skill "SA_ELEMENTGROUND",1,SKILL_PERM;
+		skill "SA_ELEMENTFIRE",1,SKILL_PERM;
+		skill "SA_ELEMENTWIND",1,SKILL_PERM;
+		break;
+	case Job_Rogue:
+		skill "RG_CLOSECONFINE",1,SKILL_PERM;
+		break;
+	case Job_Alchemist:
+		skill "AM_BIOETHICS",1,SKILL_PERM;
+		break;
+	case Job_Bard:
+		skill "BA_PANGVOICE",1,SKILL_PERM;
+		break;
+	case Job_Dancer:
+		skill "DC_WINKCHARM",1,SKILL_PERM;
+		break;
+	default:
+		break;
+	}
+	mes "^339966[Habilidades de Platina]^000000";
+	mes "Pronto, você acaba de aprender as suas novas Habilidades de Platina.";
+	close;
+	
+OnInit:
+
+	setunitdata getnpcid(0), UNPC_GROUP_ID, 65;	
+	setunittitle getnpcid(0), "[Skills de Platina]";
+
+while(1) {
+		showscript "[ Skills de Platina ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}

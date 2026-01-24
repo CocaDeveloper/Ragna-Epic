@@ -1,0 +1,408 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                ALUGUEL DE SALAS - GS (CORRIGIDO)
+//===============================================================
+
+// Função para converter segundos em tempo legível
+function	script	Time2StrGalhos	{
+	.@time = getarg(0);
+	.@hours = .@time / 3600;
+	.@minutes = (.@time % 3600) / 60;
+	.@seconds = .@time % 60;
+	
+	if (.@hours > 0)
+		return .@hours + "h " + .@minutes + "m " + .@seconds + "s";
+	else if (.@minutes > 0)
+		return .@minutes + "m " + .@seconds + "s";
+	else
+		return .@seconds + "s";
+}
+
+// NPC Principal de Aluguel das Salas
+prontera,126,196,5	script	Aluguel de Salas GS	615,{
+	mes "^339966[Guardião das Salas]^000000";
+	mes (gettime(3)>= 6&&gettime(3)<= 12?"Bom-dia":(gettime(3)>=13&&gettime(3)<=18?"Boa-tarde":"Boa-noite"))+", ^ffa500"+strcharinfo(0)+"^000000!";
+	mes "Bem-vindo ao sistema de Aluguel de Salas!";
+	mes "Aqui você pode alugar uma sala para usar ^ff0000Galhos Sangrentos^000000 com segurança junto à sua party.";
+	next;
+	
+	// Verifica se está em party
+	if (!getcharid(1)) {
+		mes "^339966[Guardião das Salas]^000000";
+		mes "Desculpe, mas apenas jogadores em party podem alugar as salas.";
+		mes "Forme uma party primeiro e volte a falar comigo!";
+		close;
+	}
+	
+	// Verifica se a party já tem uma sala alugada (qualquer membro pode entrar)
+	for (.@i = 1; .@i <= 10; .@i++) {
+		if (.room_timer[.@i] > gettimetick(2) && .room_party_id[.@i] == getcharid(1)) {
+			.@time_left = .room_timer[.@i] - gettimetick(2);
+			mes "^339966[Guardião das Salas]^000000";
+			mes "Sua party já possui a ^0000ffSala #" + .@i + "^000000 alugada!";
+			mes "Tempo restante: ^ff0000" + callfunc("Time2StrGalhos", .@time_left) + "^000000";
+			mes " ";
+			mes "Deseja entrar na sala?";
+			next;
+			if (select("^339966[»]^000000 Sim", "^ff0000[»] Não^000000") == 1) {
+				close2;
+				warp "gs_room" + sprintf("%02d", .@i), 99, 100;
+				end;
+			}
+			close;
+		}
+	}
+	
+	// A partir daqui, apenas o líder pode alugar uma nova sala
+	if (getpartyleader(getcharid(1), 2) != getcharid(0)) {
+		mes "^339966[Guardião das Salas]^000000";
+		mes "Sua party não possui nenhuma sala alugada.";
+		mes "Apenas o líder da party pode alugar uma nova sala.";
+		close;
+	}
+	
+	mes "^339966[Guardião das Salas]^000000";
+	mes "Custo do aluguel: ^FF0000" + .rent_cost + " Zeny.^000000";
+	mes "Tempo de uso: ^ff0000" + .room_time + " minutos.^000000";
+	mes " ";
+	next;
+	mes "^339966[Guardião das Salas]^000000";
+	mes "^ff0000Salas disponíveis:^000000";
+	
+	// Mostra status das salas
+	for (.@i = 1; .@i <= 10; .@i++) {
+		if (.room_timer[.@i] > gettimetick(2)) {
+			.@time_left = .room_timer[.@i] - gettimetick(2);
+			mes "Sala #" + .@i + " = ^FF0000Ocupada^000000 (" + .room_party$[.@i] + " - " + callfunc("Time2StrGalhos", .@time_left) + ")";
+		} else {
+			mes "Sala #" + .@i + " = ^00FF00Livre^000000";
+		}
+	}
+	next;
+	
+	.@room = select(
+		"Sala 1 [" + getmapusers("gs_room01") + " usuários]",
+		"Sala 2 [" + getmapusers("gs_room02") + " usuários]", 
+		"Sala 3 [" + getmapusers("gs_room03") + " usuários]",
+		"Sala 4 [" + getmapusers("gs_room04") + " usuários]",
+		"Sala 5 [" + getmapusers("gs_room05") + " usuários]",
+		"Sala 6 [" + getmapusers("gs_room06") + " usuários]",
+		"Sala 7 [" + getmapusers("gs_room07") + " usuários]",
+		"Sala 8 [" + getmapusers("gs_room08") + " usuários]",
+		"Sala 9 [" + getmapusers("gs_room09") + " usuários]",
+		"Sala 10 [" + getmapusers("gs_room10") + " usuários]",
+		"^ff0000[»] Cancelar^000000"
+	);
+	
+	if (.@room == 11) close;
+	
+	// Verifica se a sala está ocupada
+	if (.room_timer[.@room] > gettimetick(2)) {
+		mes "^339966[Guardião das Salas]^000000";
+		mes "Esta sala já está ocupada pela party:";
+		mes "^0000FF" + .room_party$[.@room] + "^000000";
+		.@time_left = .room_timer[.@room] - gettimetick(2);
+		mes "Tempo restante: ^FF0000" + callfunc("Time2StrGalhos", .@time_left) + "^000000";
+		mes "Por favor, escolha outra sala.";
+		close;
+	}
+	
+	// Verifica zeny
+	.@current_zeny = Zeny;
+	.@required_zeny = .rent_cost;
+	if (.@current_zeny < .@required_zeny) {
+		mes "^339966[Guardião das Salas]^000000";
+		mes "Você não possui zeny suficiente.";
+		mes "Você tem: ^00FF00" + .@current_zeny + " Zeny^000000";
+		mes "Necessário: ^FF0000" + .@required_zeny + " Zeny^000000";
+		close;
+	}
+	
+	mes "^339966[Guardião das Salas]^000000";
+	mes "Confirma o aluguel da ^ff0000Sala #" + .@room + "^000000?";
+	mes "Custo: ^FF0000" + .rent_cost + " Zeny^000000";
+	next;
+	
+	if (select("^339966[»]^000000 Sim", "^ff0000[»] Não^000000") == 2) close;
+	
+	// Verificação final antes de processar o pagamento
+	if (agitcheck() || agitcheck2()) {
+		mes "^339966[Guardião das Salas]^000000";
+		mes "^FF0000[ATENÇÃO]^000000";
+		mes "A Guerra do Emperium está ativa!^000000";
+		mes "Não é possível completar o aluguel.";
+		close;
+	}
+	
+	// CORREÇÃO: Define os dados da sala ANTES do teleporte
+	.room_timer[.@room] = gettimetick(2) + (.room_time * 60);
+	.room_party_id[.@room] = getcharid(1);
+	.room_party$[.@room] = getpartyname(getcharid(1));
+	
+	// Processa o aluguel - Verificação dupla de zeny
+	if (Zeny < .rent_cost) {
+		mes "^339966[Guardião das Salas]^000000";
+		mes "Erro: Zeny insuficiente no momento do pagamento.";
+		close;
+	}
+	
+	set Zeny, Zeny - .rent_cost;
+	
+	mes "^339966[Guardião das Salas]^000000";
+	mes "Sala alugada com sucesso!";
+	mes "Você tem ^ff0000" + .room_time + " minutos^000000 de uso.";
+	mes "Teleportando...";
+	
+	// Limpa a sala de monstros
+	killmonsterall "gs_room" + sprintf("%02d", .@room);
+	
+	// Inicia o timer da sala APÓS definir os dados
+	donpcevent "Controlador GS#" + .@room + "::OnStart";
+	
+	close2;
+	warp "gs_room" + sprintf("%02d", .@room), 99, 100;
+	end;
+
+OnInit:
+	// Configurações
+	.rent_cost = 10000000;  // 10kk zeny por hora
+	.room_time = 60;      // 60 minutos por aluguel
+	.warning_time = 10;   // Aviso 10 minutos antes do fim
+	
+	while(1) {
+		showscript "[ Sala de Galhos ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+// Script base para controladores das salas
+-	script	Controlador GS	-1,{
+	.@room_id = atoi(strnpcinfo(2));
+	
+	mes "^339966[Gerente da Sala]^000000";
+	mes "^0000FFSala #" + .@room_id + "^000000";
+	
+	// CORREÇÃO: Verificação mais tolerante para timing
+	.@current_time = gettimetick(2);
+	.@room_timer = getvariableofnpc(.room_timer[.@room_id], "Aluguel de Salas GS");
+	
+	// Verifica se a sala está alugada (com margem de 10 segundos para processamento)
+	if (.@room_timer <= .@current_time + 10) {
+		mes "Esta sala não está mais alugada ou o aluguel expirou.";
+		mes "Você será teleportado para fora.";
+		close2;
+		warp "prontera", 155, 191;
+		end;
+	}
+	
+	// Verifica se é membro da party que alugou
+	.@player_party = getcharid(1);
+	.@room_party = getvariableofnpc(.room_party_id[.@room_id], "Aluguel de Salas GS");
+	
+	if (.@player_party == 0 || .@player_party != .@room_party) {
+		mes "Você não faz parte da party que alugou esta sala.";
+		mes "Você será teleportado para fora.";
+		close2;
+		warp "prontera", 155, 191;
+		end;
+	}
+	
+	.@time_left = .@room_timer - .@current_time;
+	mes "Tempo restante: ^ff0000" + callfunc("Time2StrGalhos", .@time_left) + "^000000";
+	mes "Party: ^ff0000" + getvariableofnpc(.room_party$[.@room_id], "Aluguel de Salas GS") + "^000000";
+	next;
+	
+	// Apenas o líder da party pode renovar
+	if (getpartyleader(getcharid(1), 2) == getcharid(0)) {
+		switch(select("Renovar tempo ^ff0000(+" + getvariableofnpc(.room_time, "Aluguel de Salas GS") + " min)^000000", "Sair da Sala", "^ff0000Cancelar^000000")) {
+		case 1: // Renovar
+			.@rent_cost = getvariableofnpc(.rent_cost, "Aluguel de Salas GS");
+			.@current_zeny = Zeny;
+			if (.@current_zeny < .@rent_cost) {
+				mes "^339966[Gerente da Sala]^000000";
+				mes "Zeny insuficiente para renovação.";
+				mes "Você tem: ^00FF00" + .@current_zeny + " Zeny^000000";
+				mes "Necessário: ^ff0000" + .@rent_cost + " Zeny.^000000";
+				close;
+			}
+			
+			set Zeny, Zeny - .@rent_cost;
+			.@new_time = .@room_timer + (getvariableofnpc(.room_time, "Aluguel de Salas GS") * 60);
+			set getvariableofnpc(.room_timer[.@room_id], "Aluguel de Salas GS"), .@new_time;
+			
+			mes "^339966[Gerente da Sala]^000000";
+			mes "Tempo renovado com sucesso!";
+			break;
+			
+		case 2: // Sair
+			mes "^339966[Gerente da Sala]^000000";
+			mes "Saindo da sala...";
+			close2;
+			warp "prontera", 155, 191;
+			end;
+			
+		case 3: // Cancelar
+			break;
+		}
+	} else {
+		// Membros da party que não são líderes só podem sair
+		switch(select("Sair da Sala", "^ff0000Cancelar^000000")) {
+		case 1: // Sair
+			mes "^339966[Gerente da Sala]^000000";
+			mes "Saindo da sala...";
+			close2;
+			warp "prontera", 155, 191;
+			end;
+			
+		case 2: // Cancelar
+			break;
+		}
+	}
+	close;
+
+OnStart:
+	.@room_id = atoi(strnpcinfo(2));
+	.@warned = 0;
+	.@warned2 = 0; 
+	.@warned3 = 0;
+	
+	// Timer principal da sala
+	while (getvariableofnpc(.room_timer[.@room_id], "Aluguel de Salas GS") > gettimetick(2)) {
+		// Verifica se WoE começou durante o aluguel
+		if (agitcheck() || agitcheck2()) {
+			mapannounce strnpcinfo(4), "[Gerente]: A Guerra do Emperium foi iniciada! A sala será liberada em 5 segundos.", bc_map;
+			sleep 5000;
+			mapwarp strnpcinfo(4), "prontera", 155, 191;
+			killmonsterall strnpcinfo(4);
+			
+			// Limpa os dados da sala
+			set getvariableofnpc(.room_timer[.@room_id], "Aluguel de Salas GS"), 0;
+			set getvariableofnpc(.room_party_id[.@room_id], "Aluguel de Salas GS"), 0;
+			set getvariableofnpc(.room_party$[.@room_id], "Aluguel de Salas GS"), "";
+			end;
+		}
+		
+		.@time_left = getvariableofnpc(.room_timer[.@room_id], "Aluguel de Salas GS") - gettimetick(2);
+		
+		// Aviso de 10 minutos
+		if (.@time_left <= (getvariableofnpc(.warning_time, "Aluguel de Salas GS") * 60) && !.@warned) {
+			mapannounce strnpcinfo(4), "[Gerente]: Atenção: " + getvariableofnpc(.warning_time, "Aluguel de Salas GS") + " minutos restantes! Renove o tempo no NPC se desejar continuar.", bc_map;
+			.@warned = 1;
+		}
+		
+		// Aviso de 5 minutos
+		if (.@time_left <= 300 && !.@warned2) {
+			mapannounce strnpcinfo(4), "[Gerente]: Atenção: 5 minutos restantes!", bc_map;
+			.@warned2 = 1;
+		}
+		
+		// Aviso de 1 minuto
+		if (.@time_left <= 60 && !.@warned3) {
+			mapannounce strnpcinfo(4), "[Gerente]: Atenção: 1 minuto restante!", bc_map;
+			.@warned3 = 1;
+		}
+		
+		sleep 30000; // Verifica a cada 30 segundos
+	}
+	
+	// Tempo expirou
+	mapannounce strnpcinfo(4), "[Gerente]: O tempo da sala expirou! Todos os jogadores serão teleportados.", bc_map;
+	sleep 2000;
+	mapwarp strnpcinfo(4), "prontera", 155, 191;
+	killmonsterall strnpcinfo(4);
+	
+	// Limpa os dados da sala
+	set getvariableofnpc(.room_timer[.@room_id], "Aluguel de Salas GS"), 0;
+	set getvariableofnpc(.room_party_id[.@room_id], "Aluguel de Salas GS"), 0;
+	set getvariableofnpc(.room_party$[.@room_id], "Aluguel de Salas GS"), "";
+	
+	end;
+
+OnWoECleanup:
+	end;
+
+OnInit:
+	// Nome acima do NPC
+	while(1) {
+		showscript "[ Gerente ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+// Duplicar controladores para cada sala
+gs_room01,118,96,4	duplicate(Controlador GS)	Controlador GS#1	100
+gs_room02,118,96,4	duplicate(Controlador GS)	Controlador GS#2	100
+gs_room03,118,96,4	duplicate(Controlador GS)	Controlador GS#3	100
+gs_room04,118,96,4	duplicate(Controlador GS)	Controlador GS#4	100
+gs_room05,118,96,4	duplicate(Controlador GS)	Controlador GS#5	100
+gs_room06,118,96,4	duplicate(Controlador GS)	Controlador GS#6	100
+gs_room07,118,96,4	duplicate(Controlador GS)	Controlador GS#7	100
+gs_room08,118,96,4	duplicate(Controlador GS)	Controlador GS#8	100
+gs_room09,118,96,4	duplicate(Controlador GS)	Controlador GS#9	100
+gs_room10,118,96,4	duplicate(Controlador GS)	Controlador GS#10	100
+
+gs_room01,118,103,4	duplicate(Curandeira)	Curandeira#GS1	612
+gs_room02,118,103,4	duplicate(Curandeira)	Curandeira#GS2	612
+gs_room03,118,103,4	duplicate(Curandeira)	Curandeira#GS3	612
+gs_room04,118,103,4	duplicate(Curandeira)	Curandeira#GS4	612
+gs_room05,118,103,4	duplicate(Curandeira)	Curandeira#GS5	612
+gs_room06,118,103,4	duplicate(Curandeira)	Curandeira#GS6	612
+gs_room07,118,103,4	duplicate(Curandeira)	Curandeira#GS7	612
+gs_room08,118,103,4	duplicate(Curandeira)	Curandeira#GS8	612
+gs_room09,118,103,4	duplicate(Curandeira)	Curandeira#GS9	612
+gs_room10,118,103,4	duplicate(Curandeira)	Curandeira#GS10	612
+
+
+// Mapflags para as salas
+gs_room01	mapflag	nowarpto
+gs_room02	mapflag	nowarpto
+gs_room03	mapflag	nowarpto
+gs_room04	mapflag	nowarpto
+gs_room05	mapflag	nowarpto
+gs_room06	mapflag	nowarpto
+gs_room07	mapflag	nowarpto
+gs_room08	mapflag	nowarpto
+gs_room09	mapflag	nowarpto
+gs_room10	mapflag	nowarpto
+
+gs_room01	mapflag	nomemo
+gs_room02	mapflag	nomemo
+gs_room03	mapflag	nomemo
+gs_room04	mapflag	nomemo
+gs_room05	mapflag	nomemo
+gs_room06	mapflag	nomemo
+gs_room07	mapflag	nomemo
+gs_room08	mapflag	nomemo
+gs_room09	mapflag	nomemo
+gs_room10	mapflag	nomemo
+
+gs_room01	mapflag	noteleport
+gs_room02	mapflag	noteleport
+gs_room03	mapflag	noteleport
+gs_room04	mapflag	noteleport
+gs_room05	mapflag	noteleport
+gs_room06	mapflag	noteleport
+gs_room07	mapflag	noteleport
+gs_room08	mapflag	noteleport
+gs_room09	mapflag	noteleport
+gs_room10	mapflag	noteleport
+
+gs_room01	mapflag	nosave	SavePoint
+gs_room02	mapflag	nosave	SavePoint
+gs_room03	mapflag	nosave	SavePoint
+gs_room04	mapflag	nosave	SavePoint
+gs_room05	mapflag	nosave	SavePoint
+gs_room06	mapflag	nosave	SavePoint
+gs_room07	mapflag	nosave	SavePoint
+gs_room08	mapflag	nosave	SavePoint
+gs_room09	mapflag	nosave	SavePoint
+gs_room10	mapflag	nosave	SavePoint

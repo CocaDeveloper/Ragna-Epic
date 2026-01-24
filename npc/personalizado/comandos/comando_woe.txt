@@ -1,0 +1,19 @@
+-	script	woe_cmd	FAKE_NPC,{
+OnInit:
+	bindatcmd "woe", "woe_cmd::OnWoe";
+	end;
+
+OnWoe:
+	if (getgroupid() < 1 && #VIP_STATUS < 1) {
+		dispbottom "Este comando é restrito somente a jogadores VIPs";
+		end;
+	}
+	if (!agitcheck()) {
+		dispbottom "A Guerra do Emperium não está ativa.";
+		end;
+	}
+	dispbottom "Teleportando para a WoE...";
+	specialeffect2 1062;		sleep2 1000; // 1 segundo de delay
+	warp "prt_gld", 153, 133; // Teleporta direto para um castelo
+	end;
+}

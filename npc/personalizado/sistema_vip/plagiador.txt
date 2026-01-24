@@ -1,0 +1,300 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  NPC - Plagiador Premium
+//===============================================================
+
+1@herbs,300,88,3	script	Chefão do Plágio#Premium	810,{
+	
+	doevent "plagiadorHabilidadess::OnPlagio";
+
+OnInit:
+
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 81;	
+		setunittitle getnpcid(0), "[Rune-Midgard]";
+
+		while(1) {
+		showscript "[ Plagiar Habilidade ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+-	script	plagiadorHabilidadess	-1,{
+
+
+OnPlagio:
+    set .@lvlHabilidade,getskilllv( "RG_PLAGIARISM" );
+    .nomeNPC$ = "^339966[Chefão do Plágio]^000000";
+
+    mes .nomeNPC$;
+    mes "Bem-vindo ^FFA500"+strcharinfo(0)+"^000000, ao mundo do plágio.";
+	mes " ";
+    mes "Eu sou o maior plagiador de Rune-Midgard, pode apostar!";
+	next;
+	mes "^339966[Chefão do Plágio]^000000";
+    mes "Posso te ajudar a plagiar a habilidade de algumas profissões.";
+	mes " ";
+    mes "Deseja aprender a arte do plágio?";
+	mes "Cobro uma taxa de ^ff000050.000 zenys^000000.";
+    menu "^339966[>]^000000 Sim, quero plagiar.",PLAGIAR,"^ff0000[>] Não, obrigado!^000000",NAO;
+
+PLAGIAR:
+    clear;
+    mes .nomeNPC$;
+    mes "Perfeito!";
+	mes "Vamos começar então.";
+	next;
+	mes .nomeNPC$;
+    mes "Vamos começar escolhendo qual habilidade você gostaria de plagiar.";
+    
+    // Verifica se o jogador tem 50k zeny
+    if (Zeny < 50000) {
+        mes .nomeNPC$;
+        mes "Você não tem zeny suficiente.";
+        mes "Você precisa de 50.000 zeny para plagiar uma habilidade.";
+        close;
+    }
+	
+    //set SkillPoint,0;
+
+    if ( !.@lvlHabilidade ){
+        clear;
+        mes .nomeNPC$;
+        mes "Espera!!!";
+        mes "Você é da polícia ou o que?";
+        mes "Eu só falo com ^ff0000Desordeiros^000000, se você não tem um mandato judicial, eu não tenho mais nada para falar!";
+        end;
+    } else {
+        if ( select( ( CLONE_SKILL )?"^339966[»]^000000 Esquecer meu plágio atual.":"^339966[»]^000000 Plagiar nova habilidade.","^ff0000[»] Cancelar^000000" ) == 1 ){
+            if ( CLONE_SKILL && CLONE_SKILL_LV ) {
+                next;
+                mes .nomeNPC$;
+                mes "Pronto!";
+                mes "Limpei suas memórias quanto ao seu último plágio.";
+                set CLONE_SKILL_LV,0;
+                skill CLONE_SKILL,CLONE_SKILL_LV,0;
+                set CLONE_SKILL,0;
+            } else {
+                next;
+                mes .nomeNPC$;
+                mes "Qual habilidade gostaria que eu te ajudasse a plagiar hoje?";
+                set .@i,select( .menu$ ) - 1;
+                if( .@lvlHabilidade > .lvlMaxHabilidade[.@i] )
+                    set .@lvlHabilidade,.lvlMaxHabilidade[.@i];
+				next;
+				mes .nomeNPC$;
+                mes "Habilidade escolhida : ^ff0000"+.nomeHabilidade$[.@i]+"^000000";
+                mes "Level : ^ff0000"+.@lvlHabilidade+"^000000";
+				mes " ";
+				mes "Deseja confirmar a habilidade?";
+                if( select( "^339966[»]^000000 Confirmar","^ff0000[»] Cancelar^000000" ) == 1 ){
+                    set CLONE_SKILL,.idHabilidade[.@i];
+                    set CLONE_SKILL_LV,.@lvlHabilidade;
+                    next;
+                    // Cobra 50k zeny
+                    set Zeny, Zeny - 50000;
+                    mes "Acabei de te ensinar a habilidade ^0055FF"+.nomeHabilidade$[.@i]+"^000000 no ^0055FFlevel "+CLONE_SKILL_LV+"^000000";
+                    skill CLONE_SKILL,CLONE_SKILL_LV,0;
+                } else {
+				next;
+				mes .nomeNPC$;
+				mes "Tudo bem! Volte quando precisar dos meus serviços.";
+				close;
+				}
+            }
+        }  else {
+				next;
+				mes .nomeNPC$;
+				mes "Tudo bem! Volte quando precisar dos meus serviços.";
+				close;
+				}
+    }
+    if ( CLONE_SKILL_LV > 0 ) {
+        dispbottom "Habilidade Selecionada:";
+        dispbottom "Habilidade Id "+CLONE_SKILL+" | Level : "+CLONE_SKILL_LV;
+        dispbottom "Não se esqueça de relogar o personagem.";
+        clear;
+        mes .nomeNPC$;
+        mes "Você receberá um pequeno dano!";
+        sleep2 1000;
+        clear;
+        mes "           Lançando habilidade em... ";
+        mes "^007bff ";
+        mes "                         |||||||";
+        mes "                              |||";
+        mes "                         |||||||";
+        mes "                              |||";
+        mes "                         |||||||^000000";
+        sleep2 1000;
+        clear;
+        mes "           Lançando habilidade em... ";
+        mes "^ff7700 ";
+        mes "                            |||  ";
+        mes "                         |||   |||";
+        mes "                             |||  ";
+        mes "                          |||     ";
+        mes "                         |||||||||^000000";
+        sleep2 1000;
+        clear;
+        mes "           Lançando habilidade em... ";
+        mes "^ff0000 ";
+        mes "                           |||  ";
+        mes "                         |||||  ";
+        mes "                           |||  ";
+        mes "                           |||  ";
+        mes "                         |||||||^000000";
+		sleep2 1000;
+
+		// Aplica o efeito visual da habilidade escolhida
+		specialeffect2 .efeitoVisual[.@i];
+		// Aplica dano de 500 HP no jogador
+		if (HP > 5000)
+			set HP, HP - 5000;
+		else
+		percentheal -100,0; // Garante que zera HP se tiver menos que 500
+		dispbottom "^FF0000[Chefão do Plágio]^000000 Você sofreu 5000 de dano ao plagiar essa habilidade.";
+		sleep2 1000;
+
+		next;
+		mes .nomeNPC$;
+		mes "Habilidade plagiada com sucesso!";
+		mes " ";
+		mes "Por favor, relogue seu personagem.";
+		sleep2 1000;
+		atcommand "@kick " + strcharinfo(0);
+		
+    } else {
+        dispbottom "Última habilidade limpa de suas memórias.";
+    }
+    close;
+
+NAO:
+    next;
+    mes .nomeNPC$;
+    mes "Tudo bem! Volte quando precisar dos meus serviços.";
+    close;
+
+OnInit:
+
+/* WZ_STORMGUST 89, 	  // "Nevasca",
+WZ_VERMILION 85,  	  // "Ira de Thor",
+WZ_METEOR    83, 	  // "Chuva de Meteoros",
+MG_FIREBOLT  19,  	  // "Lanças de Fogo",
+MG_COLDBOLT  14,  	  // "Lanças de Gelo",
+NJ_KOUENKA 534, 	  // "Pétalas Flamejantes",
+CR_HOLYCROSS 253,  // "Crux Divina",
+KN_BOWLINGBASH 62,         // "Impacto de Tyr",
+NJ_HYOUSENSOU 537,         // "Lança Congelante",
+NJ_BAKUENRYU 536,          // "Dragão Explosivo",
+MO_TRIPLEATTACK 263,       // "Combo Triplo",
+MO_TRIPLEATTACK 263,       // "Combo Triplo",
+TK_JUMPKICK 421,       // "Chute Aéreo", */
+/* 
+Fogo Grego
+ID:    AM_DEMONSTRATION (229)
+Níveis:    5
+
+Terror Ácido
+ID:    AM_ACIDTERROR (230)
+Níveis:    5
+
+Mammonita
+ID:    MC_MAMMONITE (42)
+Níveis:    10
+
+Crux Magnum
+ID:    CR_GRANDCROSS (254)
+Níveis:    10
+
+Explosão Tóxica
+ID:    AS_SPLASHER (141)
+Níveis:    10
+
+Instalar Mina
+ID:    HT_BLASTMINE (122)
+Níveis:    5
+
+Armadilha Explosiva
+ID:    HT_CLAYMORETRAP (123)
+Níveis:    5
+
+Armadilha Atordoante
+ID:    HT_LANDMINE (116)
+Níveis:    5
+*/
+    /* ------- Nome exibido das habilidades ------ */
+    setarray .nomeHabilidade$,
+        "Nevasca",
+        "Ira de Thor",
+        "Chuva de Meteoros",
+		"Trovão de Júpiter",
+        "Lanças de Fogo",
+        "Lanças de Gelo",
+		"Relâmpago",
+        "Pétalas Flamejantes",
+		"Lança Congelante",
+		"Dragão Explosivo",
+		"Brisa Cortante",
+        "Crux Divina",
+		"Crux Magnum",
+        "Impacto de Tyr",
+        "Combo Quadruplo",
+		"Chute Aéreo",
+        "Fogo Grego",
+        "Terror Ácido",
+		"Bomba Ácida",
+        "Mammonita",
+        "Explosão Tóxica",
+        "Instalar Mina",
+        "Armadilha Explosiva",
+        "Armadilha Atordoante";
+    /* ------------ Id das habilidades ----------- */
+    setarray .idHabilidade,
+        89,85,83,84,19,14,20,534,537,536,542,253,254,62,272,421,229,230,490,42,141,122,123,116;
+    /* ---------- Level das habilidades ---------- */
+    setarray .lvlMaxHabilidade,
+        10,10,10,10,10,10,10,10,10,10,5,10,5,10,5,5,5,5,10,10,10,5,5,5;
+
+    set .skill_size,getarraysize( .nomeHabilidade$ );
+    while ( .@i < .skill_size ) {
+        set .menu$,.menu$ + "^ff0000[Lv "+.lvlMaxHabilidade[.@i]+"]^000000 "+ .nomeHabilidade$[.@i] +":";
+        set .@i,.@i + 1;
+    }
+	
+	// ------- Efeitos visuais correspondentes às habilidades -------
+	setarray .efeitoVisual,
+    EF_STORMGUST,      	// Nevasca
+    EF_LORD,			// Ira de Thor
+    EF_METEORSTORM,     // Chuva de Meteoros
+	EF_YUFITEL2,		// Trovão de Júpiter
+    EF_FIREHIT,     	// Lanças de Fogo
+    EF_COLDHIT,      	// Lanças de Gelo
+	EF_LIGHTBOLT,		// Relâmpago
+    EF_KOUENKA,       	// Pétalas Flamejantes
+	EF_HYOUSENSOU,     	// Lança Congelante
+	EF_BAKU,      		// Dragão Explosivo
+	EF_STIN5,			// Brisa Cortante
+    EF_HOLYCROSS,     	// Crux Divina
+	EF_GRANDCROSS,    	// Crux Magnum
+    EF_BOWLINGBASH,   	// Impacto de Tyr
+    EF_CHAINCOMBO,  	// Combo Quadruplo
+    //EF_TK_JUMPKICK,    	// Chute Aéreo
+    EF_DEMONSTRATION,  	// Fogo Grego
+    //EF_ACIDTERROR,     	// Terror Ácido
+	EF_ACIDDEMON,		// Bomba Ácida
+    EF_COIN,      		// Mammonita
+    EF_SPLASHER,      	// Explosão Tóxica
+    EF_BLASTMINEBOMB,   // Instalar Mina
+    EF_CLAYMORE,  		// Armadilha Explosiva
+    EF_FIREPILLARBOMB;  // Armadilha Atordoante
+	
+}
+
+//malangdo,229,262,3	duplicate(Plagiador de Habilidades#Premium)	Plagiador Test	779

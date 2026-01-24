@@ -1,0 +1,220 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                NPC - Removedor de Refino
+//===============================================================
+// v1.2: Melhorias implementadas - Cobrança de zeny, bloqueio de cartas, proteção contra duplicatas.
+//===============================================================
+
+1@herbs,265,58,4	script	Jessé, O Aprendiz	944,{
+
+L_MainMenu:
+	mes "^339966[Jessé, O Aprendiz]^000000";
+	mes "Olá, ^ffa500" + strcharinfo(0) + ".^000000";
+	mes "Eu posso remover os refinos dos seus equipamentos equipados.";
+	mes " ";
+	mes "^ff0000Valores:^000000";
+	mes "• Remover +1 nível: ^0066ff5.000.000z^000000";
+	mes "• Remover todo refino: ^0066ff50.000.000z^000000";
+	
+// ADIÇÃO: Etiqueta para poder voltar a este menu.
+
+	mes " ";
+	mes "Você deseja remover apenas ^ff00001 nível^000000 ou ^ff0000todos^000000 de uma vez?";
+	next;
+	
+	set .@choice, select("^339966[»]^000000 Remover +1 nível de refino","^339966[»]^000000 Remover todo o refino","^ff0000[»] Cancelar^000000");
+	if (.@choice == 3) {
+		mes "^339966[Jessé, O Aprendiz]^000000";
+		mes "Tudo bem! Volte quando quiser.";
+		close;
+	}
+	
+	// ADIÇÃO: Verificar se o jogador tem zeny suficiente
+	set .@cost, (.@choice == 1) ? 5000000 : 50000000;
+	if (Zeny < .@cost) {
+		mes "^339966[Jessé, O Aprendiz]^000000";
+		mes "^ff0000Atenção!^000000";
+		mes "Você não possui zeny suficiente.";
+		mes "Necessário: ^0066ff" + .@cost + "z^000000";
+		mes "Você tem: ^0066ff" + Zeny + "z^000000";
+		close;
+	}
+	
+	mes "^339966[Jessé, O Aprendiz]^000000";
+	mes "Escolha o ^ff0000slot^000000 do equipamento que deseja modificar:";
+	next;
+	
+	// Slots de equipamento
+	set .@equip_slot, select(
+		"^339966[»]^000000 Topo",
+		"^339966[»]^000000 Meio",
+		"^339966[»]^000000 Baixo",
+		"^339966[»]^000000 Armadura",
+		"^339966[»]^000000 Mão Direita - Arma",
+		"^339966[»]^000000 Mão Esquerda - Escudo",
+		"^339966[»]^000000 Capa",
+		"^339966[»]^000000 Calçado",
+		"^339966[»]^000000 Acessório Direito",
+		"^339966[»]^000000 Acessório Esquerdo",
+		// ADIÇÃO: Nova opção "Voltar" no menu.
+		"^ff0000[»] Voltar^000000"
+	);
+
+	// ADIÇÃO: Lógica para lidar com a opção "Voltar".
+	if (.@equip_slot == 11) {
+		goto L_MainMenu;
+	}
+	
+	// Converte para o índice correto (EQI_HEAD_TOP = 1, etc.)
+	switch(.@equip_slot) {
+		case 1: set .@equip_slot, 6; break; // EQI_HEAD_TOP
+		case 2: set .@equip_slot, 5; break; // EQI_HEAD_MID
+		case 3: set .@equip_slot, 4; break; // EQI_HEAD_LOW
+		case 4: set .@equip_slot, 7; break; // EQI_ARMOR
+		case 5: set .@equip_slot, 9; break; // EQI_HAND_R
+		case 6: set .@equip_slot, 8; break; // EQI_HAND_L
+		case 7: set .@equip_slot, 3; break; // EQI_GARMENT
+		case 8: set .@equip_slot, 2; break; // EQI_SHOES
+		case 9: set .@equip_slot, 1; break; // EQI_ACC_R
+		case 10: set .@equip_slot, 0; break; // EQI_ACC_L
+	}
+	
+	// Verifica se há item equipado
+	set .@item_id, getequipid(.@equip_slot);
+	if (!.@item_id) {
+		mes "^339966[Jessé, O Aprendiz]^000000";
+		mes "^ff0000Atenção!^000000";
+		mes "Você não tem nada equipado nesse slot!";
+		close;
+	}
+	
+	// ADIÇÃO: Verifica se o item possui cartas
+	set .@card0, getequipcardid(.@equip_slot, 0);
+	set .@card1, getequipcardid(.@equip_slot, 1);
+	set .@card2, getequipcardid(.@equip_slot, 2);
+	set .@card3, getequipcardid(.@equip_slot, 3);
+	
+	if (.@card0 != 0 || .@card1 != 0 || .@card2 != 0 || .@card3 != 0) {
+		mes "^339966[Jessé, O Aprendiz]^000000";
+		mes "^ff0000Atenção!^000000";
+		mes "Este equipamento possui cartas instaladas.";
+		mes "Remova todas as cartas antes de prosseguir com esta operação.";
+		close;
+	}
+	
+	// Verifica o refino atual
+	set .@current_refine, getequiprefinerycnt(.@equip_slot);
+	if (.@current_refine <= 0) {
+		mes "^339966[Jessé, O Aprendiz]^000000";
+		mes "^ff0000Atenção!^000000";
+		mes "Este equipamento não possui refino!";
+		close;
+	}
+	
+	// ADIÇÃO: Verificar se existe espaço no inventário
+	if (checkweight(.@item_id, 1) == 0) {
+		mes "^339966[Jessé, O Aprendiz]^000000";
+		mes "^ff0000Atenção!^000000";
+		mes "Seu inventário está muito cheio ou pesado.";
+		mes "Libere espaço antes de prosseguir com esta operação.";
+		close;
+	}
+	
+	// Calcula o novo nível de refino
+	if (.@choice == 1) {
+		set .@new_refine, .@current_refine - 1;
+		set .@amount_removed, 1;
+	} else {
+		set .@new_refine, 0;
+		set .@amount_removed, .@current_refine;
+	}
+	
+	// Confirmação - ADIÇÃO: Mostra o nome do item
+	mes "^339966[Jessé, O Aprendiz]^000000";
+	mes "^0066ffItem selecionado:^000000 " + getitemname(.@item_id);
+	mes "^0066ffRefino atual:^000000 +" + .@current_refine;
+	mes "^0066ffCusto da operação:^000000 " + .@cost + "z";
+	mes " ";
+	mes "Você está prestes a remover ^ff0000" + .@amount_removed + " nível(is)^000000 de refino.";
+	mes "Esta ação não pode ser desfeita!";
+	mes " ";
+	mes "Deseja continuar?";
+	next;
+	if(select("^339966[»]^000000 Sim", "^ff0000[»] Não, cancelar!^000000") == 2) {
+		mes "^339966[Jessé, O Aprendiz]^000000";
+		mes "Operação cancelada.";
+		close;
+	}
+	
+	// ADIÇÃO: Cobrança do zeny
+	set Zeny, Zeny - .@cost;
+	
+	// Coleta todas as informações do item ANTES de desequipar
+	set .@item_id, getequipid(.@equip_slot);
+	set .@card0, getequipcardid(.@equip_slot, 0);
+	set .@card1, getequipcardid(.@equip_slot, 1);
+	set .@card2, getequipcardid(.@equip_slot, 2);
+	set .@card3, getequipcardid(.@equip_slot, 3);
+	
+	// CORREÇÃO ALTERNATIVA: Método mais confiável
+	// 1. Primeiro, criar uma variável temporária para identificar o slot específico
+	// 2. Usar unequip seguido de uma busca mais específica no inventário
+	
+	// Conta itens antes
+	set .@count_before, countitem(.@item_id);
+	
+	// Desequipa o item
+	unequip .@equip_slot;
+	
+	// Verifica se há duplicatas para usar método específico
+	set .@count_after_unequip, countitem(.@item_id);
+	
+	// Se não há duplicatas, usa o método simples
+	if (.@count_after_unequip == .@count_before + 1) {
+		delitem .@item_id, 1;
+	} else {
+		// Se há duplicatas, procura pelo item específico com refino correto
+		if (countitem2(.@item_id, 1, .@current_refine, 0, .@card0, .@card1, .@card2, .@card3) > 0) {
+			delitem2 .@item_id, 1, 1, .@current_refine, 0, .@card0, .@card1, .@card2, .@card3;
+		} else {
+			// Fallback: remove qualquer um e avisa
+			delitem .@item_id, 1;
+		}
+	}
+	
+	// Recria o item com o novo refino
+	getitem2 .@item_id, 1, 1, .@new_refine, 0, .@card0, .@card1, .@card2, .@card3;
+	
+	// Mensagem de sucesso
+	mes "^339966[Jessé, O Aprendiz]^000000";
+	mes "^00ff00Operação realizada com sucesso!^000000";
+	mes " ";
+	if (.@choice == 1) {
+		mes "Um nível de refino foi removido.";
+		mes "O item agora está refinado em ^0066ff+" + .@new_refine + "^000000.";
+	} else {
+		mes "Todos os níveis de refino foram removidos.";
+		mes "O item agora está sem refino!";
+	}
+	mes "Zeny cobrado: ^ff0000" + .@cost + "z^000000";
+	
+	close;
+	
+OnInit:
+
+		setunitdata getnpcid(0), UNPC_GROUP_ID, 41;	
+		setunittitle getnpcid(0), "[Mestre dos Refinos]";
+
+		while(1) {
+		showscript "[ Removedor de Refino ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}

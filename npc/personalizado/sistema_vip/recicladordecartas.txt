@@ -1,0 +1,283 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//              NPC - Recicladora de Cartas
+//===============================================================
+
+1@herbs,249,61,5	script	Recicladora de Cartas	789,{
+	mes "^339966[Recicladora de Cartas]^000000";
+	mes "Saudações, ^FFA500"+strcharinfo(0)+"^000000!";
+	mes "Aqui você pode trocar as cartas que não têm mais utilidade para você.";
+	mes " ";
+	mes "Este serviço é apenas para jogadores ^ff0000VIP^000000 e ^ff0000SUPER VIP.^000000";
+	next;
+	mes "^339966[Recicladora de Cartas]^000000";
+	mes "^FF0000REGRAS IMPORTANTES:^000000";
+	mes "• Serão aceitos apenas múltiplos de 10 cartas (10, 20, 30, etc.)";
+	mes "• ^ff0000Cartas MVP^000000 não poderão ser trocadas!";
+	mes "• Há pequenas chances de se obter cartas raras: ^ff0000Ghostring, Deviling, Angeling^000000...";
+	mes "^0000ffDeseja reciclar suas cartas agora?^000000";
+	next;
+	if(select("^339966[»]^000000 Sim.:^ff0000[»] Não, obrigado.^000000") == 2) {
+		mes "^339966[Recicladora de Cartas]^000000";
+		mes "Tudo bem. Volte quando quiser!";
+		close;
+	}		
+	// DEFINIR LISTA DE CARTAS MVP BLOQUEADAS
+	setarray .MVPs[0], 4128,4129,4130,4131,4135,4142,4143,4144,4145,4146,4147,4148,4149,4150,4151,4174,4175,4176;
+	
+	next;
+	mes "^339966[Recicladora de Cartas]^000000";
+	mes "Boa Sorte!";
+	mes " ";
+	mes "^ff0000Escolha as cartas que deseja reciclar:^000000";
+	
+	// Pega lista de itens do inventário
+	getinventorylist();
+	.@count = 0;
+	deletearray .shop_list[0], getarraysize(.shop_list); // limpa
+	
+	for (.@i = 0; .@i < @inventorylist_count; .@i++) {
+		.@item_id = @inventorylist_id[.@i];
+		
+		// Tipo 6 = Carta
+		if (getiteminfo(.@item_id, 2) == 6) {
+			
+			// VERIFICAR SE É CARTA MVP
+			.@is_mvp = 0;
+			for (.@j = 0; .@j < getarraysize(.MVPs); .@j++) {
+				if (.@item_id == .MVPs[.@j]) {
+					.@is_mvp = 1;
+					break;
+				}
+			}
+			
+			// SÓ ADICIONA SE NÃO FOR MVP
+			if (!.@is_mvp) {
+				// Verifica se já está na lista (evita duplicatas)
+				.@dupe = 0;
+				for (.@k = 0; .@k < .@count; .@k++) {
+					if (.shop_list[.@k] == .@item_id) {
+						.@dupe = 1;
+						break;
+					}
+				}
+				if (!.@dupe) {
+					.shop_list[.@count] = .@item_id;
+					.@count++;
+				}
+			}
+		}
+	}
+	
+	next;
+	if (.@count == 0) {
+		mes "^339966[Recicladora de Cartas]^000000";
+		mes "^ff0000Erro ao Reciclar:^000000";
+		mes "Você não possui cartas comuns no inventário.";
+		mes "^0000FFCartas MVP não são aceitas para reciclagem.^000000";
+		close;
+	}
+	
+	// Limpa e recria a loja com as cartas detectadas (exceto MVPs)
+	npcshopitem "recicla_cartas", 0, 0;
+	for (.@i = 0; .@i < .@count; .@i++) {
+		npcshopitem "recicla_cartas", .shop_list[.@i], 100; // valor fictício
+	}
+	callshop "recicla_cartas", 2;
+	npcshopattach "recicla_cartas";
+	end;
+
+OnSellItem:
+	// VERIFICAÇÃO DE INVENTÁRIO CHEIO
+	if (checkweight(501,1) == 0) {
+		dispbottom "ERRO: Seu inventário está cheio! Libere espaço antes de reciclar cartas.";
+		close;
+	}
+	
+	// REINICIALIZAR ARRAY MVP PARA SEGURANÇA
+	setarray .MVPs[0], 4128,4129,4130,4131,4135,4142,4143,4144,4145,4146,4147,4148,4149,4150,4151,4174,4175,4176;
+	
+	.@total = getarraysize(@sold_nameid);
+	.@total_cards = 0;
+	
+	// PRIMEIRA VALIDAÇÃO: Contar total de cartas vendidas
+	for (.@i = 0; .@i < .@total; .@i++) {
+		// Apenas cartas (tipo 6)
+		if (getiteminfo(@sold_nameid[.@i], 2) != 6) {
+			dispbottom "ERRO: Apenas cartas são aceitas.";
+			close;
+		}
+		
+		// VERIFICAÇÃO DE SEGURANÇA ANTI-MVP
+		.@is_mvp = 0;
+		for (.@j = 0; .@j < getarraysize(.MVPs); .@j++) {
+			if (@sold_nameid[.@i] == .MVPs[.@j]) {
+				.@is_mvp = 1;
+				break;
+			}
+		}
+		
+		if (.@is_mvp) {
+			dispbottom "ERRO: Cartas MVP não são permitidas!";
+			close;
+		}
+		
+		.@total_cards += @sold_quantity[.@i];
+	}
+	
+	// VALIDAÇÃO DE MÚLTIPLOS DE 10
+	if (.@total_cards % 10 != 0) {
+		dispbottom "ERRO: Você deve vender exatamente múltiplos de 10 cartas!";
+		dispbottom "Quantidade atual: " + .@total_cards + " cartas. Ajuste para: " + (.@total_cards / 10 * 10) + " ou " + ((.@total_cards / 10 + 1) * 10);
+		close;
+	}
+	
+	if (.@total_cards < 10) {
+		dispbottom "ERRO: Você precisa vender no mínimo 10 cartas!";
+		close;
+	}
+	
+	// PROCESSAR A VENDA (só chega aqui se for múltiplo de 10)
+	for (.@i = 0; .@i < .@total; .@i++) {
+		delitem @sold_nameid[.@i], @sold_quantity[.@i];
+	}
+	
+	// CALCULAR RECOMPENSAS DIRETAS (sem usar variável global)
+	.@recompensas = .@total_cards / 10;
+	
+	// Define cartas comuns e raras (SEM MVPs nas recompensas)
+	setarray .@comuns[0], 4001,4002,4003,4004,4005,4379,4378,4409,4246,4244,4253,4401,4400,4190,4245,4032,4062,4251,4210,4043,4054,4316,4234,4243,4344,4138,4189,4242,4331,4270,4371,4240,4114,4075,4347,4428,4260,4278,4225,4129,4438,4238,4391,4311,4119,4017,4356,4145,4045,4016,4026,4050,4307,4150,4208,4212,4327,4390,4426,4296,4437,4063,4153,4288,4110,4140,4320,4105,4368,4284,4285,4009,4042,4091,4303,4227,4015,4319,4293,4235,4139,4061,4040,4439,4298,4252,4392,4397,4125,4122,4204,4182,4370,4098,4373,4069,4177,4421,4141,4176,4410,4266,4070,4360,4262,4232,4349,4213,4068,4084,4427,4022,4048,4025,4094,4221,4092,4073,4222,4086,4247,4267,4250,4279,4158,4020,4077,4329,4165,4380,4381,4323,4023,4080,4312,4332,4229;
+	setarray .@raras[0], 4054,4047,4174,4346,4241;
+	
+	// Cutins de cartas - apenas as que funcionam + repetições
+	setarray .cutin$,
+		"poring_card",
+		"drops_card", 
+		"lunatic_card", 
+		"fabre_card",
+		"spore_card",
+		"skeleton_card",
+		"deviruchi_card",
+		"alarm_card",
+		"kaho_card",
+		"°í·½Ä«µå.bmp",
+		"°íºí¸°¾ÆÃÄÄ«µå.bmp", 
+		"°í½ºÆ®¸µÄ«µå.bmp", 
+		"°í¿ìÆ®Ä«µå.bmp",
+		"°ñµå¾î½Ã´õ½º.bmp",
+		"°øÁßµô¸®ÅÍÄ«µå.bmp",
+		"±¸¹ÌÈ£Ä«µå.bmp",
+		"±¸¿ïÄ«µå.bmp",
+		"±×·£µåÆäÄÚÄ«µå.bmp",
+		"±×·¹ÀÌºê¹ÌÀÌ¶óÄ«µå.bmp",
+		"±×·Îºê.bmp", 
+		"±×¸®ÆùÄ«µå.bmp", 
+		"±×¸°Æä·¯½ºÄ«µå.bmp",
+		"³×Å©·Î¸Ç¼­Ä«µå.bmp",
+		"´©´õ±âÁ»ºñÄ«µå.bmp",
+		"´õÆäÀÌÆÛÄ«µå.bmp",
+		"µ¥ºô¸µÄ«µå.bmp", 
+		"µµ±úºñÄ«µå.bmp", 
+		"µâ¶óÇÑÄ«µå.bmp",
+		"µå·Î¼¼¶óÄ«µå.bmp",
+		"µå·çÀÌµåÄ«µå.bmp",
+		"µð¾Æº¼¸¯Ä«µå.bmp",
+		"µð½º°¡ÀÌÁîÄ«µå.bmp",
+		"µûµûÃÊÄ«µå.bmp",
+		"¶ó¹Ù°ñ·½Ä«µå.bmp",
+		"·¹µå³ë¹ö½º.bmp", 
+		"·¹ÀÌµå¸¯Ä«µå.bmp", 
+		"·¹Äû¿¥Ä«µå.bmp",
+		"·Î¸®·ç¸®Ä«µå.bmp",
+		"¸®ÇÁÄ¹Ä«µå.bmp",
+		"¸¶¸£Å©Ä«µå.bmp",
+		"¸¶½ºÅÍ¸µÄ«µå.bmp",
+		"¸¶¾ßÆÛÇÃÄ«µå.bmp",
+		"¸ÞÀÌÀú¿ì·Î½ºÄ«µå.bmp",
+		"¹Ì½ºÆ®ÄÉÀÌ½ºÄ«µå.bmp", 
+		"¹Ì½ºÆ¿Å×ÀÎÄ«µå.bmp", 
+		"¹ÌÀÌ¶óÄ«µå.bmp",
+		"¹ÙÆ÷ÁÖ´Ï¾îÄ«µå.bmp",
+		"º£³ë¸Ó½º.bmp",
+		"»ø·¯¸Ç´õÄ«µå.bmp",
+		"¾ÆÀÌ½ºÆ¼ÅºÄ«µå.bmp",
+		"¾ÆÅ©¿£Á©¸µÄ«µå.bmp",
+		"»êÅ¸Æ÷¸µÄ«µå.bmp";
+	
+	dispbottom "Processando " + .@total_cards + " cartas => Você receberá " + .@recompensas + " recompensa(s)!";
+	
+	// SISTEMA DE SPIN PARA CADA RECOMPENSA
+	for (.@k = 0; .@k < .@recompensas; .@k++) {
+		
+		// Determina se será carta rara ou comum ANTES do spin
+		.@is_rare = (rand(100) < 1) ? 1 : 0;
+		
+		// Animação da Roleta
+		next;
+		mes "^339966[Recicladora de Cartas]^000000";
+		mes "Processando recompensa " + (.@k + 1) + "/" + .@recompensas + "...";
+		mes "^ff0000Sorteando cartas...^000000";
+		mes "^ff0000Sorteando cartas...^000000";
+		mes "^ff0000Sorteando cartas...^000000";
+		mes "^ff0000Sorteando cartas...^000000";
+		
+		// Simula a rotação passando pelos 30 slots - APENAS 2 VOLTAS
+		.@spin = 2; // Apenas 2 voltas para acelerar
+		.@rand = rand(30);  // Onde irá parar
+		
+		for (.@i = 0; .@i < (.@spin * 20 + .@rand); .@i++) {
+			.@pos = .@i % 30;
+			cutin .cutin$[.@pos], 4;
+			sleep2 100; // Reduzido de 150 para 100
+		}
+		cutin "", 255;
+		
+		// DETERMINAR RECOMPENSA BASEADA NO RESULTADO DO SPIN
+		if (.@is_rare) {
+			.@reward = .@raras[rand(getarraysize(.@raras))];
+			next;
+			mes "^339966[Recicladora de Cartas]^000000";
+			mes "^FF0000 PARABÉNS! ^000000";
+			mes "^FF0000Você ganhou uma carta RARA!^000000";
+			mes "^FFFF00" + getitemname(.@reward) + "^000000";
+			announce strcharinfo(0) + " ganhou uma carta RARA na Recicladora de Cartas!", bc_all;
+		} else {
+			.@reward = .@comuns[rand(getarraysize(.@comuns))];
+			next;
+			mes "^339966[Recicladora de Cartas]^000000";
+			mes "Você ganhou: ^FF0000" + getitemname(.@reward) + "^000000";
+		}
+		
+		// Entregar a recompensa - verificação adicional de espaço
+		if (checkweight(.@reward,1) == 0) {
+			next;
+			mes "^339966[Recicladora de Cartas]^000000";
+			mes "^ff0000ERRO:^000000 Inventário cheio!";
+			mes "Libere espaço para receber a recompensa.";
+			mes "A carta será entregue quando houver espaço.";
+			close;
+		}
+		getitem .@reward, 1;
+	}
+	
+	// Mensagem final
+	next;
+	mes "^339966[Recicladora de Cartas]^000000";
+	mes "^00FF00Reciclagem concluída!^000000";
+	mes "Obrigado por usar nossos serviços!";
+	mes "Volte sempre que precisar!";
+	end;
+
+OnInit:
+	// Inicializa a loja
+	npcshopdelitem "recicla_cartas", 501;
+	end;
+}
+-	shop	recicla_cartas	-1,501:100

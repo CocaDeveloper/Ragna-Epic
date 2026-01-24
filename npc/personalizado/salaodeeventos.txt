@@ -1,0 +1,92 @@
+//=================== rAthena Script ============================
+//    ___     _____   _    _  __   __  ______   ______
+//   |  _ \  |  _  | | |  | | \ \ / / |  __  | |  __  |
+//   | |_)/  | |_) / | |  | |  \ V /  | |__| | | |  | |
+//   |  _ \  |    /  | |  | |   > <   |  __  | | |  | |
+//   | |_) . | /\ \  | |__| |  / . \  | |  | | | |__| |
+//   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
+//                                                  
+//===============================================================
+//                  SALÃO DE EVENTOS
+//===============================================================
+
+prontera,140,169,5	script	Promotor de Eventos	503,{
+
+    // ???????? BLOCO DEFAULT (ao clicar) ????????
+    mes "^339966[Promotor de Eventos]^000000";
+    mes (gettime(3)>= 6 && gettime(3)<= 12 ? "Bom-dia" : (gettime(3)>=13 && gettime(3)<=18 ? "Boa-tarde" : "Boa-noite"))+", ^FFA500"+strcharinfo(0)+"^000000.";
+	mes "Eu sou o responsável pelos eventos oficiais de Rune-Midgard!";
+	mes "Aqui é o ponto de entrada para a ^FF0000Sala de Eventos^000000, onde ocorrem desafios e brincadeiras que recompensam sua coragem e dedicação.";
+	next;
+	mes "^339966[Promotor de Eventos]^000000";
+	mes "Deseja se teleportar para a ^FF0000Sala de Eventos^000000 agora?";
+	next;
+    if (select("^3CB371[>]^000000 Ir para Sala de Eventos:^ff0000[>] Sair^000000") == 1) {
+	mes "^339966[Promotor de Eventos]^000000";
+	mes "Teleportando...";
+	mes "Boa sorte!";
+	    close2;
+        //specialeffect2 1002;   // efeito de teleporte sonoro
+        //specialeffect2 1003;   // efeito de teleporte sonoro
+        //specialeffect2 1010;   // efeito de teleporte sonoro
+        specialeffect2 1022;   // efeito de teleporte sonoro
+        specialeffect2 1029;   // efeito de teleporte sonoro
+        specialeffect2 1034;   // efeito de teleporte sonoro
+        specialeffect2 1036;   // efeito de teleporte sonoro
+        sleep2 800;
+        warp "new_evt",159,171;  // mapa e coords da área de eventos
+        end;
+    }
+    mes "^339966[Promotor de Eventos]^000000";
+    mes "Tudo bem, volte quando quiser participar de nossos eventos!";
+    close;
+
+OnInit:
+
+setunitdata getnpcid(0), UNPC_GROUP_ID, 43;	
+setunittitle getnpcid(0), "[Salão de Eventos]";
+	//Chat em cima do npc.
+	while(1) {
+		showscript "[ Salão de Eventos ]", getnpcid(0);
+		sleep 100;
+	}
+	end;
+}
+
+// ???????? Complemento Promotor de Eventos ????????
+
+prontera,138,167,6	script	#complementoevento1	10537,{
+    mes "^339966[Gatinho Salsicha]^000000";
+    mes "Miau~ Olá, humano curioso!";
+    mes "Repare na minha barriga… longa e suculenta,";
+    mes "quase um salchicha ambulante!";
+    mes "Pense: Quem precisa de salsicha quando se tem um gatinho assim?";    
+    mes "Dizem que eu poderia rolar uma montanha";
+    mes "… mas prefiro rolar no tapete macio!";
+    mes "Se quiser brincar, venha acariciar minha barriguinha,";
+    mes "só cuidado para não ficar preso em mim!";
+    close;
+}
+prontera,141,168,3	script	#complementoevento2	10546,{
+    mes "^339966[Pequeno Carinho]^000000";
+    mes "Oiê, humano querido!";
+    mes "Você acaba de encontrar o melhor fornecedor de abraços deste lado de Midgard!";
+    mes "Minha missão? Entregar sorrisos e aquecer corações gelados como gelo de Ice Titan!";
+    mes "Sinta a fofura inundar sua alma até os porings chorarem de inveja!";
+    mes "Alguns dizem que sou filho secreto de Einbech e Juperos,";
+    mes "outros juram que fui forjado no caldeirão de Freyja…";
+    mes "Mas no fundo, só quero mesmo um cafuné e um petisco de almôndega!";
+    mes "Volte sempre que precisar de um abraço quentinho — sem custo adicional!";
+    close;
+}
+prontera,141,170,3	script	#complementoevento3	10509,{
+    mes "^339966[Doce Coração]^000000";
+    mes "Bom dia! Você já tomou seu café com pão de poring hoje?";
+    mes "Dizem que o MVP de hoje só aparece depois das 3 da tarde...";
+    mes "Cuidado com as Porings travessas: eles adoram se esconder nos caldeirões!";
+    mes "Lembre-se: amanhã tem evento de pesca em Payon – traga bastante isca!";
+    mes "Se o lag bater forte hoje, respire fundo e finja que é parte da aventura!";
+    mes "À noite, a torre do relógio de Morroc toca 13 badaladas: dizem que é piada dos deuses!";
+    mes "E fique de olho: quem rir alto demais pode atrair montarias curiosas!";
+    close;
+}

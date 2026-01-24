@@ -1,0 +1,62 @@
+hero_ent2,86,145,5	script	Loja de instancia	899,{
+	mes "[Loja de Instância]";
+	mes "Esta funcionalidade está em desenvolvimento.";
+	mes "Volte mais tarde!";
+	close;
+}
+
+hero_ent2,86,155,5	script	Torre sem Fim	10547,{
+	mes "[Torre sem Fim]";
+	mes "Esta funcionalidade está em desenvolvimento.";
+	mes "Volte mais tarde!";
+	close;
+}
+
+hero_ent2,93,155,5	script	Torre do Pesadelo	10547,{
+	mes "[Torre do Pesadelo]";
+	mes "Esta funcionalidade está em desenvolvimento.";
+	mes "Volte mais tarde!";
+	close;
+}
+
+hero_ent2,83,153,5	script	Antiga GlastHeim	10547,{
+	mes "[Antiga GlastHeim]";
+	mes "Esta funcionalidade está em desenvolvimento.";
+	mes "Volte mais tarde!";
+	close;
+}
+
+hero_ent2,96,153,5	script	Espaço Infinito	10547,{
+	mes "[Espaço Infinito]";
+	mes "Esta funcionalidade está em desenvolvimento.";
+	mes "Volte mais tarde!";
+	close;
+}
+
+hero_ent2,98,150,5	script	Memorial dos Orcs	10547,{
+	mes "[Memorial dos Orcs]";
+	mes "Esta funcionalidade está em desenvolvimento.";
+	mes "Volte mais tarde!";
+	close;
+}
+
+hero_ent2,81,150,5	script	Fabrica do Terror	10547,{
+	mes "[Fábrica do Terror]";
+	mes "Esta funcionalidade está em desenvolvimento.";
+	mes "Volte mais tarde!";
+	close;
+}
+
+hero_ent2,80,146,5	script	Em breve1	10547,{
+	mes "[Área em Desenvolvimento]";
+	mes "Este conteúdo ainda será implementado.";
+	mes "Fique atento às atualizações!";
+	close;
+}
+
+hero_ent2,99,146,5	script	Em breve2	10547,{
+	mes "[Área em Desenvolvimento]";
+	mes "Este conteúdo ainda será implementado.";
+	mes "Fique atento às atualizações!";
+	close;
+}

@@ -573,7 +573,7 @@ int32 skill_additional_effect( block_list* src, block_list *bl,uint16 skill_id,u
 int32 skill_counter_additional_effect( block_list* src, block_list *bl,uint16 skill_id,uint16 skill_lv,int32 attack_type,t_tick tick);
 int16 skill_blown(block_list* src, block_list* target, char count, int8 dir, enum e_skill_blown flag);
 int32 skill_break_equip(block_list *src,block_list *bl, uint16 where, int32 rate, int32 flag);
-int32 skill_strip_equip(block_list *src,block_list *bl, uint16 where, int32 rate, int32 lv, int32 time);
+bool skill_strip_equip(block_list *src, block_list *target, uint16 skill_id, uint16 skill_lv);
 // Skills unit
 std::shared_ptr<s_skill_unit_group> skill_id2group(int32 group_id);
 std::shared_ptr<s_skill_unit_group> skill_unitsetting(block_list* src, uint16 skill_id, uint16 skill_lv, int16 x, int16 y, int32 flag);

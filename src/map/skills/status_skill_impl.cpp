@@ -7,6 +7,9 @@
 #include "../status.hpp"
 
 StatusSkillImpl::StatusSkillImpl(e_skill skillId) : SkillImpl(skillId) {};
+StatusSkillImpl::StatusSkillImpl(e_skill skillId, bool selfcast) : SkillImpl(skillId) {
+	(void)selfcast;
+}
 
 void StatusSkillImpl::castendNoDamageId(block_list *src, block_list *target, uint16 skill_lv, t_tick tick, int32& flag) const
 {

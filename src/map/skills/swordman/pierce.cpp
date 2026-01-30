@@ -13,7 +13,7 @@ void SkillPierce::calculateSkillRatio(const Damage* wd, const block_list* src, c
 
 	base_skillratio += 10 * skill_lv;
 
-	if (sc && sc->getSCE(SC_CHARGINGPIERCE_COUNT) && sc->getSCE(SC_CHARGINGPIERCE_COUNT)->val1 >= 10)
+	if (const status_change_entry* sce = sc ? sc->getSCE(SC_CHARGINGPIERCE_COUNT) : nullptr; sce && sce->val1 >= 10)
 		base_skillratio *= 2;
 }
 

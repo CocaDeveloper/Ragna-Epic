@@ -9,7 +9,7 @@ SkillFireBolt::SkillFireBolt() : SkillImpl(MG_FIREBOLT) {
 }
 
 void SkillFireBolt::calculateSkillRatio(const Damage *wd, const block_list *src, const block_list *target, uint16 skill_lv, int32 &base_skillratio, int32 mflag) const {
-	const status_change *sc = status_get_sc(src);
+	status_change *sc = status_get_sc(src);
 
 	if (sc) {
 		if (sc->getSCE(SC_FLAMETECHNIC_OPTION))

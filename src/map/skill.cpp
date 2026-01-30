@@ -50,10 +50,9 @@
 using namespace rathena;
 
 #define SKILLUNITTIMER_INTERVAL	100
-#define TIMERSKILL_INTERVAL	150
 
 static struct eri *skill_timer_ers = nullptr; //For handling skill_timerskills [Skotlex]
-static DBMap* bowling_db = nullptr; // int32 mob_id -> mob_data*
+DBMap* bowling_db = nullptr; // int32 mob_id -> mob_data*
 
 DBMap* skillunit_db = nullptr; // int32 id -> skill_unit*
 
@@ -107,7 +106,7 @@ static bool skill_check_condition_sc_required( map_session_data& sd, uint16 skil
 static bool skill_check_unit_movepos(uint8 check_flag, block_list *bl, int16 dst_x, int16 dst_y, int32 easy, bool checkpath);
 
 // Use this function for splash skills that can't hit icewall when cast by players
-static inline int32 splash_target(block_list* bl) {
+int32 splash_target(block_list* bl) {
 	return ( bl->type == BL_MOB ) ? BL_SKILL|BL_CHAR : BL_CHAR;
 }
 
@@ -21524,6 +21523,10 @@ static int32 skill_cell_overlap(block_list *bl, va_list ap)
 	}
 
 	return 0;
+}
+
+int32 skill_check_cell_overlap(block_list* src, int16 m, int32 x, int32 y, uint16 skill_id, int32* alive) {
+	return map_foreachincell(skill_cell_overlap, m, x, y, BL_SKILL, skill_id, alive, src);
 }
 
 /*==========================================

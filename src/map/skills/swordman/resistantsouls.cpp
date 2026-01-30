@@ -15,7 +15,7 @@ void SkillResistantSouls::castendNoDamageId(block_list* src, block_list* target,
 	map_session_data* dstsd = BL_CAST(BL_PC, target);
 
 	if(sd && dstsd){ //Check they are not another crusader [Skotlex]
-		if ((dstsd->class_&MAPID_SECONDMASK) == MAPID_CRUSADER) {
+		if ((dstsd->class_&MAPID_UPPERMASK) == MAPID_CRUSADER) {
 			clif_skill_fail( *sd, getSkillId() );
 			return;
 		}

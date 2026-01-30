@@ -3505,7 +3505,9 @@ public:
 
 	bool hasSCE( enum sc_type type );
 	status_change_entry* getSCE( enum sc_type type );
+	const status_change_entry* getSCE( enum sc_type type ) const;
 	status_change_entry* getSCE( uint32 type );
+	const status_change_entry* getSCE( uint32 type ) const;
 	status_change_entry* createSCE( enum sc_type type );
 	void deleteSCE(enum sc_type type);
 	bool empty();
@@ -3559,6 +3561,7 @@ int32 status_revive(block_list *bl, unsigned char per_hp, unsigned char per_sp, 
 
 struct regen_data *status_get_regen_data(block_list *bl);
 status_data* status_get_status_data(block_list& bl);
+const status_data* status_get_status_data(const block_list& bl);
 struct status_data *status_get_base_status(block_list *bl);
 const char* status_get_name( block_list& bl );
 int32 status_get_class(block_list *bl);

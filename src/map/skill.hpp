@@ -35,6 +35,7 @@ class SkillImpl;
 #define MAX_SKILL_CRIMSON_MARKER 3 /// Max Crimson Marker targets (RL_C_MARKER)
 #define SKILL_NAME_LENGTH 40 /// Max Skill Name length
 #define SKILL_DESC_LENGTH 40 /// Max Skill Desc length
+#define TIMERSKILL_INTERVAL 150
 
 /// Used with tracking the hitcount of Earthquake for skills that can avoid the first attack
 #define NPC_EARTHQUAKE_FLAG 0x800
@@ -527,12 +528,14 @@ int32 skill_get_castdef( uint16 skill_id );
 int32 skill_get_nocast( uint16 skill_id );
 int32 skill_get_unit_id( uint16 skill_id );
 int32 skill_get_unit_id2( uint16 skill_id );
+int32 skill_get_unit_interval( uint16 skill_id );
 int32 skill_get_castcancel( uint16 skill_id );
 int32 skill_get_maxcount( uint16 skill_id ,uint16 skill_lv );
 int32 skill_get_blewcount( uint16 skill_id ,uint16 skill_lv );
 int32 skill_get_cooldown( uint16 skill_id, uint16 skill_lv );
 int32 skill_get_giveap( uint16 skill_id, uint16 skill_lv );
 int32 skill_get_unit_target( uint16 skill_id );
+int32 splash_target(block_list* bl);
 #define skill_get_nk(skill_id, nk) skill_get_nk_(skill_id, { nk })
 bool skill_get_nk_(uint16 skill_id, std::vector<e_skill_nk> nk);
 #define skill_get_inf2(skill_id, inf2) skill_get_inf2_(skill_id, { inf2 })
@@ -577,6 +580,7 @@ bool skill_strip_equip(block_list *src, block_list *target, uint16 skill_id, uin
 // Skills unit
 std::shared_ptr<s_skill_unit_group> skill_id2group(int32 group_id);
 std::shared_ptr<s_skill_unit_group> skill_unitsetting(block_list* src, uint16 skill_id, uint16 skill_lv, int16 x, int16 y, int32 flag);
+int32 skill_check_cell_overlap(block_list* src, int16 m, int32 x, int32 y, uint16 skill_id, int32* alive);
 skill_unit* skill_initunit(std::shared_ptr<s_skill_unit_group> group, int32 idx, int32 x, int32 y, int32 val1, int32 val2, bool hidden, int32 range, t_tick limit);
 int32 skill_delunit(skill_unit *unit);
 std::shared_ptr<s_skill_unit_group> skill_initunitgroup(block_list* src, int32 count, uint16 skill_id, uint16 skill_lv, int32 unit_id, t_tick limit, int32 interval);
@@ -644,8 +648,12 @@ int32 skill_castend_nodamage_id( block_list *src, block_list *bl,uint16 skill_id
 int32 skill_castend_damage_id( block_list* src, block_list *bl,uint16 skill_id,uint16 skill_lv,t_tick tick,int32 flag );
 int32 skill_castend_pos2( block_list *src, int32 x,int32 y,uint16 skill_id,uint16 skill_lv,t_tick tick,int32 flag);
 int32 skill_area_sub(block_list *bl, va_list ap);
+int32 skill_area_sub_count(block_list *src, block_list *target, uint16 skill_id, uint16 skill_lv, t_tick tick, int32 flag);
+int32 skill_greed(block_list *bl, va_list ap);
 int32 skill_attack_area(block_list *bl, va_list ap);
+int32 skill_graffitiremover(block_list *bl, va_list ap);
 extern int32 skill_area_temp[8];
+extern DBMap* bowling_db;
 
 bool skill_blockpc_start(map_session_data &sd, uint16 skill_id, t_tick tick);
 void skill_blockpc_clear(map_session_data &sd);

@@ -1209,7 +1209,21 @@ status_change_entry* status_change::getSCE( enum sc_type type ){
 	return this->lastStatus.second;
 }
 
+const status_change_entry* status_change::getSCE( enum sc_type type ) const{
+	auto it = this->data.find( type );
+
+	if( it == this->data.end() ){
+		return nullptr;
+	}
+
+	return &it->second;
+}
+
 status_change_entry* status_change::getSCE( uint32 type ){
+	return this->getSCE( static_cast<sc_type>( type ) );
+}
+
+const status_change_entry* status_change::getSCE( uint32 type ) const{
 	return this->getSCE( static_cast<sc_type>( type ) );
 }
 
@@ -9027,6 +9041,39 @@ status_data* status_get_status_data(block_list& bl){
 			return &reinterpret_cast<s_elemental_data*>( &bl )->battle_status;
 		case BL_NPC: {
 				npc_data* nd = reinterpret_cast<npc_data*>( &bl );
+
+				if( mobdb_checkid( nd->class_ ) == 0 ){
+					return &nd->status;
+				}else{
+					return &dummy_status;
+				}
+			}
+		default:
+			return &dummy_status;
+	}
+}
+
+/**
+ * Gets the status data of the given bl (const)
+ * @param bl: Object whose status to get [PC|MOB|PET|HOM|MER|ELEM|NPC]
+ * @return status or "dummy_status" if any other bl->type than noted above
+ */
+const status_data* status_get_status_data(const block_list& bl){
+	switch (bl.type) {
+		case BL_PC:
+			return &reinterpret_cast<const map_session_data*>( &bl )->battle_status;
+		case BL_MOB:
+			return &reinterpret_cast<const mob_data*>( &bl )->status;
+		case BL_PET:
+			return &reinterpret_cast<const pet_data*>( &bl )->status;
+		case BL_HOM:
+			return &reinterpret_cast<const homun_data*>( &bl )->battle_status;
+		case BL_MER:
+			return &reinterpret_cast<const s_mercenary_data*>( &bl )->battle_status;
+		case BL_ELEM:
+			return &reinterpret_cast<const s_elemental_data*>( &bl )->battle_status;
+		case BL_NPC: {
+				const npc_data* nd = reinterpret_cast<const npc_data*>( &bl );
 
 				if( mobdb_checkid( nd->class_ ) == 0 ){
 					return &nd->status;

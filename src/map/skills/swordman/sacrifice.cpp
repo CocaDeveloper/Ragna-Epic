@@ -31,7 +31,7 @@ void SkillSacrifice::castendNoDamageId(block_list* src, block_list* target, uint
 		lv = -lv;
 	if( lv > battle_config.devotion_level_difference || // Level difference requeriments
 		(dstsd->sc.getSCE(type) && dstsd->sc.getSCE(type)->val1 != src->id) || // Cannot Devote a player devoted from another source
-		(dstsd->class_&MAPID_SECONDMASK) == MAPID_CRUSADER || // Crusader Cannot be devoted
+		(dstsd->class_&MAPID_UPPERMASK) == MAPID_CRUSADER || // Crusader Cannot be devoted
 		(dstsd->sc.getSCE(SC_HELLPOWER))) // Players affected by SC_HELLPOWER cannot be devoted.
 	{
 		clif_skill_fail( *sd, getSkillId() );

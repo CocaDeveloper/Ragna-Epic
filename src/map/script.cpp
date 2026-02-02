@@ -10928,6 +10928,11 @@ BUILDIN_FUNC(gettimestr)
 	fmtstr = script_getstr(st,2);
 	maxlen = script_getnum(st,3);
 
+	if (maxlen <= 0) {
+		ShowWarning("buildin_gettimestr: a positive max_length must be supplied to be valid.\n");
+		return SCRIPT_CMD_FAILURE;
+	}
+
 	if (script_hasdata(st, 4)) {
 		if (script_getnum(st, 4) < 0) {
 			ShowWarning("buildin_gettimestr: a positive value must be supplied to be valid.\n");

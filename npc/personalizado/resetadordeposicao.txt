@@ -13,7 +13,7 @@
 //             Estrela dos Taekwon Masters (Star Gladiator)
 //===============================================================
 
-prontera,155,177,4	script	Mestre das Estrelas	4_M_TAEKWON,{
+prontera,155,177,4	script	Mestre das Estrelas	4_F_TAEKWON,{
 
 	set .@n$,"^FF6347[Mestre das Estrelas]^000000";
 	

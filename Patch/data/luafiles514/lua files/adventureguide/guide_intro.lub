@@ -1,0 +1,18 @@
+-- Original translation works of zackdreaver: https://github.com/zackdreaver/ROenglishRE
+-- Continuated by llchrisll at https://github.com/llchrisll/ROenglishRE
+-- This file can be distributed, used and modified freely
+-- This file shouldn't be claimed as part of your project, unless you fork it from https://github.com/llchrisll/ROenglishRE
+-- Last updated: 20240504
+
+GuideIntro.TitleText = "Guia de Aventura"
+GuideIntro.MainMenuIndex = 0
+GuideIntro.MainMenuTitle = "Introdução"
+
+GuideIntro.NewsImage = "À¯ÀúÀÎÅÍÆäÀÌ½º\\AdventureGuide\\"
+GuideIntro:AddContents(0, "Black Friday", "Confira as novidades sobre o evento mais aguardado do History.")
+GuideIntro:AddContents(1, "Dungeons", "Conheça aqui os conteúdos History.")
+GuideIntro:AddContents(2, "Guias", "Novato no jogo? Inicie aqui com os guias básicos.")
+GuideIntro:AddContents(3, "Sistemas G", "Conheça aqui alguns dos sistemas History.")
+--GuideIntro:AddContents(4, "Sistemas C", "Conheça aqui alguns dos sistemas History.")
+--GuideIntro:AddContents(5, "Builds", "Conheça aqui as builds do game. (Ainda não implementado).")
+

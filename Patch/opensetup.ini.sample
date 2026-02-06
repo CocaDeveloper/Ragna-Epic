@@ -1,0 +1,81 @@
+; ------------------------------------------------------------------
+; RagnarokOnline OpenSetup
+; (c) 2010-2024 Ai4rei/AN
+; See doc/license.txt for details.
+;
+; ------------------------------------------------------------------
+
+; Settings engine related settings
+[settings]
+
+; Save registry settings per user.
+; Possible values:
+;   0=No (saves to HKLM)
+;   1=Yes (saves to HKCU)
+; Default:
+;   0
+; Note: Do NOT change this setting, unless you REALLY know what you
+; are doing.
+HKLMtoHKCU=0
+
+; Select Lua settings folder.
+; Possible values:
+;   0=data\ (legacy)
+;   1=savedata\ (current)
+; Default:
+;   1
+LuaSaveData=1
+
+; Interface language ID.
+; Possible values:
+;   1024=default user language (recommended)
+;   1028=zh-HANT
+;   1029=cs-CZ
+;   1031=de-DE
+;   1033=en-US
+;   1034=es-ES
+;   1036=fr-FR
+;   1041=ja-JP
+;   1046=pt-BR
+;   1049=ru-RU
+;   1054=th-TH
+;   2048=default system language
+;   2052=zh-HANS
+; Default:
+;   1024
+; Note: If you install an additional language resource, you may use
+; its LANGID as well.
+; Note: Non-default languages may not display correctly on all OS
+; versions or configurations.
+UILang=1024
+
+; Minimum horizontal display resolution (pixel).
+; Possible values:
+;   0=no limit
+; Default:
+;   640
+DispMinW=640
+
+; Minimum vertical display resolution (pixel).
+; Possible values:
+;   0=no limit
+; Default:
+;   664
+; Note: Previous default value was 480.
+DispMinH=664
+
+; Maximum horizontal display resolution (pixel).
+; Possible values:
+;   0=no limit
+; Default:
+;   2048
+; Note: Previous default value was 0.
+DispMaxW=2048
+
+; Maximum vertical display resolution (pixel).
+; Possible values:
+;   0=no limit
+; Default:
+;   1440
+; Note: Previous default value was 0.
+DispMaxH=1440

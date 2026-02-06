@@ -1,0 +1,99 @@
+-- Load the splited function file
+require("info/database/alfheim_info")
+
+-- Load the translation file
+dofile("info/database/itemInfo.lua")
+
+-- Load the file for custom items and overrides
+dofile("info/database/alfheim_addon.lua")
+
+-- Load the additional files
+-- Example: (Yes you could add kRO itemInfo itself, but prepare for lua errors)
+--dofile("info/itemInfo_true.lub")
+
+---------------- Additional Configs for translation file ----------------
+-- Display origin server based on translation file's Server argument
+-- 0 = disable/1 = in Item Name/2 = top of description/3 = bottom of description
+DisplayServer = 0
+
+-- Defines how the item id will be shown in item name, doesn't take effect in other settings
+TagStart = '('
+TagEnd = ')'
+
+-- Define the colour in which the Server Name should be shown (affects official)
+-- Format: '^<RRGGBB>'
+-- '' = same color as "Server: " (^0000CC = blue)
+-- '^FFFFFF' = white
+ServerColour = '^FF0000'
+
+-- Show ItemID at bottom (affects custom items as well)
+-- 0 = disable/1 = top of description/2 = bottom of description
+DisplayItemID = 2
+
+-- Display a database link at bottom of description (true/false)
+DisplayDatabase = true
+
+---------------- Additional Configs for custom items ----------------
+-- Display server name
+-- 0 = disable/1 = in Item Name/2 = top of description/3 = bottom of description
+DisplayCustomServer = 0
+
+-- Defines how the item id will be shown in item name, doesn't take effect in other settings
+CustomTagStart = '['
+CustomTagEnd = ']'
+
+-- Server Name for your custom items
+CServerName = 'AlfheiM'
+
+-- Define the colour in which the custom Server Name should be shown (custom items)
+-- Format: '^<RRGGBB>'
+-- '' = same color as "Server: " (^0000CC = blue)
+-- '^FFFFFF' = white
+CServerColour = '^00FF00'
+
+-- Database link for custom items, like fluxcp (true/false)
+DisplayCustomDB = false
+
+----- Table for Database Links -------------------
+ItemDatabase = {
+	["Divine-Pride"] = {
+		Name = "[Pesquisar na Divine Pride]",
+		URL = "https://www.divine-pride.net/database/item/"
+	},
+	["iRO"] = {
+		Name = "iRO Wiki",
+		URL = "https://db.irowiki.org/db/item-info/"
+	},
+	["Custom"] = {
+		Name = "Database",
+		URL = "#"
+	}
+}
+---------------- Don't touch the functions below unless you know what you are doing ----------------
+function itemInfoMerge(src, state)
+	if src == nil then
+		return
+	end
+	for ItemID,DESC in pairs(src) do
+		if state == false then
+			if not tbl[ItemID] then
+				tbl[ItemID] = {}
+				tbl[ItemID] = DESC
+			end
+		else
+			tbl[ItemID] = DESC
+		end
+		if src == tbl_custom then
+			tbl[ItemID].Custom = true
+		end
+	end
+	return
+end
+
+-- itemInfoMerge(src, state)
+-- @src = table for merge into tbl
+-- @state = overwrite existing entries (true) or not (false)
+
+itemInfoMerge(tbl_override, true) -- official overrides
+itemInfoMerge(tbl_custom, false) -- custom items
+--itemInfoMerge(tbl, false) -- original kRO iteminfo

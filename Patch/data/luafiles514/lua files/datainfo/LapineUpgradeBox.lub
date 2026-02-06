@@ -1,0 +1,328 @@
+-- Original translation works of zackdreaver: https://github.com/zackdreaver/ROenglishRE
+-- Continuated by llchrisll at https://github.com/llchrisll/ROenglishRE
+-- This file can be distributed, used and modified freely
+-- This file shouldn't be claimed as part of your project, unless you fork it from https://github.com/llchrisll/ROenglishRE
+-- Last updated: 20230321
+
+tblLapineUpgradeBox = {
+	targets = {
+		Smith_Dagger = {
+			ItemID = 98,
+			NeedRefineMin = 0,
+			NeedRefineMax = 0,
+			NeedOptionNumMin = 0,
+			NotSocketEnchantItem = true,
+			TargetItems = {
+				{ "Knife", 1201 },
+				{ "Main_Gauche", 1207  },
+				{ "Cutter", 1204 },
+				{ "Dagger", 1213  },
+				{ "Dirk", 1210 },
+				{ "Stiletto", 1216  },
+				{ "Cinquedea", 1245  },
+				{ "Coward", 13003 },
+				{ "Damascus", 1222  },
+				{ "Gladius", 1219 },
+				{ "Assasin_Dagger", 1232 },
+				{ "Bazerald", 1231 },
+				{ "Dragon_Killer", 13001  },
+				{ "Forturn_Sword", 1223 },
+				{ "Mamas_Knife", 1229 },
+				{ "Moonlight_Sword", 1234 },
+				{ "Sucsamad", 1236 },
+			},
+			NeedSource_String = "Forjar Adaga"
+		},
+		Smith_Sword = {
+			ItemID = 99,
+			NeedRefineMin = 0,
+			NeedRefineMax = 0,
+			NeedOptionNumMin = 0,
+			NotSocketEnchantItem = true,
+			TargetItems = {
+				{ "Blade", 1107 },
+				{ "Falchion", 1104 },
+				{ "Sword", 1101 },
+				{ "Lapier", 1110 },
+				{ "Ring_Pommel_Saber", 1122 },
+				{ "Scimiter", 1113 },
+				{ "Flamberge", 1129 },
+				{ "Haedonggum", 1123 },
+				{ "Saber", 1126 },
+				{ "Town_Sword", 1146 },
+				{ "Tsurugi", 1119 },
+				{ "Byeorrun_Gum", 1140 },
+				{ "Cutlas", 1135 },
+				{ "Mysteltainn_", 1138 },
+				{ "Nagan", 1130 },
+				{ "Star_Dust_Blade", 1148 },
+			},
+			NeedSource_String = "Forjar Espada"
+		},
+		Smith_2HSword = {
+			ItemID = 100,
+			NeedRefineMin = 0,
+			NeedRefineMax = 0,
+			NeedOptionNumMin = 0,
+			NotSocketEnchantItem = true,
+			TargetItems = {
+				{ "Katana", 1116 },
+				{ "Bastard_Sword", 1154 },
+				{ "Slayer", 1151 },
+				{ "Broad_Sword", 1160 },
+				{ "Claymore", 1163 },
+				{ "Two_Hand_Sword", 1157 },
+				{ "Dragon_Slayer", 1166 },
+				{ "Katzbalger", 1170 },
+				{ "Masamune", 1165 },
+				{ "Muramasa", 1164 },
+				{ "Schweizersabel", 1167 },
+				{ "Zweihander", 1168 }
+			},
+			NeedSource_String = "Forjar Espada de Duas Mãos"
+		},
+		Smith_Axe = {
+			ItemID = 101,
+			NeedRefineMin = 0,
+			NeedRefineMax = 0,
+			NeedOptionNumMin = 0,
+			NotSocketEnchantItem = true,
+			TargetItems = {
+				{ "Axe", 1301 },
+				{ "Orcish_Axe", 1304 },
+				{ "War_Axe", 1306 }
+			},
+			NeedSource_String = "Forjar Machado"
+		},
+		Smith_2HAxe = {
+			ItemID = 785,
+			NeedRefineMin = 0,
+			NeedRefineMax = 0,
+			NeedOptionNumMin = 0,
+			NotSocketEnchantItem = true,
+			TargetItems = {
+				{ "Battle_Axe", 1351 },
+				{ "Hammer", 1354 },
+				{ "Buster", 1357 },
+				{ "Two_Handed_Axe", 1360 },
+				{ "Brood_Axe", 1363 },
+				{ "Doom_Slayer", 1370 },
+				{ "Great_Axe", 1364 },
+				{ "Guillotine", 1369 }
+			},
+			NeedSource_String = "Forjar Machado de Duas Mãos"
+		},
+		Smith_Mace = {
+			ItemID = 102,
+			NeedRefineMin = 0,
+			NeedRefineMax = 0,
+			NeedOptionNumMin = 0,
+			NotSocketEnchantItem = true,
+			TargetItems = {
+				{ "Club", 1501 },
+				{ "Mace", 1504 },
+				{ "Chain", 1519 },
+				{ "Flail", 1510 },
+				{ "Smasher", 1507 },
+				{ "Iron_Driver", 1529 },
+				{ "Morning_Star", 1513 },
+				{ "Stunner", 1522 },
+				{ "Sword_Mace", 1516 },
+				{ "Spanner", 1531 },
+				{ "Golden_Mace", 1524 },
+				{ "Long_Mace", 1525 },
+				{ "Quadrille", 1527 },
+				{ "Spike", 1523 }
+			},
+			NeedSource_String = "Forjar Maça"
+		},	
+		Smith_Knucle = {
+			ItemID = 103,
+			NeedRefineMin = 0,
+			NeedRefineMax = 0,
+			NeedOptionNumMin = 0,
+			NotSocketEnchantItem = true,
+			TargetItems = {
+				{ "Waghnakh", 1801 },
+				{ "Knuckle_Duster", 1803 },
+				{ "Claw", 1809 },
+				{ "Finger", 1811 },
+				{ "Fist", 1807 },
+				{ "Berserk", 1814 },
+				{ "Claw_Of_Garm", 1815 },
+				{ "Kaiser_Knuckle", 1813 }
+			},
+			NeedSource_String = "Forjar Soqueira"
+		},	
+		Smith_Spear = {
+			ItemID = 104,
+			NeedRefineMin = 0,
+			NeedRefineMax = 0,
+			NeedOptionNumMin = 0,
+			NotSocketEnchantItem = true,
+			TargetItems = {
+				{ "Javelin", 1401 },
+				{ "Pike", 1407 },
+				{ "Spear", 1404 },
+				{ "Pole_Axe", 1417 },
+				{ "Gungnir", 1413 }
+			},
+			NeedSource_String = "Forjar Lança"
+		},		
+		Smith_2HSpear = {
+			ItemID = 786,
+			NeedRefineMin = 0,
+			NeedRefineMax = 0,
+			NeedOptionNumMin = 0,
+			NotSocketEnchantItem = true,
+			TargetItems = {
+				{ "Glaive", 1454 },
+				{ "Guisarme", 1451 },
+				{ "Partizan", 1457 },
+				{ "Halberd", 1463 },
+				{ "Lance", 1410 },
+				{ "Trident", 1460 },
+				{ "Brionac", 1470 },
+				{ "Crescent_Scythe", 1466 },
+				{ "Gae_Bolg", 1474 },
+				{ "Longinus_Spear", 1469 },
+				{ "Skewer", 1415 }
+			},
+			NeedSource_String = "Forjar Lança"
+		},		
+		Smith_Bow = {
+			ItemID = 787,
+			NeedRefineMin = 0,
+			NeedRefineMax = 0,
+			NeedOptionNumMin = 0,
+			NotSocketEnchantItem = true,
+			TargetItems = {
+				{ "Bow", 1701 },
+				{ "Composite_Bow", 1704 },
+				{ "CrossBow", 1710 },
+				{ "Great_Bow", 1707 },
+				{ "Arbalest", 1713 },
+				{ "Kakkung", 1714 },
+				{ "Hunter_Bow", 1718 },
+				{ "Luna_Bow", 1723 },
+				{ "Balistar", 1722 },
+				{ "Dragon_Wing", 1724 },
+				{ "Bow_Of_Rudra", 1720 }
+			},
+			NeedSource_String = "Forjar Arco"
+		},	
+		Smith_Music_Instrument = {
+			ItemID = 788,
+			NeedRefineMin = 0,
+			NeedRefineMax = 0,
+			NeedOptionNumMin = 0,
+			NotSocketEnchantItem = true,
+			TargetItems = {
+				{ "Violin", 1901 },
+				{ "Lute", 1905 },
+				{ "Mandolin", 1903 },
+				{ "Guitar", 1907 },
+				{ "Guh_Moon_Goh", 1911 },
+				{ "Harp", 1909 },
+				{ "Guitar_Of_Blue_Solo", 1915 },
+				{ "Oriental_Lute", 1918 }
+			},
+			NeedSource_String = "Forjar Instrumento Musical"
+		},	
+		Smith_Whip = {
+			ItemID = 789,
+			NeedRefineMin = 0,
+			NeedRefineMax = 0,
+			NeedOptionNumMin = 0,
+			NotSocketEnchantItem = true,
+			TargetItems = {
+				{ "Rope", 1950 },
+				{ "Wire", 1954 },
+				{ "Rante", 1956 },
+				{ "Jump_Rope", 1968 },
+				{ "Tail", 1958 },
+				{ "Whip", 1960 },
+				{ "Lariat", 1962 },
+				{ "Chemeti", 1964 },
+				{ "Bladed_Whip", 1969 },
+				{ "Queens_Whip", 1970 }
+			},
+			NeedSource_String = "Forjar Chicote"
+		},	
+		Smith_Katar = {
+			ItemID = 790,
+			NeedRefineMin = 0,
+			NeedRefineMax = 0,
+			NeedOptionNumMin = 0,
+			NotSocketEnchantItem = true,
+			TargetItems = {
+				{ "Jur", 1250 },
+				{ "Jamadhar", 1254 },
+				{ "Katar", 1252 },
+				{ "Nail_Of_Loki", 1262 },
+				{ "Infiltrator", 1261 },
+				{ "Bloody_Roar", 1265 }
+			},
+			NeedSource_String = "Forjar Katar"
+		},	
+	},
+	serverMain = function()
+		for ScrollItemID, info in pairs(tblLapineUpgradeBox.targets) do
+			result, msg = registerLapineUpgradeBoxTargetInfo(info.TargetItems, info.NotSocketEnchantItem, info.NeedOptionNumMin, info.NeedRefineMin, ScrollItemID)
+			if not result then
+				return false, msg
+			end
+		end
+		for ScrollItemID, info in pairs(tblLapineUpgradeBox.results) do
+			result, msg = registerLapineUpgradeBoxResultInfo(info.FailureItems, info.RefineProbability, info.RandomOptionCode, info.SuccessRate, ScrollItemID)
+			if not result then
+				return false, msg
+			end
+		end
+		return true, "success"
+	end,
+	get_lapine_box = function(in_box_id)
+		for box_name, box_info in pairs(tblLapineUpgradeBox.targets) do
+			if box_info.ItemID == in_box_id then
+				return box_info
+			end
+		end
+		return nil
+	end,
+	get_min_need_refine = function(in_box_id)
+		local box = tblLapineUpgradeBox.get_lapine_box(in_box_id)
+		if nil ~= box then
+			return box.NeedRefineMin
+		end
+		return 0
+	end,
+	get_max_need_refine = function(in_box_id)
+		local box = tblLapineUpgradeBox.get_lapine_box(in_box_id)
+		if nil ~= box and box.NeedRefineMax ~= nil then
+			return box.NeedRefineMax
+		end
+		return 20
+	end,
+	get_min_need_option_num = function(in_box_id)
+		local box = tblLapineUpgradeBox.get_lapine_box(in_box_id)
+		if nil ~= box then
+			return box.NeedOptionNumMin
+		end
+		return 0
+	end,
+	get_need_source_string = function(in_box_id)
+		local box = tblLapineUpgradeBox.get_lapine_box(in_box_id)
+		if nil ~= box then
+			return box.NeedSource_String
+		end
+		return 0
+	end,
+	set_resource_item_list = function(in_box_id)
+		local box = tblLapineUpgradeBox.get_lapine_box(in_box_id)
+		if nil ~= box then
+			for k, v in pairs(box.TargetItems) do
+				add_ingredient_lapine_upgrade_box(v[2])
+			end
+		end
+	end
+}

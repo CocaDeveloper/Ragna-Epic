@@ -1,0 +1,10 @@
+<models>
+    <model id="0" lightopacity="0" />
+</models>
+<lights>
+    <light id="0" givesshadow="true">
+        <range>192.000000</range>
+        <maxlightincrement>256.000000</maxlightincrement>
+        <lightfalloff>0.100000</lightfalloff>
+    </light>
+</lights>

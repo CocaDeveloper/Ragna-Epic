@@ -1,0 +1,18 @@
+-- Original translation works of zackdreaver: https://github.com/zackdreaver/ROenglishRE
+-- Continuated by llchrisll at https://github.com/llchrisll/ROenglishRE
+-- This file can be distributed, used and modified freely
+-- This file shouldn't be claimed as part of your project, unless you fork it from https://github.com/llchrisll/ROenglishRE
+-- Last updated: 20240511
+
+GuideQuest.TitleText = "Guias"
+GuideQuest.MainMenuIndex = 3
+
+GuideQuest.MainMenuTitle = "Guias"
+GuideQuest:AddSubMenu(0, "Classes", 1, 999)
+GuideQuest:AddSubMenu(1, "Iniciantes", 1, 999)
+GuideQuest:AddSubMenu(2, "UP", 1, 999)
+GuideQuest:AddSubMenu(3, "Básico do SA", 1, 999)
+GuideQuest:AddContents(8160, 0, 1, 999, 0, "", "", "» <URL>[Abrir Wiki]<INFO>https://wiki.historyreborn.org/index.php?title=Classes</INFO></URL>")
+GuideQuest:AddContents(8160, 1, 1, 999, 0, "", "", "» <URL>[Abrir Wiki]<INFO>https://wiki.historyreborn.org/index.php?title=Guia_de_Iniciantes</INFO></URL>")
+GuideQuest:AddContents(8160, 2, 1, 999, 0, "", "", "» <URL>[Abrir Wiki]<INFO>https://wiki.historyreborn.org/index.php?title=Guia_de_Up</INFO></URL>")
+GuideQuest:AddContents(8161, 3, 1, 999, 0, "", "", "» <URL>[Abrir Vídeo]<INFO>https://www.youtube.com/watch?v=h_LW6i7fqQ4</INFO></URL>")

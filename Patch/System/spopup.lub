@@ -1,0 +1,97 @@
+SPUI_IDS = {
+	SPU_CHAT = 0,
+	SPU_FLOATING = 1,
+	SPU_FLOATING_CHAT = 2
+}
+popuptbl = {
+	[1] = {
+		uitype = SPUI_IDS.SPU_CHAT,
+		textcolor = 16763904,
+		Description = {
+			"Esta é a área onde são aplicadas as regras exclusivas de PVP para o Cerco de Heroria.",
+			"Os efeitos de algumas habilidades e itens pode ser ajustado, ou suas funções e uso podem ser restritas."
+		}
+	},
+	[2] = {
+		uitype = SPUI_IDS.SPU_FLOATING_CHAT,
+		textcolor = 16763904,
+		Description = {
+			"Esta é a área onde são aplicadas as regras exclusivas de PVP para o Cerco de Heroria.",
+			"Os efeitos de algumas habilidades e itens pode ser ajustado, ou suas funções e uso podem ser restritas."
+		}
+	},
+	[3] = {
+		uitype = SPUI_IDS.SPU_FLOATING_CHAT,
+		textcolor = 16763904,
+		Description = {
+			"Esta é a área da Biosfera.",
+			"Os monstros evoluem no ambiente de amostra e recebem menos danos."
+		}
+	},
+	[4] = {
+		uitype = SPUI_IDS.SPU_FLOATING_CHAT,
+		textcolor = 16763904,
+		Description = {
+			"Esta é uma área afetada pelo espadachim mágico Thanatos.",
+			"Teleporte não está disponível neste mapa."
+		}
+	},
+	[5] = {
+		uitype = SPUI_IDS.SPU_FLOATING_CHAT,
+		textcolor = 16763904,
+		Description = {
+			"O poder desconhecido do Labirinto de Tatami impede que você se teletransporte."
+		}
+	},
+	[6] = {
+		uitype = SPUI_IDS.SPU_FLOATING_CHAT,
+		textcolor = 16763904,
+		Description = {
+			"Você entrou na tumba dos mortos.",
+			"Itens e habilidades de teletransporte estão proibidos.",
+		}
+	},
+	[7] = {
+		uitype = SPUI_IDS.SPU_FLOATING_CHAT,
+		textcolor = 16763904,
+		Description = {
+			"Você entrou nas profundezas da Biosfera.",
+			"Itens e habilidades de teletransporte estão proibidos.",
+			"Algumas habilidades de movimento estão proibidas."
+		}
+	},
+	[8] = {
+		uitype = SPUI_IDS.SPU_FLOATING_CHAT,
+		textcolor = 16763904,
+		Description = {
+			"Você entrou em um reino esquecido.",
+			"Itens e habilidades de teletransporte estão proibidos.",
+			"Algumas habilidades de movimento estão proibidas."
+		}
+	},
+	[9] = {
+		uitype = SPUI_IDS.SPU_FLOATING_CHAT,
+		textcolor = 16763904,
+		Description = {
+			"Você entrou no Abismo Profundo da Biosfera.",
+			"Itens e habilidades de teletransporte estão proibidos."
+		}
+	}
+}
+
+function main()
+	for ppID, PPDESC in pairs(popuptbl) do
+		result, msg = AddMsg(ppID, PPDESC.uitype, PPDESC.textcolor)
+		if not result then
+			return false, msg
+		end
+		for k, v in pairs(PPDESC.Description) do
+			result, msg = AddDesc(ppID, v)
+			if not result then
+				return false, msg
+			end
+		end
+		k = PPDESC.textcolor
+	end
+	return true, "good"
+end

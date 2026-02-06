@@ -1,0 +1,6 @@
+<sprites>
+    <sprite x="82.019806" y="56.247234" z="68.195076" action="0" direction="0">
+        <body>data\sprite\인간족\몸통\남\결혼_남</body>
+        <head>data\sprite\인간족\머리통\남\8_남</head>
+    </sprite>
+</sprites>

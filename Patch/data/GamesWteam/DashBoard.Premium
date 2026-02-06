@@ -1,0 +1,10 @@
+[Root]
+License=P4ThXaNKDlKln8NLzVw2WuJgRQrXHvIs9eMwaU0sA8QfurmIG0+dKTCxdmat0Qlr
+Dominio=D0bDtmn+m1XmwdRwFLPH9ez4dJYK4Tvsm4c6rxWtXBM=
+Wf2=96MkDrPwdys7jTBgXbFo2fCenB0LwKuQ3mS4e+Q3CZYpooxWpYsEJHH6CRT63Js2
+Sound=1
+NotifyIcon=1
+StartExe=0
+Executable=Launcher.exe
+[Messages]
+EventNotifyMsg=starting in 5 minutes!

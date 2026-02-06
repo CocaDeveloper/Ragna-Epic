@@ -1,0 +1,18 @@
+-- Original translation works of zackdreaver: https://github.com/zackdreaver/ROenglishRE
+-- Continuated by llchrisll at https://github.com/llchrisll/ROenglishRE
+-- This file can be distributed, used and modified freely
+-- This file shouldn't be claimed as part of your project, unless you fork it from https://github.com/llchrisll/ROenglishRE
+-- Last updated: 20240511
+
+GuideDungeon.TitleText = "Sistemas G"
+GuideDungeon.MainMenuIndex = 4
+
+GuideDungeon.MainMenuTitle = "Sistemas G"
+GuideDungeon:AddSubMenu(0, "Sistema RMT", 1, 999)
+GuideDungeon:AddSubMenu(1, "Conjunto de Runas", 1, 999)
+GuideDungeon:AddSubMenu(2, "Despertar", 1, 999)
+GuideDungeon:AddSubMenu(3, "Coleta do Domínio", 1, 999)
+GuideDungeon:AddContents(8140, 0, 1, 999, 0, "", "", "» <URL>[Abrir Wiki]<INFO>https://wiki.historyreborn.org/index.php?title=Sistema_de_RMT</INFO></URL>")
+GuideDungeon:AddContents(8141, 1, 1, 999, 0, "", "", "» <URL>[Abrir Wiki]<INFO>https://wiki.historyreborn.org/index.php?title=Sistema_de_Runas</INFO></URL>")
+GuideDungeon:AddContents(8142, 2, 1, 999, 0, "", "", "» <URL>[Abrir Wiki]<INFO>https://wiki.historyreborn.org/index.php?title=Despertar</INFO></URL>")
+GuideDungeon:AddContents(8143, 3, 1, 999, 0, "", "", "» <URL>[Abrir Wiki]<INFO>https://wiki.historyreborn.org/index.php?title=Domínio#Coleta</INFO></URL>")

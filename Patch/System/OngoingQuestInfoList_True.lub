@@ -1,0 +1,10 @@
+QuestInfoList = {}
+QuestInfoList = {
+	[1] = {
+		Title = "Ransom",
+		Description = {
+			"Turtle"
+		},
+		Summary = "Carapace"
+	},
+}	

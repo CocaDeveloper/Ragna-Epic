@@ -1,0 +1,13 @@
+function GetWindowPos(WNDID)
+	if not TblPos or not TblPos[WNDID] then
+		return false, 0, 0
+	end
+	return true, TblPos[WNDID].x, TblPos[WNDID].y
+end
+
+function GetWindowSize(WNDID)
+	if not TblSize or not TblSize[WNDID] then
+		return false, 0, 0
+	end
+	return true, TblSize[WNDID].w, TblSize[WNDID].h
+end

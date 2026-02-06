@@ -1,0 +1,17 @@
+-- Original translation works of zackdreaver: https://github.com/zackdreaver/ROenglishRE
+-- Continuated by llchrisll at https://github.com/llchrisll/ROenglishRE
+-- This file can be distributed, used and modified freely
+-- This file shouldn't be claimed as part of your project, unless you fork it from https://github.com/llchrisll/ROenglishRE
+-- Last updated: 20240511
+
+GuideMonster.TitleText = "Dungeons"
+GuideMonster.MainMenuIndex = 2
+
+GuideMonster.MainMenuTitle = "Dungeons"
+GuideMonster:AddContents("BIO5", 1, 999, "» <URL>[Abrir Wiki]<INFO>https://wiki.historyreborn.org/index.php?title=Tumba_da_Honra</INFO></URL>")
+GuideMonster:AddContents("CHEFF", 1, 999, "» <URL>[Abrir Wiki]<INFO>https://wiki.historyreborn.org/index.php?title=Cheffênia</INFO></URL>")
+GuideMonster:AddContents("DOMINIO", 1, 999, "» <URL>[Abrir Wiki]<INFO>https://wiki.historyreborn.org/index.php?title=Domínio</INFO></URL>")
+GuideMonster:AddContents("TEMPLO", 1, 999, "» <URL>[Abrir Wiki]<INFO>https://wiki.historyreborn.org/index.php?title=Templo_Pesadelo</INFO></URL>")
+GuideMonster:AddContents("FENDA", 1, 999, "» <URL>[Abrir Wiki]<INFO>https://wiki.historyreborn.org/index.php?title=Fenda_Maior</INFO></URL>")
+GuideMonster:AddContents("TRIAL", 1, 999, "» <URL>[Abrir Wiki]<INFO>https://wiki.historyreborn.org/index.php?title=Trials</INFO></URL>")
+GuideMonster:AddContents("DESAFIO", 1, 999, "» <URL>[Abrir Wiki]<INFO>https://wiki.historyreborn.org/index.php?title=Desafio_do_Guardião_(GvG)</INFO></URL>")

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<clientinfo>
+	<desc>EPIC Ragna</desc>
+	<servicetype>korea</servicetype>
+	<servertype>primary</servertype>
+	<connection>
+		<display>Epic - Ragnarok Online</display>
+	<address>151.242.149.37</address>
+	<port>6900</port>
+	<version>55</version>
+	<langtype>12</langtype>
+		<registrationweb>https://epicrag.com.br</registrationweb>
+		<yellow>
+				<admin>2000000</admin>
+				<admin>2000006</admin>
+				<admin>2000003</admin>
+				<admin>2000045</admin>
+				<admin>2000046</admin>
+		</yellow>
+		<loading>
+			<image>loadscreen01.jpg</image>
+			<image>loadscreen02.jpg</image>
+			<image>loadscreen03.jpg</image>
+			<image>loadscreen04.jpg</image>
+		</loading>
+		<aid>
+		</aid>
+   	</connection>
+</clientinfo>

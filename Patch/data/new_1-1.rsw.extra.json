@@ -1,0 +1,1671 @@
+{
+  "cinematic": {
+    "length": 0.0,
+    "tracks": []
+  },
+  "colorPresets": {},
+  "light": null,
+  "lightmap": {
+    "heightSelectionOnly": false,
+    "quality": 1,
+    "rangeX": [
+      0,
+      0
+    ],
+    "rangeY": [
+      0,
+      0
+    ],
+    "shadows": true
+  },
+  "mapproperties": {
+    "lightmapAmbient": 0.5
+  },
+  "model": [
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 0,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 1,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 2,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 3,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 4,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 5,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 6,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 7,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 8,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 9,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 10,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 11,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 12,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 13,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 14,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 15,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 16,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 17,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 18,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 19,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 20,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 21,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 22,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 23,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 24,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 25,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 26,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 27,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 28,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 29,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 30,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 31,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 32,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 33,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 34,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 35,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 36,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 37,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 38,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 39,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 40,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 41,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 42,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 43,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 44,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 45,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 46,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 47,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 48,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 49,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 50,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 51,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 52,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 53,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 54,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 55,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 56,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 57,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 58,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 59,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 60,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 61,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 62,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 63,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 64,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 65,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 66,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 67,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 68,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 69,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 70,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 71,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 72,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 73,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 74,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 75,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 76,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 77,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 78,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 79,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 80,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 81,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 82,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 83,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 84,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 85,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 86,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 87,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 88,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 89,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 90,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 91,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 92,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 93,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 94,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 95,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 96,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 97,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 98,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 99,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 100,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 101,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 102,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 103,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 104,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 105,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 106,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 107,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 108,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 109,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 110,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 111,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 112,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 113,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 114,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 115,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 116,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 117,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 118,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 119,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 120,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 121,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 122,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 123,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 124,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 125,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 126,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 127,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 128,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 129,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 130,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 131,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 132,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 133,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 134,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 135,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 136,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 137,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 138,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 139,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 140,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 141,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 142,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 143,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 144,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 145,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 146,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 147,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 148,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 149,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 150,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 151,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 152,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 153,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 154,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 155,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 156,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 157,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 158,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 159,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 160,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 161,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 162,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 163,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 164,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 165,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 166,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 167,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 168,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 169,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 170,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 171,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 172,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 173,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 174,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 175,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 176,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 177,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 178,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 179,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 180,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 181,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 182,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 183,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 184,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 185,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 186,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 187,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 188,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 189,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 190,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 191,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 192,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 193,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 194,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 195,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 196,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 197,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 198,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 199,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 200,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 201,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 202,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 203,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 204,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 205,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 206,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 207,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 208,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 209,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 210,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 211,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 212,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 213,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 214,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 215,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 216,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 217,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 218,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 219,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 220,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 221,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 222,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 223,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 224,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 225,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 226,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 227,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 228,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 229,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 230,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 231,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 232,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 233,
+      "shadowStrength": 1.0
+    },
+    {
+      "gatCollision": true,
+      "gatStraightType": 0,
+      "gatType": -1,
+      "id": 234,
+      "shadowStrength": 1.0
+    }
+  ]
+}

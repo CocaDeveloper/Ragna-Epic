@@ -1,0 +1,190 @@
+-- Original translation works of zackdreaver: https://github.com/zackdreaver/ROenglishRE
+-- Continuated by llchrisll at https://github.com/llchrisll/ROenglishRE
+-- This file can be distributed, used and modified freely
+-- This file shouldn't be claimed as part of your project, unless you fork it from https://github.com/llchrisll/ROenglishRE
+-- Last updated: 20240624
+
+tbl = {
+	[34477] = {
+        {id = 300450, prob = 166, name = "Carta Renire", group = 6}, 
+        {id = 27362, prob = 167, name = "Carta Aranha Rainha", group = 6}, 
+        {id = 300297, prob = 167, name = "Carta Goblin King", group = 6}, 
+        {id = 4403, prob = 333, name = "Carta Kiel", group = 6}, 
+        {id = 300445, prob = 333, name = "Carta Gaia Pol", group = 6}, 
+        {id = 300007, prob = 334, name = "Carta Jungoliant", group = 6}, 
+        {id = 4625, prob = 1700, name = "Carta Vigia do Tempo", group = 6},
+        {id = 27162, prob = 1700, name = "Carta Gorynych", group = 6},
+        {id = 27319, prob = 1700, name = "Carta R48-85-Bestia", group = 6},
+        {id = 300377, prob = 1700, name = "Carta Ultra Limacina", group = 6},
+        {id = 300014, prob = 1700, name = "Carta Ingrid", group = 6}
+    },
+	[34478] = {
+        {id = 4576, prob = 83, name = "Carta Gioia", group = 6}, 
+        {id = 300281, prob = 83, name = "Carta R001-Bestia", group = 6}, 
+        {id = 300248, prob = 83, name = "Carta Death Witch", group = 6}, 
+        {id = 4441, prob = 83, name = "Carta Bispo Decadente", group = 6}, 
+        {id = 300262, prob = 83, name = "Carta The One", group = 6}, 
+        {id = 4376, prob = 83, name = "Carta Lady Tanee", group = 6}, 
+        {id = 27126, prob = 250, name = "Carta Boitatá", group = 6}, 
+        {id = 4408, prob = 250, name = "Carta Pesar Noturno", group = 6}, 
+        {id = 300021, prob = 250, name = "Carta Bone Detardeurus", group = 6}, 
+        {id = 4652, prob = 250, name = "Carta Amon Ra Pesadelo", group = 6}, 
+        {id = 4580, prob = 1417, name = "Carta Guardião Morto Kades", group = 6},
+        {id = 300217, prob = 1417, name = "Carta Burning Fang", group = 6},
+        {id = 300013, prob = 1417, name = "Carta Reginleif", group = 6},
+        {id = 4123, prob = 1417, name = "Carta Eddga", group = 6},
+        {id = 300014, prob = 1417, name = "Carta Ingrid", group = 6},
+        {id = 27363, prob = 1417, name = "Carta Contaminated Dark Lord", group = 6}
+    },
+	[22829] = {
+		{id = 4496, prob = 50, name = "Carta Drake Selada", group = 6}, 
+		{id = 27221, prob = 100, name = "Carta Gioia Selada", group = 6}, 
+		{id = 27224, prob = 100, name = "Carta Guardião Morto Kades Selada", group = 6}, 
+		{id = 4480, prob = 100, name = "Carta Kiel Selada", group = 6}, 
+		{id = 4484, prob = 209, name = "Carta Abelha Rainha Selada", group = 6}, 
+		{id = 4495, prob = 209, name = "Carta Amon Ra Selada", group = 6}, 
+		{id = 4541, prob = 209, name = "Carta Arquimaga Kathryne Selada", group = 6}, 
+		{id = 4491, prob = 209, name = "Carta Atiradora de Elite Cecil Selada", group = 6}, 
+		{id = 4536, prob = 209, name = "Carta Atroce Selada", group = 6}, 
+		{id = 27211, prob = 209, name = "Carta Bafomé Selada", group = 6}, 
+		{id = 4486, prob = 209, name = "Carta Belzebu Selada", group = 6},
+		{id = 4539, prob = 209, name = "Carta Bispo Decadente Selada", group = 6},
+		{id = 4497, prob = 209, name = "Carta Cavaleiro da Tempestade Selada", group = 6},
+		{id = 27219, prob = 209, name = "Carta Cigana Trentini Selada", group = 6},
+		{id = 27216, prob = 210, name = "Carta Criador Flamel Selada", group = 6},
+		{id = 27217, prob = 210, name = "Carta Desordeira Gertie Selada", group = 6},
+		{id = 4542, prob = 210, name = "Carta Detardeurus Selada", group = 6},
+		{id = 4483, prob = 210, name = "Carta Dracula Selada", group = 6},
+		{id = 4504, prob = 210, name = "Carta Eddga Selada", group = 6},
+		{id = 4482, prob = 210, name = "Carta Egnigem Cenia Selada", group = 6},
+		{id = 4489, prob = 210, name = "Carta Faraó Selada", group = 6},
+		{id = 4490, prob = 210, name = "Carta Flor do Luar Selada", group = 6},
+		{id = 4537, prob = 210, name = "Carta Freeoni Selada", group = 6},
+		{id = 27220, prob = 210, name = "Carta General Daehyun Selada", group = 6},
+		{id = 4494, prob = 210, name = "Carta General Tartaruga Selada", group = 6},
+		{id = 4543, prob = 210, name = "Carta Hatii Selada", group = 6},
+		{id = 4487, prob = 210, name = "Carta Ifrit Selada", group = 6},
+		{id = 4481, prob = 210, name = "Carta Ktullanux Selada", group = 6},
+		{id = 4538, prob = 210, name = "Carta Lady Branca Selada", group = 6},
+		{id = 4498, prob = 210, name = "Carta Lady Tanee Selada", group = 6},
+		{id = 27210, prob = 210, name = "Carta Memória de Thanatos Selada", group = 6},
+		{id = 27213, prob = 210, name = "Carta Menestrel Alphoccio Selada", group = 6},
+		{id = 4502, prob = 210, name = "Carta Mestre-ferreiro Howard Selada", group = 6},
+		{id = 27215, prob = 210, name = "Carta Mestre Chen Selada", group = 6},
+		{id = 4492, prob = 210, name = "Carta Orc Herói Selada", group = 6},
+		{id = 27218, prob = 210, name = "Carta Paladino Randel Selada", group = 6},
+		{id = 4485, prob = 210, name = "Carta Pesar Noturno Selada", group = 6},
+		{id = 27214, prob = 210, name = "Carta Professora Celia Selada", group = 6},
+		{id = 27222, prob = 210, name = "Carta Pyuriel Furiosa Selada", group = 6},
+		{id = 27209, prob = 210, name = "Carta Rainha Scaraba Selada", group = 6},
+		{id = 4499, prob = 210, name = "Carta Samurai Encarnado Selada", group = 6},
+		{id = 4488, prob = 210, name = "Carta Senhor das Trevas Selada", group = 6},
+		{id = 4500, prob = 210, name = "Carta Senhor dos Orcs Selada", group = 6},
+		{id = 4540, prob = 210, name = "Carta Senhor dos Mortos Selada", group = 6},
+		{id = 4544, prob = 210, name = "Carta Serpente Suprema Selada", group = 6},	
+		{id = 4501, prob = 210, name = "Carta Sumo-Sacerdotisa Margareta Selada", group = 6},
+		{id = 4624, prob = 210, name = "Carta Tao Gunka Selada", group = 6},
+		{id = 4535, prob = 210, name = "Carta Valquíria Randgris Selada", group = 6},
+		{id = 4535, prob = 210, name = "Carta Vesper Selada", group = 6},
+		{id = 27225, prob = 210, name = "Carta Vigia do Tempo Selada", group = 6}
+	},
+	[34476] = {
+		{id = 300200, prob = 1428, name = "Carta Ktullanux de Cristal Selada", group = 0},
+		{id = 300206, prob = 1428, name = "Carta R48-85-Bestia Selada", group = 0},
+		{id = 300205, prob = 1428, name = "Carta Marechal Tartaruga Selada", group = 0},
+		{id = 300207, prob = 1428, name = "Carta Ursinho Brilhante Selada", group = 0},
+		{id = 300204, prob = 1428, name = "Carta Ancient Wootan Defender Selada", group = 0},
+		{id = 300208, prob = 1428, name = "Carta Ancient Tao Gunka Selada", group = 0},
+		{id = 300202, prob = 1428, name = "Carta Polluted Dark Lord Selada", group = 0}
+	},
+	[34445] = {
+		{id = 4681, prob = 769, name = "Carta Bioquímico Flamel", group = 0},
+		{id = 4673, prob = 769, name = "Carta Trovador Alphoccio", group = 0},
+		{id = 4683, prob = 769, name = "Carta Musa Trentini", group = 0},
+		{id = 4675, prob = 769, name = "Carta Arcebispa Margaretha", group = 0},
+		{id = 4677, prob = 769, name = "Carta Mecânico Howard", group = 0},
+		{id = 4678, prob = 769, name = "Carta Arcana Kathryne", group = 0},
+		{id = 4680, prob = 769, name = "Carta Guardião Real Randel", group = 0},
+		{id = 4671, prob = 769, name = "Carta Feiticeira Celia", group = 0},
+		{id = 4672, prob = 769, name = "Carta Shura Chen", group = 0},
+		{id = 4682, prob = 769, name = "Carta Renegada Gertie", group = 0},
+		{id = 4674, prob = 769, name = "Carta Sicário Eremes", group = 0},
+		{id = 4676, prob = 769, name = "Carta Sentinela Cecil", group = 0},
+		{id = 4679, prob = 769, name = "Carta Cavaleiro Rúnico Seyren", group = 0}
+	},
+	[34444] = {
+		{id = 4681, prob = 576, name = "Carta Senhor das Trevas", group = 6},
+		{id = 4681, prob = 576, name = "Carta Flor do Luar", group = 6},
+		{id = 4681, prob = 576, name = "Carta Ktullanux", group = 6},
+		{id = 4681, prob = 576, name = "Carta Amon-Ra", group = 6},
+		{id = 4681, prob = 576, name = "Carta Osíris", group = 6},
+		{id = 4681, prob = 576, name = "Carta Ifrit", group = 6},
+		{id = 4681, prob = 576, name = "Carta Senhor dos Orcs", group = 6},
+		{id = 4681, prob = 576, name = "Carta Freeoni", group = 6},
+		{id = 4681, prob = 576, name = "Carta Doppelganger", group = 6},
+		{id = 4681, prob = 576, name = "Carta Valkyrie Randgris", group = 6},
+		{id = 4681, prob = 576, name = "Carta Samurai Encarnado", group = 6},
+		{id = 4681, prob = 576, name = "Carta Vesper", group = 6},
+		{id = 4681, prob = 576, name = "Carta Belzebu", group = 6},
+		{id = 4681, prob = 576, name = "Carta Espadachim Egnigem", group = 6},
+		{id = 4681, prob = 576, name = "Carta RSX-0806", group = 6},
+		{id = 4681, prob = 400, name = "Carta Orc Herói", group = 6},
+		{id = 4681, prob = 360, name = "Carta Lorde Seyren", group = 6},
+		{id = 4681, prob = 200, name = "Carta Naght Sieger", group = 6},
+		{id = 4681, prob = 200, name = "Carta Arquimaga Kathryne", group = 6},
+		{id = 4681, prob = 100, name = "Carta Memória de Thanatos", group = 6},
+		{id = 4681, prob = 100, name = "Carta Drake", group = 6}
+	},
+	[60001] = {
+		{id = 608, prob = 1500, name = "15x Semente de Yggdrasil", group = 6},
+		{id = 522, prob = 1000, name = "25x Mastela", group = 6},
+		{id = 60002, prob = 1000, name = "1x Caixa de Ervas [45]", group = 6},
+		{id = 12418, prob = 647, name = "5x Poção do Furor Físico", group = 6},
+		{id = 12419, prob = 647, name = "5x Poção do Furor Mágico", group = 6},
+		{id = 12070, prob = 500, name = "5x Caudas de Escorpião Fritas", group = 6},
+		{id = 12065, prob = 500, name = "5x Salada Verde", group = 6},
+		{id = 12050, prob = 500, name = "5x Vinho de Mastela", group = 6},
+		{id = 12055, prob = 500, name = "5x Pão de Carne Picante Frito", group = 6},
+		{id = 12060, prob = 500, name = "5x Asa de Morcego com Abóbora no Vapor", group = 6},
+		{id = 12045, prob = 500, name = "5x Panqueca de Lutie", group = 6},
+		{id = 12642, prob = 498, name = "1x Caixa de Mastelas[100]", group = 6},
+		{id = 12427, prob = 450, name = "5x Poção Grande de SP", group = 6},
+		{id = 12424, prob = 450, name = "5x Poção Grande de HP", group = 6},
+		{id = 12263, prob = 200, name = "2x Manual de Campo", group = 6},
+		{id = 12475, prob = 200, name = "5x Poção de Recuperação", group = 6},
+		{id = 12596, prob = 200, name = "1x Doce Mágico", group = 6},
+		{id = 12103, prob = 100, name = "1x Galho Sangrento", group = 6},
+		{id = 12214, prob = 100, name = "1x Espelho Convexo", group = 6},
+		{id = 19137, prob = 2, name = "1x Morango Suculento", group = 6},
+		{id = 6229, prob = 2, name = "1x Pergaminho de Arma +8", group = 6},
+		{id = 6233, prob = 2, name = "1x Pergaminho de Armadura +8", group = 6},
+		{id = 6228, prob = 1, name = "1x  Pergaminho de Arma +9", group = 6},
+		{id = 6232, prob = 1, name = "1x Pergaminho de Armadura +9", group = 6}
+	},
+	[100807] = {
+		{id = 100801, prob = 1666, name = "Cx. Bênção de Megingjard", group = 0},
+		{id = 100802, prob = 1666, name = "Cx. Bênção de Sleipnir", group = 0},
+		{id = 100803, prob = 1666, name = "Cx. Bênção de Mjolnir", group = 0},
+		{id = 100804, prob = 1666, name = "Cx. Bênção de Brisingamen", group = 0},
+		{id = 100805, prob = 1666, name = "Cx. Bênção de Asfrika", group = 0},
+		{id = 100806, prob = 1666, name = "Cx. Bênção de Brynhild", group = 0}
+	},
+	[55702] = {
+		{id = 55701, prob = 5500, name = "Torta de Chocolate", group = 6},
+		{id = 55700, prob = 4000, name = "Chocolate History", group = 6},
+		{id = 410082, prob = 500, name = "Balões de Aniversário", group = 6}
+	},
+}
+function main()
+	for packageID,package in pairs(tbl) do
+		for serialnumber,box in pairs(package) do
+			result = InsertPackage(packageID, box.group, box.id, box.name, box.prob)
+			if not result then
+				return false, msg
+			end
+		end
+	end
+	return true, "success"
+end
+
+

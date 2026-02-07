@@ -26,6 +26,7 @@
 #include "log.hpp"
 #include "mob.hpp"
 #include "npc.hpp"
+#include "party.hpp"
 #include "pc.hpp"
 
 using namespace rathena;
@@ -1549,6 +1550,14 @@ int32 pet_equipitem(map_session_data *sd,int32 index)
 	status_set_viewdata(pd, pd->pet.class_); //Updates view_data.
 	clif_send_petdata( nullptr, *pd, CHANGESTATEPET_ACCESSORY );
 
+	if( pd->loot == nullptr ){
+		pd->loot = (struct pet_loot *)aMalloc(sizeof(struct pet_loot));
+		pd->loot->item = (struct item *)aCalloc(MAX_PETLOOT_SIZE, sizeof(struct item));
+		pd->loot->max = MAX_PETLOOT_SIZE;
+		pd->loot->count = 0;
+		pd->loot->weight = 0;
+	}
+
 	if (battle_config.pet_equip_required) { // Skotlex: start support timers if need
 		t_tick tick = gettick();
 
@@ -1816,10 +1825,12 @@ static int32 pet_ai_sub_hard(struct pet_data *pd, map_session_data *sd, t_tick t
 		}
 	}
 
-	if(!target && pd->loot && pd->loot->count < pd->loot->max && DIFF_TICK(tick,pd->ud.canact_tick) > 0) {
-		// Use half the pet's range of sight.
-		map_foreachinallrange(pet_ai_sub_hard_lootsearch, pd, pd->db->range2 / 2, BL_ITEM, pd, &target);
-	}
+	if(!target && pd->pet.equip > 0 && DIFF_TICK(tick,pd->ud.canact_tick) > 0) {
+		constexpr int32 loot_range = 10;
+		map_foreachinallrange(pet_ai_sub_hard_lootsearch, pd, loot_range, BL_ITEM, pd, &target);
+		if( target == nullptr ){
+			map_foreachinallrange(pet_ai_sub_hard_lootsearch, sd, loot_range, BL_ITEM, pd, &target);
+		}
 
 	if (!target) { // Just walk around.
 		if (check_distance_bl(sd, pd, 3))
@@ -1858,13 +1869,72 @@ static int32 pet_ai_sub_hard(struct pet_data *pd, map_session_data *sd, t_tick t
 			return 0;
 		} else {
 			struct flooritem_data *fitem = (struct flooritem_data *)target;
+			map_session_data* master = pd->master;
 
-			if(pd->loot->count < pd->loot->max) {
-				memcpy(&pd->loot->item[pd->loot->count++],&fitem->item,sizeof(pd->loot->item[0]));
-				pd->loot->weight += itemdb_weight(fitem->item.nameid)*fitem->item.amount;
-				map_clearflooritem(target);
+			if( master == nullptr || pd->pet.equip == 0 ){
+				pet_unlocktarget(pd);
+				return 0;
 			}
 
+			if( master->sc.cant.pickup ){
+				pet_unlocktarget(pd);
+				return 0;
+			}
+
+			party_data* p = party_search( master->status.party_id );
+			const bool share = ( p != nullptr && ( p->party.item & 1 ) );
+			t_tick item_get_tick = fitem->third_get_tick;
+
+			if( fitem->first_get_charid == 0 || fitem->first_get_charid == master->status.char_id ){
+				item_get_tick = 0;
+			}else if( fitem->second_get_charid > 0 && fitem->second_get_charid == master->status.char_id && !share ){
+				item_get_tick = fitem->first_get_tick;
+			}else if( fitem->third_get_charid > 0 && fitem->third_get_charid == master->status.char_id && !share ){
+				item_get_tick = fitem->second_get_tick;
+			}else if( share ){
+				map_session_data* first_sd = nullptr;
+				map_session_data* second_sd = nullptr;
+				map_session_data* third_sd = nullptr;
+
+				if( fitem->first_get_charid > 0 ){
+					first_sd = map_charid2sd( fitem->first_get_charid );
+				}
+				if( fitem->second_get_charid > 0 ){
+					second_sd = map_charid2sd( fitem->second_get_charid );
+				}
+				if( fitem->third_get_charid > 0 ){
+					third_sd = map_charid2sd( fitem->third_get_charid );
+				}
+
+				if( first_sd != nullptr && first_sd->status.party_id == master->status.party_id ){
+					item_get_tick = 0;
+				}else if( second_sd != nullptr && second_sd->status.party_id == master->status.party_id ){
+					item_get_tick = fitem->first_get_tick;
+				}else if( third_sd != nullptr && third_sd->status.party_id == master->status.party_id ){
+					item_get_tick = fitem->second_get_tick;
+				}
+			}
+
+			if( DIFF_TICK( gettick(), item_get_tick ) < 0 ){
+				pet_unlocktarget(pd);
+				return 0;
+			}
+
+			int32 flag = party_share_loot( p, master, &fitem->item, fitem->first_get_charid );
+			if( flag ){
+				clif_additem( master, 0, 0, flag );
+				pet_unlocktarget(pd);
+				return 0;
+			}
+
+			if( fitem->mob_id && ( itemdb_search( fitem->item.nameid ) )->flag.broadcast ){
+				party_data* broadcast_party = party_search( master->status.party_id );
+				if( !broadcast_party || !( broadcast_party->party.item & 2 ) ){
+					intif_broadcast_obtain_special_item( master, fitem->item.nameid, fitem->mob_id, ITEMOBTAIN_TYPE_MONSTER_ITEM );
+				}
+			}
+			clif_takeitem( *master, *fitem );
+			map_clearflooritem(target);
 			//Target is unlocked regardless of whether it was picked or not.
 			pet_unlocktarget(pd);
 		}
@@ -1917,15 +1987,60 @@ static int32 pet_ai_sub_hard_lootsearch(block_list *bl,va_list ap)
 	struct pet_data* pd;
 	struct flooritem_data *fitem = (struct flooritem_data *)bl;
 	block_list **target;
-	int32 sd_charid = 0;
 
 	pd = va_arg(ap,struct pet_data *);
 	target = va_arg(ap,block_list**);
 
-	sd_charid = fitem->first_get_charid;
-
-	if(sd_charid && sd_charid != pd->master->status.char_id)
+	if( pd == nullptr || pd->master == nullptr ){
 		return 0;
+	}
+
+	if( pd->pet.equip == 0 ){
+		return 0;
+	}
+
+	map_session_data* sd = pd->master;
+	if( sd->sc.cant.pickup ){
+		return 0;
+	}
+
+	party_data* p = party_search( sd->status.party_id );
+	const bool share = ( p != nullptr && ( p->party.item & 1 ) );
+
+	t_tick item_get_tick = fitem->third_get_tick;
+	if( fitem->first_get_charid == 0 || fitem->first_get_charid == sd->status.char_id ){
+		item_get_tick = 0;
+	}else if( fitem->second_get_charid > 0 && fitem->second_get_charid == sd->status.char_id && !share ){
+		item_get_tick = fitem->first_get_tick;
+	}else if( fitem->third_get_charid > 0 && fitem->third_get_charid == sd->status.char_id && !share ){
+		item_get_tick = fitem->second_get_tick;
+	}else if( share ){
+		map_session_data* first_sd = nullptr;
+		map_session_data* second_sd = nullptr;
+		map_session_data* third_sd = nullptr;
+
+		if( fitem->first_get_charid > 0 ){
+			first_sd = map_charid2sd( fitem->first_get_charid );
+		}
+		if( fitem->second_get_charid > 0 ){
+			second_sd = map_charid2sd( fitem->second_get_charid );
+		}
+		if( fitem->third_get_charid > 0 ){
+			third_sd = map_charid2sd( fitem->third_get_charid );
+		}
+
+		if( first_sd != nullptr && first_sd->status.party_id == sd->status.party_id ){
+			item_get_tick = 0;
+		}else if( second_sd != nullptr && second_sd->status.party_id == sd->status.party_id ){
+			item_get_tick = fitem->first_get_tick;
+		}else if( third_sd != nullptr && third_sd->status.party_id == sd->status.party_id ){
+			item_get_tick = fitem->second_get_tick;
+		}
+	}
+
+	if( DIFF_TICK( gettick(), item_get_tick ) < 0 ){
+		return 0;
+	}
 
 	if(unit_can_reach_bl(pd,bl, pd->db->range2, 1, nullptr, nullptr) &&
 		((*target) == nullptr || //New target closer than previous one.

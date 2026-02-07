@@ -2922,12 +2922,12 @@ Body:
       }
   - Id: 1240000
     AegisName: Evt_Roulet_Coin
-    Name: Event Coin ShiRO    # !todo check english name
+    Name: Moeda de Evento Epic   # !todo check english name
     Type: Etc
     Weight: 10
   - Id: 1240001
     AegisName: 1b_Coin_US
-    Name: Coin ShiRO    # !todo check english name
+    Name: Moeda Epic Midgard    # !todo check english name
     Type: Etc
     Weight: 10
   - Id: 1240002

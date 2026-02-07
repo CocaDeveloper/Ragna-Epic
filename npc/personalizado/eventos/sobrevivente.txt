@@ -10,7 +10,7 @@
 //                   EVENTO NOVIÇO VS ZUMBI
 // ===================== Descrição: =============================
 
-new_evt,172,167,3	script	Noviço vs Zumbi	567,{
+new_evt,172,167,3	script	NovicoVsZumbi	567,{
 
 	set .@GMLevel,60;	// Nível GM necessário para acessar o painel admin
 	set .@n$,"^FF1493[Noviço vs Zumbi]^000000";
@@ -118,6 +118,7 @@ OnInit:
 
 		setunitdata getnpcid(0), UNPC_GROUP_ID, 1009;	
 		setunittitle getnpcid(0), "[Rune-Midgard]";
+		setnpcdisplay strnpcinfo(0), "Novico vs Zumbi";
 
 		while(1) {
 		showscript "[ Noviço vs Zumbi ]", getnpcid(0);
@@ -310,4 +311,4 @@ quiz_01	mapflag	noreturn
 quiz_01	mapflag	nocommand
 quiz_01	mapflag	nopenalty	// Evita perda de EXP ao morrer
 
-1@herbs,313,38,3	duplicate(Noviço vs Zumbi)	Noviço vs Zumbi#newevt	567
+1@herbs,313,38,3	duplicate(NovicoVsZumbi)	NovicoVsZumbi#newevt	567

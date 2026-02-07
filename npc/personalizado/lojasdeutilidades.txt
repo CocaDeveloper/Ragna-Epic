@@ -56,7 +56,7 @@ S_DarItem:
 	getitem getarg(0),1;
 	getitem getarg(1),1;
 	getitem getarg(2),1;
-	npctalk "Obrigado por pegar o set de " + getarg(3) + ", qualquer bug ou sugest o falar com o Estevam.";
+	npctalk "Obrigado por pegar o set de " + getarg(3) + ", qualquer bug ou sugest Procure nosso Discord.";
 	mes "[Mestre dos Visuais]";
 	mes "Os equipamentos da classe foram entregues. Divirta-se!";
 	close;

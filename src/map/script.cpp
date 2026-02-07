@@ -15001,6 +15001,8 @@ BUILDIN_FUNC(petloot)
 		max = MAX_PETLOOT_SIZE;
 
 	pd = sd->pd;
+	if (battle_config.pet_equip_required && pd->pet.equip == 0)
+		return SCRIPT_CMD_SUCCESS;
 	if (pd->loot != nullptr)
 	{	//Release whatever was there already and reallocate memory
 		pet_lootitem_drop( *pd, pd->master );

@@ -402,111 +402,6 @@ OnAutoStart:
 	end;
 }
 
-// Controlador de Armadilhas
--	script	TrapController	-1,{
-OnActivate:
-	// Ativar todas as armadilhas
-	enablenpc "Armadilha#01";
-	enablenpc "Armadilha#02";
-	enablenpc "Armadilha#03";
-	enablenpc "Armadilha#04";
-	enablenpc "Armadilha#05";
-	enablenpc "Armadilha#06";
-	enablenpc "Armadilha#07";
-	enablenpc "Armadilha#08";
-	enablenpc "Armadilha#09";
-	enablenpc "Armadilha#10";
-	enablenpc "Armadilha#11";
-	enablenpc "Armadilha#12";
-	enablenpc "Armadilha#13";
-	enablenpc "Armadilha#14";
-	enablenpc "Armadilha#15";
-	enablenpc "Armadilha#16";
-	enablenpc "Armadilha#17";
-	enablenpc "Armadilha#18";
-	enablenpc "Armadilha#19";
-	enablenpc "Armadilha#20";
-	enablenpc "Armadilha#21";
-	enablenpc "Armadilha#22";
-	enablenpc "Armadilha#23";
-	enablenpc "Armadilha#24";
-	enablenpc "Armadilha#25";
-	enablenpc "Armadilha#26";
-	enablenpc "Armadilha#27";
-	enablenpc "Armadilha#28";
-	enablenpc "Armadilha#29";
-	enablenpc "Armadilha#30";
-	end;
-
-OnDeactivate:
-	// Desativar todas as armadilhas
-	disablenpc "Armadilha#01";
-	disablenpc "Armadilha#02";
-	disablenpc "Armadilha#03";
-	disablenpc "Armadilha#04";
-	disablenpc "Armadilha#05";
-	disablenpc "Armadilha#06";
-	disablenpc "Armadilha#07";
-	disablenpc "Armadilha#08";
-	disablenpc "Armadilha#09";
-	disablenpc "Armadilha#10";
-	disablenpc "Armadilha#11";
-	disablenpc "Armadilha#12";
-	disablenpc "Armadilha#13";
-	disablenpc "Armadilha#14";
-	disablenpc "Armadilha#15";
-	disablenpc "Armadilha#16";
-	disablenpc "Armadilha#17";
-	disablenpc "Armadilha#18";
-	disablenpc "Armadilha#19";
-	disablenpc "Armadilha#20";
-	disablenpc "Armadilha#21";
-	disablenpc "Armadilha#22";
-	disablenpc "Armadilha#23";
-	disablenpc "Armadilha#24";
-	disablenpc "Armadilha#25";
-	disablenpc "Armadilha#26";
-	disablenpc "Armadilha#27";
-	disablenpc "Armadilha#28";
-	disablenpc "Armadilha#29";
-	disablenpc "Armadilha#30";
-	end;
-
-OnInit:
-	// Desativar armadilhas no início
-	disablenpc "Armadilha#01";
-	disablenpc "Armadilha#02";
-	disablenpc "Armadilha#03";
-	disablenpc "Armadilha#04";
-	disablenpc "Armadilha#05";
-	disablenpc "Armadilha#06";
-	disablenpc "Armadilha#07";
-	disablenpc "Armadilha#08";
-	disablenpc "Armadilha#09";
-	disablenpc "Armadilha#10";
-	disablenpc "Armadilha#11";
-	disablenpc "Armadilha#12";
-	disablenpc "Armadilha#13";
-	disablenpc "Armadilha#14";
-	disablenpc "Armadilha#15";
-	disablenpc "Armadilha#16";
-	disablenpc "Armadilha#17";
-	disablenpc "Armadilha#18";
-	disablenpc "Armadilha#19";
-	disablenpc "Armadilha#20";
-	disablenpc "Armadilha#21";
-	disablenpc "Armadilha#22";
-	disablenpc "Armadilha#23";
-	disablenpc "Armadilha#24";
-	disablenpc "Armadilha#25";
-	disablenpc "Armadilha#26";
-	disablenpc "Armadilha#27";
-	disablenpc "Armadilha#28";
-	disablenpc "Armadilha#29";
-	disablenpc "Armadilha#30";
-	end;
-}
-
 // Armadilhas pelo percurso
 morocc_race,118,257,0	script	Armadilha#01	139,2,2,{
 	end;
@@ -850,6 +745,111 @@ OnTouch:
 		sc_start SC_FREEZE,2000,0; // Freeze por 2 segundos
 		specialeffect2 EF_FROSTDIVER;
 	}
+	end;
+}
+
+// Controlador de Armadilhas
+-	script	TrapController	-1,{
+OnActivate:
+	// Ativar todas as armadilhas
+	enablenpc "Armadilha#01";
+	enablenpc "Armadilha#02";
+	enablenpc "Armadilha#03";
+	enablenpc "Armadilha#04";
+	enablenpc "Armadilha#05";
+	enablenpc "Armadilha#06";
+	enablenpc "Armadilha#07";
+	enablenpc "Armadilha#08";
+	enablenpc "Armadilha#09";
+	enablenpc "Armadilha#10";
+	enablenpc "Armadilha#11";
+	enablenpc "Armadilha#12";
+	enablenpc "Armadilha#13";
+	enablenpc "Armadilha#14";
+	enablenpc "Armadilha#15";
+	enablenpc "Armadilha#16";
+	enablenpc "Armadilha#17";
+	enablenpc "Armadilha#18";
+	enablenpc "Armadilha#19";
+	enablenpc "Armadilha#20";
+	enablenpc "Armadilha#21";
+	enablenpc "Armadilha#22";
+	enablenpc "Armadilha#23";
+	enablenpc "Armadilha#24";
+	enablenpc "Armadilha#25";
+	enablenpc "Armadilha#26";
+	enablenpc "Armadilha#27";
+	enablenpc "Armadilha#28";
+	enablenpc "Armadilha#29";
+	enablenpc "Armadilha#30";
+	end;
+
+OnDeactivate:
+	// Desativar todas as armadilhas
+	disablenpc "Armadilha#01";
+	disablenpc "Armadilha#02";
+	disablenpc "Armadilha#03";
+	disablenpc "Armadilha#04";
+	disablenpc "Armadilha#05";
+	disablenpc "Armadilha#06";
+	disablenpc "Armadilha#07";
+	disablenpc "Armadilha#08";
+	disablenpc "Armadilha#09";
+	disablenpc "Armadilha#10";
+	disablenpc "Armadilha#11";
+	disablenpc "Armadilha#12";
+	disablenpc "Armadilha#13";
+	disablenpc "Armadilha#14";
+	disablenpc "Armadilha#15";
+	disablenpc "Armadilha#16";
+	disablenpc "Armadilha#17";
+	disablenpc "Armadilha#18";
+	disablenpc "Armadilha#19";
+	disablenpc "Armadilha#20";
+	disablenpc "Armadilha#21";
+	disablenpc "Armadilha#22";
+	disablenpc "Armadilha#23";
+	disablenpc "Armadilha#24";
+	disablenpc "Armadilha#25";
+	disablenpc "Armadilha#26";
+	disablenpc "Armadilha#27";
+	disablenpc "Armadilha#28";
+	disablenpc "Armadilha#29";
+	disablenpc "Armadilha#30";
+	end;
+
+OnInit:
+	// Desativar armadilhas no incio
+	disablenpc "Armadilha#01";
+	disablenpc "Armadilha#02";
+	disablenpc "Armadilha#03";
+	disablenpc "Armadilha#04";
+	disablenpc "Armadilha#05";
+	disablenpc "Armadilha#06";
+	disablenpc "Armadilha#07";
+	disablenpc "Armadilha#08";
+	disablenpc "Armadilha#09";
+	disablenpc "Armadilha#10";
+	disablenpc "Armadilha#11";
+	disablenpc "Armadilha#12";
+	disablenpc "Armadilha#13";
+	disablenpc "Armadilha#14";
+	disablenpc "Armadilha#15";
+	disablenpc "Armadilha#16";
+	disablenpc "Armadilha#17";
+	disablenpc "Armadilha#18";
+	disablenpc "Armadilha#19";
+	disablenpc "Armadilha#20";
+	disablenpc "Armadilha#21";
+	disablenpc "Armadilha#22";
+	disablenpc "Armadilha#23";
+	disablenpc "Armadilha#24";
+	disablenpc "Armadilha#25";
+	disablenpc "Armadilha#26";
+	disablenpc "Armadilha#27";
+	disablenpc "Armadilha#28";
+	disablenpc "Armadilha#29";
+	disablenpc "Armadilha#30";
 	end;
 }
 

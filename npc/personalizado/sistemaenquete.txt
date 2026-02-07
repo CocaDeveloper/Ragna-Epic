@@ -12,7 +12,7 @@
 
 prontera,170,161,3	script	NPC de Enquete	831,{
 
-	set @np$,"^7401DF[Enquete YoYo]^000000";
+	set @np$,"^7401DF[Enquete Epic Midgard]^000000";
 	
 	// ===== ÁREA DO GM =====
 	if (getgmlevel() == 99) {
@@ -132,7 +132,7 @@ CREATE_SURVEY:
 				set $vote_id,$vote_id+1;
 				set $survey_running,1;
 				getmapxy(@map$,@x,@y,1);
-				announce "[Enquete YoYoRO]: Nova enquete disponível! Acesse o NPC em "+@map$+" e participe!",bc_all | bc_yellow;
+				announce "[Enquete Epic MidgardRO]: Nova enquete disponível! Acesse o NPC em "+@map$+" e participe!",bc_all | bc_yellow;
 				close;
 			}
 		}
@@ -256,7 +256,7 @@ PLAYER_AREA:
 OnInit:
 
 	setunitdata getnpcid(0), UNPC_GROUP_ID, 59;	
-	setunittitle getnpcid(0), "[Suporte YoYo]";
+	setunittitle getnpcid(0), "[Suporte Epic Midgard]";
 	end;
 
 }

@@ -162,7 +162,7 @@ prontera,159,194,4	script	Mensageiro Global	888,{
 OnInit:
 
 	setunitdata getnpcid(0), UNPC_GROUP_ID, 47;	
-	setunittitle getnpcid(0), "[Correio YoYo]";
+	setunittitle getnpcid(0), "[Correio Epic Midgard]";
 
 while(1) {
 		showscript "[ Mensageiro Global ]", getnpcid(0);

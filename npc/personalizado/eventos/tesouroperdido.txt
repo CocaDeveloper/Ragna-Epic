@@ -256,7 +256,7 @@ OnTesouroPego:
 }
 
 // NPC informativo com painel administrativo
-new_evt,173,173,4	script	Tesouro Perdido	1324,{
+new_evt,173,173,4	script	TesouroPerdido	1324,{
 	set .@GMLevel,60;	// Nível GM necessário para acessar o painel admin
 	set .@n$,"^FF1493[Tesouro Perdido]^000000";
 
@@ -331,10 +331,11 @@ OnInit:
 
 	setunitdata getnpcid(0), UNPC_GROUP_ID, 1009;	
 	setunittitle getnpcid(0), "[Rune-Midgard]";
+	setnpcdisplay strnpcinfo(0), "Tesouro Perdido";
 	end;	
 }
 
-1@herbs,323,57,4	duplicate(Tesouro Perdido)	Tesouro Perdido#Vip	1324
+1@herbs,323,57,4	duplicate(TesouroPerdido)	TesouroPerdido#Vip	1324
 
 new_evt,173,173,4	script	#newevt	111,{
 

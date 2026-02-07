@@ -70,6 +70,8 @@ Body:
         bonus bLuk,2;
         bonus bCritical,1;
       }
+    SupportScript: >
+      petloot 10;
   - Mob: DROPS
     TameItem: Orange_Juice
     EggItem: Drops_Egg

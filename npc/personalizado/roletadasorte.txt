@@ -33,7 +33,7 @@ prontera,145,169,5	script	Roleta da Sorte	563,{
 		7619, // Elunium Enriquecido - 30%
 		7620, // Oridecon Enriquecido - 30%
 		7621, // Amuleto de Ziegfried - 20%
-		1240001, // Moeda YoYo - 5%
+		1240001, // Moeda Epic Midgard - 5%
 		676, // Sacola de Prata 100kk - 5%
 		12221, // Megafone - 50%
 		12888, // Caixa de Consumíveis 10x - 30%
@@ -52,7 +52,7 @@ prontera,145,169,5	script	Roleta da Sorte	563,{
 		"Elunium Enriquecido",
 		"Oridecon Enriquecido",
 		"Amuleto de Ziegfried",
-		"Moeda YoYo",
+		"Moeda Epic Midgard",
 		"Sacola de Prata",
 		"Megafone",
 		"Caixa de Consumíveis",
@@ -67,7 +67,7 @@ prontera,145,169,5	script	Roleta da Sorte	563,{
 		3000, // Elunium Enriquecido - 30%
 		3000, // Oridecon Enriquecido - 30%
 		2000, // Amuleto de Ziegdried - 20%
-		500,  // Moeda YoYo - 5%
+		500,  // Moeda Epic Midgard - 5%
 		500,  // Sacola de Prata - 5%
 		5000, // Megafone - 50%
 		3000, // Caixa de Consumíveis - 30%

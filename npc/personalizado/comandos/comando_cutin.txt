@@ -29,7 +29,7 @@ OnInit:
 	end;
 	
 OnCutin:
-	mes "^339966[Sistema YoYo]^000000";
+	mes "^339966[Sistema Epic Midgard]^000000";
 	mes "Digite o nome exato do ^ff0000cutin^000000 para verificar.";
 	input .@var$;
 	cutin ""+.@var$+"",2;

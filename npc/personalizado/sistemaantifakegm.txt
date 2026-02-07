@@ -25,7 +25,7 @@
 	// Verificar se o nome contém alguma palavra proibida
 	for( set .x, 0; .x < getarraysize(.NomesGM$); set .x, .x +1)
 	if(compare(.SeuNome$,.NomesGM$[.x])) {
-		mes "^339966[Segurança ShiRO]^000000";
+		mes "^339966[Segurança Epic Midgard]^000000";
 		mes "^FF0000== SISTEMA DE SEGURANÇA ==^000000";
 		mes "Você está tentando se passar por um membro da ^ff0000STAFF^000000?";
 		mes " ";

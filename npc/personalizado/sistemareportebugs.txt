@@ -18,7 +18,7 @@ prontera,167,162,5	script	Ragnarok Online	835,{
 OnInit:
 
 setunitdata getnpcid(0), UNPC_GROUP_ID, 58;	
-setunittitle getnpcid(0), "[Suporte YoYo]";
+setunittitle getnpcid(0), "[Suporte Epic Midgard]";
 end;
 	
 }
@@ -27,7 +27,7 @@ prontera,167,161,5	script	#BurReport1	111,{
 OnInit:
 	// Chat em cima do npc
 	while(1) {
-		showscript "[ Suporte YoYoRO ]", getnpcid(0);
+		showscript "[ Suporte Epic Midgard ]", getnpcid(0);
 		sleep 100;
 	}
 	end;
@@ -35,7 +35,7 @@ OnInit:
 
 prontera,170,163,3	script	Reportar Bug	831,{
 
-set @np$,"^7401DF[Suporte YoYoRO]^000000";
+set @np$,"^7401DF[Suporte Epic Midgard]^000000";
 
 // =============================
 // PAINEL ADMINISTRATIVO (GM)
@@ -102,20 +102,20 @@ if (getgmlevel() == 99) {
 // INTERFACE DO JOGADOR
 // =============================
 // Buscar pontos do jogador
-query_sql "SELECT `yoyoro_points` FROM `char` WHERE `account_id` = "+getcharid(3), @player_points;
+query_sql "SELECT `epic_points` FROM `char` WHERE `account_id` = "+getcharid(3), @player_points;
 
 mes @np$;
 mes "Saudações, ^ffa500"+strcharinfo(0)+"^000000!";
 mes "Aqui você pode reportar bugs encontrados no servidor.";
 mes "";
-mes "^339966Seus Pontos YoYoRO:^000000 ^FF0000"+@player_points+"^000000 pontos";
-mes "^ff0000Dica:^000000 Relatórios aprovados rendem +1 Ponto YoYoRO!";
+mes "^339966Seus Epic Points:^000000 ^FF0000"+@player_points+"^000000 pontos";
+mes "^ff0000Dica:^000000 Relatórios aprovados rendem +1 Epic Point!";
 next;
 
 switch(select("^339966[»]^000000 Reportar Bug", 
               "^339966[»]^000000 Meus Relatórios", 
               "^339966[»]^000000 Relatórios Rejeitados",
-              "^339966[»]^000000 Meus Pontos YoYoRO",
+              "^339966[»]^000000 Meus Epic Points",
               "^339966[»]^000000 Como Reportar",
               "^FF0000[»] Sair^000000")) {
     
@@ -131,8 +131,8 @@ switch(select("^339966[»]^000000 Reportar Bug",
         callsub(RejectedReports);
         break;
         
-    case 4: // Ver Pontos YoYoRO
-        callsub(MyYoYoROPoints);
+    case 4: // Ver Epic Points
+        callsub(EpicPoints);
         break;
         
     case 5: // Instruções
@@ -259,12 +259,12 @@ RejectedReports:
     }
     close;
 
-// Ver pontos YoYoRO do jogador
-MyYoYoROPoints:
-    query_sql "SELECT `yoyoro_points` FROM `char` WHERE `account_id` = "+getcharid(3), @player_points;
+// Ver Epic Points do jogador
+EpicPoints:
+    query_sql "SELECT `epic_points` FROM `char` WHERE `account_id` = "+getcharid(3), @player_points;
     
     mes @np$;
-    mes "^9966FF=== SEUS PONTOS YoYoRO ===^000000";
+    mes "^9966FF=== SEUS Epic Points ===^000000";
     mes "";
     mes "^FF0000Pontos Disponíveis: "+@player_points+"^000000";
     mes "";
@@ -341,7 +341,7 @@ ReportBug:
     mes "^339966Relatório enviado com sucesso!^000000";
     mes "ID do relatório: ^FF0000#"+@report_id+"^000000";
     mes "";
-    mes "Você será recompensado com ^FF00001 Ponto YoYoRO^000000";
+    mes "Você será recompensado com ^FF00001 Epic Points^000000";
     mes "após a aprovação do relatório pelos administradores.";
     
     // Notificar GMs online
@@ -423,7 +423,7 @@ HowToReport:
     mes @np$;
     mes "^FF0000=== RECOMPENSAS ===^000000";
     mes "";
-    mes "• Relatórios aprovados resultarão em: ^ff0000+1 Ponto YoYoRO^000000";
+    mes "• Relatórios aprovados resultarão em: ^ff0000+1 Epic Point^000000";
     mes "• Os pontos são dados automaticamente após aprovação pela STAFF.";
     mes "• Use os pontos na loja de itens exclusivos.";
     close;
@@ -485,7 +485,7 @@ ApproveReport:
     
     mes @np$;
     mes "Aprovar relatório #"+@report_id+" de "+@player_name$+"?";
-    mes "O jogador receberá ^339966+1 Ponto YoYoRO^000000.";
+    mes "O jogador receberá ^339966+1 Epic Point^000000.";
     next;
     
     if(select("^FF0000[»] Cancelar^000000", "^339966[»]^000000 Confirmar Aprovação") == 1) {
@@ -503,18 +503,18 @@ ApproveReport:
     }
     
     // Dar recompensa
-    query_sql "UPDATE `char` SET `yoyoro_points` = `yoyoro_points` + 1 WHERE `account_id` = "+@account_id;
+    query_sql "UPDATE `char` SET `epic_points` = `epic_points` + 1 WHERE `account_id` = "+@account_id;
     
     set $bug_pending_count, $bug_pending_count - 1;
     set $bug_approved_count, $bug_approved_count + 1;
     
     mes @np$;
     mes "^339966Relatório aprovado com sucesso!^000000";
-    mes ""+@player_name$+" recebeu +1 Ponto YoYoRO.";
+    mes ""+@player_name$+" recebeu +1 Epic Point.";
     
     // Notificar o jogador se estiver online
     if(isloggedin(@account_id)) {
-        message @player_name$, "[Bug Report] Seu relatório #"+@report_id+" foi aprovado! Você recebeu +1 Ponto YoYoRO!";
+        message @player_name$, "[Bug Report] Seu relatório #"+@report_id+" foi aprovado! Você recebeu +1 Epic Point!";
     }
     return;
 
@@ -619,7 +619,7 @@ OnInit:
     }
     
 	setunitdata getnpcid(0), UNPC_GROUP_ID, 59;	
-	setunittitle getnpcid(0), "[Suporte YoYo]";
+	setunittitle getnpcid(0), "[Suporte Epic Midgard]";
 	end;
 
 }

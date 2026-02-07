@@ -1988,14 +1988,23 @@ void pet_lootitem_drop( pet_data& pd, map_session_data* sd ){
 		struct item* it = &pd.loot->item[i];
 
 		if( sd != nullptr ){
-			unsigned char flag = pc_additem( sd, it, it->amount, LOG_TYPE_PICKDROP_PLAYER );
+			unsigned char flag = ADDITEM_SUCCESS;
+			const bool has_space = pc_checkadditem( sd, it->nameid, it->amount ) != CHKADDITEM_OVERAMOUNT;
+			const bool has_weight = pc_isinweight( sd, it->nameid, it->amount );
 
-			if( flag == ADDITEM_SUCCESS ){
-				continue;
-			}
+			if( has_space && has_weight ){
+				flag = pc_additem( sd, it, it->amount, LOG_TYPE_PICKDROP_PLAYER );
+
+				if( flag == ADDITEM_SUCCESS ){
+					continue;
+				}
 
 			// Inform client about failure to add
-			clif_additem( sd, 0, 0, flag );
+				clif_additem( sd, 0, 0, flag );
+			}else{
+				flag = has_weight ? ADDITEM_OVERAMOUNT : ADDITEM_OVERWEIGHT;
+				clif_additem( sd, 0, 0, flag );
+			}
 		}
 
 		// Store the drop for later

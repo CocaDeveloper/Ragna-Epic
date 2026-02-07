@@ -7,7 +7,7 @@
 //   |____/  |_| \_\ |______| /_/ \_\ |_|  |_| |______|       
 //                                                  
 //===============================================================
-//                    JORNAL SHIRO
+//                    JORNAL Epic
 // ===================== Descrição: =============================
 
 -	script	Notícias	-1,{
@@ -16,7 +16,7 @@ set .Time,90;		// Anunciar a cada 90 segundos (1.5 minutos)
 setarray .News$[0],	// Mensagens variadas para o servidor
 		// === VOTAÇÃO NO SERVIDOR ===
 		"[Vote]: Ajude nosso servidor a crescer! Vote diariamente e ganhe recompensas exclusivas!",
-		"[Top Server]: Somos TOP graças a você! Continue votando em nosso servidor! ShiRO - Ragnarok Online!",
+		"[Top Server]: Somos TOP graças a você! Continue votando em nosso servidor! Epic Midgard - Ragnarok Online!",
 		"[Vote]: Vote no servidor e receba pontos de voto para trocar por itens especiais!",
 		
 		// === EVENTOS DO SERVIDOR ===
@@ -45,7 +45,7 @@ setarray .News$[0],	// Mensagens variadas para o servidor
 		"[Novatos]: Novo no servidor? Digite @commands para ver comandos úteis!",
 		"[Mercado]: Use @autotrade para vender itens mesmo offline!",
 		"[Guild]: Procurando uma guild? Anuncie para o servidor na Sala VIP!",
-		"[Rates]: EXP: 100x | DROP: 50x | Cards: 10x | Diversão garantida!",
+		"[Rates]: EXP: 5x | DROP: 5x | Cards: 1x | Diversão garantida!",
 		"[Sistemas]: Reset de Stats/Skills disponível! Fale com a Reset Girl em Prontera!",
 		"[Aventura]: Use @go para se teletransportar rapidamente para as cidades!",
 		

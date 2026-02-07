@@ -31,7 +31,7 @@ prontera,141,232,1	script	Loja de Utilidades	835,{
             npctalk "Cuidado com os Porings vagalumes: eles adoram brincar de ligar e desligar placas!";
             break;
 		case 7:
-            npctalk "ShiRO - Ragnarok Online: A sua melhor diversão!";
+            npctalk "Epic Midgard - Ragnarok Online: A sua melhor diversão!";
             break;
     }
 	
@@ -77,7 +77,7 @@ prontera,172,229,6	script	Loja de Equipamentos	835,{
             npctalk "Aviso: vendedores podem oferecer espada +1… mas só depois do café!";
             break;
 		case 7:
-            npctalk "ShiRO - Ragnarok Online: A sua melhor diversão!";
+            npctalk "Epic Midgard - Ragnarok Online: A sua melhor diversão!";
             break;
     }
 	
@@ -123,7 +123,7 @@ prontera,145,156,3	script	Mercado Negro	835,{
             npctalk "Aviso: vendedores podem oferecer espada +1… mas só depois do café!";
             break;
 		case 7:
-            npctalk "ShiRO - Ragnarok Online: A sua melhor diversão!";
+            npctalk "Epic Midgard - Ragnarok Online: A sua melhor diversão!";
             break;
     }
 	
@@ -221,7 +221,7 @@ prontera,131,187,1	script	#acessocassino	111,{
 OnInit:
 
 	while(1) {
-	showscript "[ Cassino YoYo ]", getnpcid(0);
+	showscript "[ Cassino Epic Midgard ]", getnpcid(0);
 	sleep 100;
 }
 end;

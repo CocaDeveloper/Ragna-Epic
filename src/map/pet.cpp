@@ -41,9 +41,37 @@ std::unordered_map<uint32, std::shared_ptr<s_pet_catch_process>> pet_catchproces
 std::unordered_map<std::string, std::shared_ptr<s_pet_autobonus_wrapper>> pet_autobonuses;
 const t_tick MIN_PETTHINKTIME = 100;
 
+static uint16 pet_support_skill_delay(const pet_skill_support* s_skill) {
+	if (s_skill == nullptr) {
+		return 0;
+	}
+
+	if (!s_skill->skills.empty()) {
+		return s_skill->skills.front().delay;
+	}
+
+	return s_skill->delay;
+}
+
+static bool pet_support_skill_has_active_status(map_session_data* sd, uint16 skill_id) {
+	sc_type sc = skill_get_sc(skill_id);
+
+	if (sc == SC_NONE) {
+		return false;
+	}
+
+	if (status_change* sc_data = status_get_sc(sd); sc_data != nullptr) {
+		return sc_data->hasSCE(sc);
+	}
+
+	return false;
+}
+
 const std::string PetDatabase::getDefaultLocation(){
 	return std::string(db_path) + "/pet_db.yml";
 }
+
+constexpr t_itemid PET_AUTOFEED_ITEM_ID = 36000;
 
 uint64 PetDatabase::parseBodyNode( const ryml::NodeRef& node ){
 	std::string mob_name;
@@ -508,7 +536,7 @@ void pet_clear_support_bonuses(map_session_data *sd) {
 				delete_timer(pd->s_skill->timer, pet_heal_timer);
 		}
 
-		aFree(pd->s_skill);
+		delete pd->s_skill;
 		pd->s_skill = nullptr;
 	}
 
@@ -821,6 +849,52 @@ int32 pet_sc_check(map_session_data *sd, int32 type)
 	return 0;
 }
 
+static bool pet_has_autofeed_item(map_session_data *sd){
+	return pc_search_inventory(sd, PET_AUTOFEED_ITEM_ID) >= 0;
+}
+
+static int32 pet_food_autofeed(map_session_data *sd, struct pet_data *pd){
+	nullpo_retr(1, sd);
+	nullpo_retr(1, pd);
+
+	std::shared_ptr<s_pet_db> pet_db_ptr = pd->get_pet_db();
+	int32 k;
+
+	if (pd->pet.hungry > PET_HUNGRY_SATISFIED) {
+		pet_set_intimate(pd, pd->pet.intimate + pet_db_ptr->r_full);
+		if (pd->pet.intimate <= PET_INTIMATE_NONE) {
+			unit_stop_attack( pd );
+			pd->status.speed = pd->get_pet_walk_speed();
+		}
+	} else {
+		if( battle_config.pet_friendly_rate != 100 )
+			k = (pet_db_ptr->r_hungry * battle_config.pet_friendly_rate) / 100;
+		else
+			k = pet_db_ptr->r_hungry;
+
+		if( pd->pet.hungry > PET_HUNGRY_NEUTRAL) {
+			k /= 2;
+			k = max(k, 1);
+		}
+
+		pet_set_intimate(pd, pd->pet.intimate + k);
+	}
+
+	status_calc_pet(pd,SCO_NONE);
+	pd->pet.hungry = min(pd->pet.hungry + pet_db_ptr->hunger_increase, PET_HUNGRY_STUFFED);
+
+	if( pd->pet.hungry > 100 )
+		pd->pet.hungry = 100;
+
+	log_feeding(sd, LOG_FEED_PET, pet_db_ptr->FoodID);
+
+	clif_send_petdata( sd, *pd, CHANGESTATEPET_HUNGER );
+	clif_send_petdata( sd, *pd, CHANGESTATEPET_INTIMACY );
+	clif_pet_food( *sd, pet_db_ptr->FoodID, 1 );
+
+	return 0;
+}
+
 /**
  * Update pet's hungry value and timer and adjust intimacy based on hunger.
  * @param tid : current timer value
@@ -878,8 +952,17 @@ static TIMER_FUNC(pet_hungry){
 
 	clif_send_petdata( sd, *pd, CHANGESTATEPET_HUNGER );
 
-	if( battle_config.feature_pet_autofeed && pd->pet.autofeed && pd->pet.hungry <= battle_config.feature_pet_autofeed_rate ){
-		pet_food( sd, pd );
+	bool has_autofeed_item = pet_has_autofeed_item(sd);
+	bool feature_autofeed_enabled = battle_config.feature_pet_autofeed && pd->get_pet_db()->allow_autofeed;
+	bool should_autofeed = has_autofeed_item || (feature_autofeed_enabled && pd->pet.autofeed);
+	int32 autofeed_rate = has_autofeed_item ? PET_HUNGRY_STUFFED : battle_config.feature_pet_autofeed_rate;
+
+	if( should_autofeed && pd->pet.hungry <= autofeed_rate ){
+		if( has_autofeed_item ){
+			pet_food_autofeed( sd, pd );
+		}else{
+			pet_food( sd, pd );
+		}
 	}
 
 	interval = max(interval, 1);
@@ -1562,10 +1645,12 @@ int32 pet_equipitem(map_session_data *sd,int32 index)
 		t_tick tick = gettick();
 
 		if (pd->s_skill && pd->s_skill->timer == INVALID_TIMER) {
+			uint16 delay = pet_support_skill_delay(pd->s_skill);
+
 			if (pd->s_skill->id)
-				pd->s_skill->timer=add_timer(tick+pd->s_skill->delay*1000, pet_skill_support_timer, sd->id, 0);
+				pd->s_skill->timer=add_timer(tick+delay*1000, pet_skill_support_timer, sd->id, 0);
 			else
-				pd->s_skill->timer=add_timer(tick+pd->s_skill->delay*1000, pet_heal_timer, sd->id, 0);
+				pd->s_skill->timer=add_timer(tick+delay*1000, pet_heal_timer, sd->id, 0);
 		}
 
 		if (pd->bonus && pd->bonus->timer == INVALID_TIMER)
@@ -1831,6 +1916,7 @@ static int32 pet_ai_sub_hard(struct pet_data *pd, map_session_data *sd, t_tick t
 		if( target == nullptr ){
 			map_foreachinallrange(pet_ai_sub_hard_lootsearch, sd, loot_range, BL_ITEM, pd, &target);
 		}
+	}
 
 	if (!target) { // Just walk around.
 		if (check_distance_bl(sd, pd, 3))
@@ -1933,7 +2019,7 @@ static int32 pet_ai_sub_hard(struct pet_data *pd, map_session_data *sd, t_tick t
 					intif_broadcast_obtain_special_item( master, fitem->item.nameid, fitem->mob_id, ITEMOBTAIN_TYPE_MONSTER_ITEM );
 				}
 			}
-			clif_takeitem( *master, *fitem );
+			clif_takeitem( *pd, *fitem );
 			map_clearflooritem(target);
 			//Target is unlocked regardless of whether it was picked or not.
 			pet_unlocktarget(pd);
@@ -2105,7 +2191,8 @@ void pet_lootitem_drop( pet_data& pd, map_session_data* sd ){
 		if( sd != nullptr ){
 			unsigned char flag = ADDITEM_SUCCESS;
 			const bool has_space = pc_checkadditem( sd, it->nameid, it->amount ) != CHKADDITEM_OVERAMOUNT;
-			const bool has_weight = pc_isinweight( sd, it->nameid, it->amount );
+			const uint32 item_weight = itemdb_weight( it->nameid ) * it->amount;
+			const bool has_weight = sd->weight + item_weight <= sd->max_weight;
 
 			if( has_space && has_weight ){
 				flag = pc_additem( sd, it, it->amount, LOG_TYPE_PICKDROP_PLAYER );
@@ -2246,15 +2333,58 @@ TIMER_FUNC(pet_heal_timer){
 	}
 
 	status_data* status = status_get_status_data(*sd);
+	int16 hp_rate = get_percentage(status->hp, status->max_hp);
+	int16 sp_rate = get_percentage(status->sp, status->max_sp);
 
-	if(pc_isdead(sd) ||
-		(rate = get_percentage(status->sp, status->max_sp)) > pd->s_skill->sp ||
-		(rate = get_percentage(status->hp, status->max_hp)) > pd->s_skill->hp ||
-		(rate = (pd->ud.skilltimer != INVALID_TIMER)) //Another skill is in effect
-	) {  //Wait (how long? 1 sec for every 10% of remaining)
-		pd->s_skill->timer=add_timer(gettick()+(rate>10?rate:10)*100,pet_heal_timer,sd->id,0);
+	if (pc_isdead(sd) || pd->ud.skilltimer != INVALID_TIMER) {
+		rate = max(hp_rate, sp_rate);
+		pd->s_skill->timer = add_timer(tick + (rate > 10 ? rate : 10) * 100, pet_skill_support_timer, sd->id, 0);
 		return 0;
 	}
+
+	const auto& skills = pd->s_skill->skills;
+	size_t skill_count = skills.empty() ? 1 : skills.size();
+	size_t start_index = pd->s_skill->current_index;
+	if (start_index >= skill_count) {
+		start_index = 0;
+	}
+
+	bool found_skill = false;
+	pet_skill_support_entry selected_skill = {};
+	size_t selected_index = 0;
+
+	for (size_t i = 0; i < skill_count; ++i) {
+		size_t index = (start_index + i) % skill_count;
+		pet_skill_support_entry entry = skills.empty()
+			? pet_skill_support_entry{ pd->s_skill->id, pd->s_skill->lv, pd->s_skill->hp, pd->s_skill->sp, pd->s_skill->delay }
+			: skills[index];
+
+		if (sp_rate > entry.sp || hp_rate > entry.hp) {
+			continue;
+		}
+
+		if (pet_support_skill_has_active_status(sd, entry.id)) {
+			continue;
+		}
+
+		found_skill = true;
+		selected_skill = entry;
+		selected_index = index;
+		break;
+	}
+
+	if (!found_skill) {  //Wait (how long? 1 sec for every 10% of remaining)
+		rate = max(hp_rate, sp_rate);
+		pd->s_skill->timer = add_timer(tick + (rate > 10 ? rate : 10) * 100, pet_skill_support_timer, sd->id, 0);
+		return 0;
+	}
+
+	pd->s_skill->id = selected_skill.id;
+	pd->s_skill->lv = selected_skill.lv;
+	pd->s_skill->hp = selected_skill.hp;
+	pd->s_skill->sp = selected_skill.sp;
+	pd->s_skill->delay = selected_skill.delay;
+	pd->s_skill->current_index = (selected_index + 1) % skill_count;
 
 	unit_stop_attack( pd );
 	unit_stop_walking( pd, USW_FIXPOS );

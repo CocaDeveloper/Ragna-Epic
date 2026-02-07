@@ -17,6 +17,7 @@
 #include "unit.hpp"
 
 #include <unordered_map>
+#include <vector>
 
 #define MAX_PETLOOT_SIZE	30
 
@@ -114,6 +115,14 @@ struct pet_skill_attack { //Attack Skill
 	uint16 bonusrate; //How being 100% loyal affects cast rate (10 = At 1000 intimacy->rate+10%
 };
 
+struct pet_skill_support_entry { //Support Skill entry
+	uint16 id;
+	uint16 lv;
+	uint16 hp; //Max HP% for skill to trigger (50 -> 50% for Magnificat)
+	uint16 sp; //Max SP% for skill to trigger (100 = no check)
+	uint16 delay; //Time (secs) between being able to recast.
+};
+
 struct pet_skill_support { //Support Skill
 	uint16 id;
 	uint16 lv;
@@ -121,6 +130,8 @@ struct pet_skill_support { //Support Skill
 	uint16 sp; //Max SP% for skill to trigger (100 = no check)
 	uint16 delay; //Time (secs) between being able to recast.
 	int32 timer;
+	std::vector<pet_skill_support_entry> skills;
+	size_t current_index;
 };
 
 struct pet_loot {

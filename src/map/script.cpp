@@ -15479,20 +15479,79 @@ BUILDIN_FUNC(petskillsupport)
 			else
 				delete_timer(pd->s_skill->timer, pet_heal_timer);
 		}
+		pd->s_skill->skills.clear();
+		pd->s_skill->current_index = 0;
 	} else //init memory
-		pd->s_skill = (struct pet_skill_support *) aMalloc(sizeof(struct pet_skill_support));
+		pd->s_skill = new pet_skill_support();
 
 	pd->s_skill->id = id;
 	pd->s_skill->lv = script_getnum(st,3);
 	pd->s_skill->delay = script_getnum(st,4);
 	pd->s_skill->hp = script_getnum(st,5);
 	pd->s_skill->sp = script_getnum(st,6);
-
+	pd->s_skill->skills.push_back({ pd->s_skill->id, pd->s_skill->lv, pd->s_skill->hp, pd->s_skill->sp, pd->s_skill->delay });
+	pd->s_skill->current_index = 0;
+	
 	//Use delay as initial offset to avoid skill/heal exploits
 	if (battle_config.pet_equip_required && pd->pet.equip == 0)
 		pd->s_skill->timer = INVALID_TIMER;
 	else
 		pd->s_skill->timer = add_timer(gettick()+pd->s_skill->delay*1000,pet_skill_support_timer,sd->id,0);
+	return SCRIPT_CMD_SUCCESS;
+}
+
+/*==========================================
+ * pet support skills (append)
+ *------------------------------------------*/
+/// petskillsupportadd <skill id>,<level>,<delay>,<hp>,<sp>
+/// petskillsupportadd "<skill name>",<level>,<delay>,<hp>,<sp>
+BUILDIN_FUNC(petskillsupportadd)
+{
+	struct pet_data *pd;
+	TBL_PC *sd;
+	int32 id = 0;
+
+	if(!script_rid2sd(sd) || sd->pd == nullptr)
+		return SCRIPT_CMD_FAILURE;
+
+	id = (script_isstring(st, 2) ? skill_name2id(script_getstr(st,2)) : skill_get_index(script_getnum(st,2)));
+	if (!id) {
+		ShowError("buildin_petskillsupportadd: Invalid skill defined!\n");
+		return SCRIPT_CMD_FAILURE;
+	}
+
+	pd = sd->pd;
+	if (!pd->s_skill) {
+		pd->s_skill = new pet_skill_support();
+		pd->s_skill->timer = INVALID_TIMER;
+		pd->s_skill->current_index = 0;
+	}
+
+	pet_skill_support_entry entry = {
+		static_cast<uint16>(id),
+		static_cast<uint16>(script_getnum(st,3)),
+		static_cast<uint16>(script_getnum(st,5)),
+		static_cast<uint16>(script_getnum(st,6)),
+		static_cast<uint16>(script_getnum(st,4))
+	};
+
+	if (pd->s_skill->skills.empty()) {
+		pd->s_skill->id = entry.id;
+		pd->s_skill->lv = entry.lv;
+		pd->s_skill->delay = entry.delay;
+		pd->s_skill->hp = entry.hp;
+		pd->s_skill->sp = entry.sp;
+	}
+
+	pd->s_skill->skills.push_back(entry);
+
+	if (pd->s_skill->timer == INVALID_TIMER) {
+		if (battle_config.pet_equip_required && pd->pet.equip == 0)
+			pd->s_skill->timer = INVALID_TIMER;
+		else
+			pd->s_skill->timer = add_timer(gettick()+entry.delay*1000,pet_skill_support_timer,sd->id,0);
+	}
+
 	return SCRIPT_CMD_SUCCESS;
 }
 
@@ -28120,6 +28179,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(petskillattack,"viii"), // [Skotlex]
 	BUILDIN_DEF(petskillattack2,"viiii"), // [Valaris]
 	BUILDIN_DEF(petskillsupport,"viiii"), // [Skotlex]
+	BUILDIN_DEF(petskillsupportadd,"viiii"),
 	BUILDIN_DEF(skilleffect,"vi?"), // skill effect [Celest]
 	BUILDIN_DEF(npcskilleffect,"viii"), // npc skill effect [Valaris]
 	BUILDIN_DEF(specialeffect,"i??"), // npc skill effect [Valaris]

@@ -71,7 +71,8 @@ Body:
         bonus bCritical,1;
       }
     SupportScript: >
-      petloot 10;
+      petskillsupport "AL_INCAGI",1,60,100,100;
+      petskillsupportadd "AL_BLESSING",1,60,100,100;
   - Mob: DROPS
     TameItem: Orange_Juice
     EggItem: Drops_Egg
@@ -226,6 +227,8 @@ Body:
         bonus bHPrecovRate,5;
         bonus bMaxHP,25;
       }
+    SupportScript: >
+      petskillsupport "BA_POEMBRAGI",3,60,100,100;
   - Mob: SPORE
     TameItem: Dew_Laden_Moss
     EggItem: Spore_Egg

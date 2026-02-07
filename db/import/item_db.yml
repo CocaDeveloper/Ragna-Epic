@@ -2950,3 +2950,11 @@ Body:
     Name: Ticket Minas    # !todo check english name
     Type: Etc
     Weight: 10
+  - Id: 36000
+    AegisName: Pet_Food_Pot
+    Name: Pote de Comida do Pet
+    Type: Etc
+    Buy: 10
+    Weight: 10
+    Flags:
+      NoConsume: true

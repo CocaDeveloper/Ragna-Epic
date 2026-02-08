@@ -327,8 +327,10 @@ int32 chrif_save(map_session_data *sd, int32 flag) {
 
 	WFIFOSET(char_fd, WFIFOW(char_fd,2));
 
-	if( sd->status.pet_id > 0 && sd->pd )
+	if( sd->status.pet_id > 0 && sd->pd ) {
+		pet_sync_status_data(*sd->pd);
 		intif_save_petdata(sd->status.account_id,&sd->pd->pet);
+	}
 	if( hom_is_active(sd->hd) )
 		hom_save(sd->hd);
 	if( sd->md && mercenary_get_lifetime(sd->md) > 0 )

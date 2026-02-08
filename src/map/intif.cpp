@@ -95,11 +95,11 @@ map_session_data *inter_search_sd(uint32 account_id, uint32 char_id)
  * @param pet_name
  * @return 
  */
-int32 intif_create_pet(uint32 account_id,uint32 char_id,int16 pet_class,int16 pet_lv, t_itemid pet_egg_id, t_itemid pet_equip,int16 intimate,int16 hungry,char rename_flag,char incubate,const char *pet_name)
+int32 intif_create_pet(uint32 account_id,uint32 char_id,int16 pet_class,int16 pet_lv, t_itemid pet_egg_id, t_itemid pet_equip,int16 intimate,int16 hungry,char rename_flag,char incubate,const char *pet_name, t_exp exp, uint32 hp, uint32 max_hp, uint32 sp, uint32 max_sp, int16 str, int16 agi, int16 vit, int16 int_, int16 dex, int16 luk)
 {
 	if (CheckForCharServer())
 		return 0;
-	WFIFOHEAD(inter_fd, 28 + NAME_LENGTH);
+	WFIFOHEAD(inter_fd, 64 + NAME_LENGTH);
 	WFIFOW(inter_fd, 0) = 0x3080;
 	WFIFOL(inter_fd, 2) = account_id;
 	WFIFOL(inter_fd, 6) = char_id;
@@ -111,8 +111,19 @@ int32 intif_create_pet(uint32 account_id,uint32 char_id,int16 pet_class,int16 pe
 	WFIFOW(inter_fd, 24) = hungry;
 	WFIFOB(inter_fd, 26) = rename_flag;
 	WFIFOB(inter_fd, 27) = incubate;
-	safestrncpy(WFIFOCP(inter_fd, 28), pet_name, NAME_LENGTH);
-	WFIFOSET(inter_fd, 28 + NAME_LENGTH);
+	WFIFOQ(inter_fd, 28) = exp;
+	WFIFOL(inter_fd, 36) = hp;
+	WFIFOL(inter_fd, 40) = max_hp;
+	WFIFOL(inter_fd, 44) = sp;
+	WFIFOL(inter_fd, 48) = max_sp;
+	WFIFOW(inter_fd, 52) = str;
+	WFIFOW(inter_fd, 54) = agi;
+	WFIFOW(inter_fd, 56) = vit;
+	WFIFOW(inter_fd, 58) = int_;
+	WFIFOW(inter_fd, 60) = dex;
+	WFIFOW(inter_fd, 62) = luk;
+	safestrncpy(WFIFOCP(inter_fd, 64), pet_name, NAME_LENGTH);
+	WFIFOSET(inter_fd, 64 + NAME_LENGTH);
 
 	return 1;
 }

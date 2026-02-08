@@ -39,6 +39,39 @@ struct s_pet_catch_process{
 
 std::unordered_map<uint32, std::shared_ptr<s_pet_catch_process>> pet_catchprocesses;
 std::unordered_map<std::string, std::shared_ptr<s_pet_autobonus_wrapper>> pet_autobonuses;
+void pet_sync_status_data(pet_data& pd) {
+	pd.pet.hp = static_cast<uint32>(pd.status.hp);
+	pd.pet.max_hp = static_cast<uint32>(pd.status.max_hp);
+	pd.pet.sp = static_cast<uint32>(pd.status.sp);
+	pd.pet.max_sp = static_cast<uint32>(pd.status.max_sp);
+	pd.pet.str = pd.status.str;
+	pd.pet.agi = pd.status.agi;
+	pd.pet.vit = pd.status.vit;
+	pd.pet.int_ = pd.status.int_;
+	pd.pet.dex = pd.status.dex;
+	pd.pet.luk = pd.status.luk;
+}
+
+s_pet_initial_stats pet_build_initial_stats(const std::shared_ptr<s_mob_db>& mob) {
+	s_pet_initial_stats stats{};
+	stats.exp = 0;
+	if (!mob) {
+		return stats;
+	}
+
+	stats.max_hp = static_cast<uint32>(mob->status.max_hp);
+	stats.hp = stats.max_hp;
+	stats.max_sp = static_cast<uint32>(mob->status.max_sp);
+	stats.sp = stats.max_sp;
+	stats.str = static_cast<int16>(mob->status.str);
+	stats.agi = static_cast<int16>(mob->status.agi);
+	stats.vit = static_cast<int16>(mob->status.vit);
+	stats.int_ = static_cast<int16>(mob->status.int_);
+	stats.dex = static_cast<int16>(mob->status.dex);
+	stats.luk = static_cast<int16>(mob->status.luk);
+	return stats;
+}
+
 const t_tick MIN_PETTHINKTIME = 100;
 
 static uint16 pet_support_skill_delay(const pet_skill_support* s_skill) {
@@ -710,7 +743,9 @@ bool pet_create_egg(map_session_data *sd, t_itemid item_id)
 	if (!pc_inventoryblank(sd))
 		return false; // Inventory full
 
-	intif_create_pet(sd->status.account_id, sd->status.char_id, pet->class_, mdb->lv, pet->EggID, 0, pet->intimate, 100, 0, 1, mdb->jname.c_str());
+	s_pet_initial_stats stats = pet_build_initial_stats(mdb);
+	intif_create_pet(sd->status.account_id, sd->status.char_id, pet->class_, mdb->lv, pet->EggID, 0, pet->intimate, 100, 0, 1, mdb->jname.c_str(),
+		stats.exp, stats.hp, stats.max_hp, stats.sp, stats.max_sp, stats.str, stats.agi, stats.vit, stats.int_, stats.dex, stats.luk);
 
 	return true;
 }
@@ -1082,6 +1117,9 @@ bool pet_data_init(map_session_data *sd, struct s_pet *pet)
 		if (sd->status.pet_id) {
 			//Wrong pet?? Set incubate to no and send it back for saving.
 			pet->incubate = 1;
+			if (sd->pd) {
+				pet_sync_status_data(*sd->pd);
+			}
 			intif_save_petdata(sd->status.account_id,pet);
 			sd->status.pet_id = 0;
 
@@ -1122,6 +1160,9 @@ bool pet_data_init(map_session_data *sd, struct s_pet *pet)
 
 	map_addiddb(pd);
 	status_calc_pet(pd,SCO_FIRST);
+	if (pd->pet.max_hp == 0 || pd->pet.max_sp == 0) {
+		pet_sync_status_data(*pd);
+	}
 
 	pd->last_thinktime = gettick();
 	pd->state.skillbonus = 0;
@@ -1177,6 +1218,10 @@ int32 pet_birth_process(map_session_data *sd, struct s_pet *pet)
 
 	if(!pet_data_init(sd, pet)) {
 		return 1;
+	}
+
+	if (sd->pd) {
+		pet_sync_status_data(*sd->pd);
 	}
 
 	intif_save_petdata(sd->status.account_id,pet);
@@ -1430,7 +1475,9 @@ void pet_catch_process_end( map_session_data& sd, int32 target_id ){
 
 		std::shared_ptr<s_mob_db> mdb = mob_db.find(pet->class_);
 
-		intif_create_pet(sd.status.account_id, sd.status.char_id, pet->class_, mdb->lv, pet->EggID, 0, pet->intimate, 100, 0, 1, mdb->jname.c_str());
+		s_pet_initial_stats stats = pet_build_initial_stats(mdb);
+		intif_create_pet(sd.status.account_id, sd.status.char_id, pet->class_, mdb->lv, pet->EggID, 0, pet->intimate, 100, 0, 1, mdb->jname.c_str(),
+			stats.exp, stats.hp, stats.max_hp, stats.sp, stats.max_sp, stats.str, stats.agi, stats.vit, stats.int_, stats.dex, stats.luk);
 	} else {
 		clif_pet_roulette( sd, false );
 	}
@@ -2587,6 +2634,9 @@ void pet_evolution(map_session_data *sd, int16 pet_id) {
 	status_set_viewdata(sd->pd, pet_id);
 
 	// Save the pet and inventory data
+	if (sd->pd) {
+		pet_sync_status_data(*sd->pd);
+	}
 	intif_save_petdata(sd->status.account_id, &sd->pd->pet);
 	if (save_settings&CHARSAVE_PET)
 		chrif_save(sd, CSAVE_INVENTORY);

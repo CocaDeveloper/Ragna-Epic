@@ -8283,6 +8283,7 @@ void clif_send_petdata( map_session_data* sd, pet_data& pd, e_changestate_pet da
 /// 01a2 <name>.24B <renamed>.B <level>.W <hunger>.W <intimacy>.W <accessory id>.W <class>.W (ZC_PROPERTY_PET)
 void clif_send_petstatus( map_session_data& sd, pet_data& pd ){
 	PACKET_ZC_PROPERTY_PET packet{};
+	status_data* status = &pd.status;
 
 	packet.PacketType = HEADER_ZC_PROPERTY_PET;
 	safestrncpy( packet.szName, pd.pet.name, NAME_LENGTH );
@@ -8293,6 +8294,22 @@ void clif_send_petstatus( map_session_data& sd, pet_data& pd ){
 	packet.ITID = static_cast<decltype(packet.ITID)>( pd.pet.equip );
 #if PACKETVER >= 20081126
 	packet.job = pd.pet.class_;
+#endif
+
+#if PACKETVER_MAIN_NUM >= 20210303 || PACKETVER_RE_NUM >= 20211103 || PACKETVER_ZERO_NUM >= 20221024
+	packet.hp = status->hp;
+	packet.maxHp = status->max_hp;
+	packet.sp = status->sp;
+	packet.maxSp = status->max_sp;
+	packet.exp = 0;
+	packet.expNext = 0;
+#elif PACKETVER_MAIN_NUM >= 20200819 || PACKETVER_RE_NUM >= 20200723
+	packet.hp = status->hp;
+	packet.maxHp = status->max_hp;
+	packet.sp = status->sp;
+	packet.maxSp = status->max_sp;
+	packet.exp = 0;
+	packet.expNext = 0;
 #endif
 
 	clif_send( &packet, sizeof( packet ), &sd, SELF );

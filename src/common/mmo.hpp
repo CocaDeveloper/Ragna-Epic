@@ -481,6 +481,15 @@ struct s_pet {
 	int32 pet_id;
 	int16 class_;
 	int16 level;
+	t_exp exp;
+	uint32 hp, max_hp;
+	uint32 sp, max_sp;
+	int32 str;
+	int32 agi;
+	int32 vit;
+	int32 int_;
+	int32 dex;
+	int32 luk;
 	t_itemid egg_id;//pet egg id
 	t_itemid equip;//pet equip name_id
 	int16 intimate;//pet friendly

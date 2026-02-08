@@ -1,4 +1,4 @@
-//===== rAthena Documentation ================================
+ //===== rAthena Documentation ================================
 //= Source Documentation
 //===== By: ==================================================
 //= rAthena Dev Team
@@ -1303,9 +1303,9 @@ Currently the max packet size is 0xFFFF (see 'WFIFOSET()' in 'src/common/socket.
 
 0x3080
 	Type: ZI
-	Structure: <cmd>.W <aid>.L <cid>.L <pet_class>.W <pet_lv>.W <pet_egg_id>.W <pet_equip>.W <intimate>.W <hungry>.W <rename_flag>.B <incubate>.B
-	index: 0,2,6,10,12,14,16,18,20,22,23,24
-	len: variable: 24+NAME_LENGTH
+	Structure: <cmd>.W <aid>.L <cid>.L <pet_class>.W <pet_lv>.W <pet_egg_id>.L <pet_equip>.L <intimate>.W <hungry>.W <rename_flag>.B <incubate>.B <exp>.Q <hp>.L <max_hp>.L <sp>.L <max_sp>.L <str>.W <agi>.W <vit>.W <int>.W <dex>.W <luk>.W <pet_name>.?B
+	index: 0,2,6,10,12,14,18,22,24,26,27,28,36,40,44,48,52,54,56,58,60,62,64
+	len: variable: 64+NAME_LENGTH
 	parameter:
 		- cmd : packet identification (0x3080)
 		- aid
@@ -1313,11 +1313,23 @@ Currently the max packet size is 0xFFFF (see 'WFIFOSET()' in 'src/common/socket.
 		- pet_class
 		- pet_lv
 		- pet_egg_id
-		 -pet_equip
+		- pet_equip
 		- intimate
 		- hungry
 		- rename_flag
 		- incubate
+		- exp
+		- hp
+		- max_hp
+		- sp
+		- max_sp
+		- str
+		- agi
+		- vit
+		- int
+		- dex
+		- luk
+		- pet_name
 	desc:
 		- Pet create
 

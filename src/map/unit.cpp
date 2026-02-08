@@ -4047,9 +4047,10 @@ int32 unit_free(block_list *bl, clr_type clrtype)
 			pet_hungry_timer_delete(pd);
 			pet_clear_support_bonuses(sd);
 
-			if( pd->pet.intimate > PET_INTIMATE_NONE )
+			if( pd->pet.intimate > PET_INTIMATE_NONE ) {
+				pet_sync_status_data(*pd);
 				intif_save_petdata(pd->pet.account_id,&pd->pet);
-			else { // Remove pet.
+			} else { // Remove pet.
 				intif_delete_petdata(pd->pet.pet_id);
 
 				if (sd)

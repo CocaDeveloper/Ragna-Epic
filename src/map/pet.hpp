@@ -192,6 +192,21 @@ struct s_pet_autobonus_wrapper {
 
 extern std::unordered_map<std::string, std::shared_ptr<s_pet_autobonus_wrapper>> pet_autobonuses;
 
+struct s_pet_initial_stats {
+	t_exp exp;
+	uint32 hp;
+	uint32 max_hp;
+	uint32 sp;
+	uint32 max_sp;
+	int16 str;
+	int16 agi;
+	int16 vit;
+	int16 int_;
+	int16 dex;
+	int16 luk;
+};
+
+
 struct pet_data : public block_list {
 	struct unit_data ud;
 	struct view_data vd;
@@ -264,6 +279,9 @@ int32 pet_egg_search(map_session_data *sd, int32 pet_id);
 void pet_evolution(map_session_data *sd, int16 pet_id);
 int32 pet_food(map_session_data *sd, struct pet_data *pd);
 void pet_clear_support_bonuses(map_session_data *sd);
+
+void pet_sync_status_data(pet_data& pd);
+s_pet_initial_stats pet_build_initial_stats(const std::shared_ptr<s_mob_db>& mob);
 
 bool pet_addautobonus(std::vector<std::shared_ptr<s_petautobonus>> &bonus, const std::string &script, int16 rate, uint32 dur, uint16 atk_type, const std::string &other_script, bool onskill);
 void pet_exeautobonus(map_session_data &sd, std::vector<std::shared_ptr<s_petautobonus>> *bonus, std::shared_ptr<s_petautobonus> &autobonus);

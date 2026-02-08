@@ -954,8 +954,10 @@ ACMD_FUNC(save)
 	}
 
 	pc_setsavepoint(sd, sd->mapindex, sd->x, sd->y);
-	if (sd->status.pet_id > 0 && sd->pd)
+	if (sd->status.pet_id > 0 && sd->pd) {
+		pet_sync_status_data(*sd->pd);
 		intif_save_petdata(sd->status.account_id, &sd->pd->pet);
+	}
 
 	chrif_save(sd, CSAVE_NORMAL);
 
@@ -3211,7 +3213,9 @@ ACMD_FUNC(makeegg) {
 	if (pet != nullptr) {
 		std::shared_ptr<s_mob_db> mdb = mob_db.find(pet->class_);
 		if(mdb){
-			if(intif_create_pet(sd->status.account_id, sd->status.char_id, pet->class_, mdb->lv, pet->EggID, 0, pet->intimate, 100, 0, 1, mdb->jname.c_str())){
+			s_pet_initial_stats stats = pet_build_initial_stats(mdb);
+			if(intif_create_pet(sd->status.account_id, sd->status.char_id, pet->class_, mdb->lv, pet->EggID, 0, pet->intimate, 100, 0, 1, mdb->jname.c_str(),
+				stats.exp, stats.hp, stats.max_hp, stats.sp, stats.max_sp, stats.str, stats.agi, stats.vit, stats.int_, stats.dex, stats.luk)){
 				res = 0;
 			} else {
 				res = -2; //char server down
@@ -3335,6 +3339,7 @@ ACMD_FUNC(petrename)
 	}
 
 	pd->pet.rename_flag = 0;
+	pet_sync_status_data(*pd);
 	intif_save_petdata(sd->status.account_id, &pd->pet);
 	clif_send_petstatus( *sd, *pd );
 	clif_displaymessage(fd, msg_txt(sd,187)); // You can now rename your pet.

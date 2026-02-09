@@ -3215,7 +3215,7 @@ ACMD_FUNC(makeegg) {
 		if(mdb){
 			s_pet_initial_stats stats = pet_build_initial_stats(mdb);
 			if(intif_create_pet(sd->status.account_id, sd->status.char_id, pet->class_, mdb->lv, pet->EggID, 0, pet->intimate, 100, 0, 1, mdb->jname.c_str(),
-				stats.exp, stats.hp, stats.max_hp, stats.sp, stats.max_sp, stats.str, stats.agi, stats.vit, stats.int_, stats.dex, stats.luk)){
+				stats.str, stats.agi, stats.vit, stats.int_, stats.dex, stats.luk)){
 				res = 0;
 			} else {
 				res = -2; //char server down

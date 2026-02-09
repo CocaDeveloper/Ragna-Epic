@@ -40,10 +40,6 @@ struct s_pet_catch_process{
 std::unordered_map<uint32, std::shared_ptr<s_pet_catch_process>> pet_catchprocesses;
 std::unordered_map<std::string, std::shared_ptr<s_pet_autobonus_wrapper>> pet_autobonuses;
 void pet_sync_status_data(pet_data& pd) {
-	pd.pet.hp = static_cast<uint32>(pd.status.hp);
-	pd.pet.max_hp = static_cast<uint32>(pd.status.max_hp);
-	pd.pet.sp = static_cast<uint32>(pd.status.sp);
-	pd.pet.max_sp = static_cast<uint32>(pd.status.max_sp);
 	pd.pet.str = pd.status.str;
 	pd.pet.agi = pd.status.agi;
 	pd.pet.vit = pd.status.vit;
@@ -54,15 +50,10 @@ void pet_sync_status_data(pet_data& pd) {
 
 s_pet_initial_stats pet_build_initial_stats(const std::shared_ptr<s_mob_db>& mob) {
 	s_pet_initial_stats stats{};
-	stats.exp = 0;
 	if (!mob) {
 		return stats;
 	}
 
-	stats.max_hp = static_cast<uint32>(mob->status.max_hp);
-	stats.hp = stats.max_hp;
-	stats.max_sp = static_cast<uint32>(mob->status.max_sp);
-	stats.sp = stats.max_sp;
 	stats.str = static_cast<int16>(mob->status.str);
 	stats.agi = static_cast<int16>(mob->status.agi);
 	stats.vit = static_cast<int16>(mob->status.vit);
@@ -745,7 +736,7 @@ bool pet_create_egg(map_session_data *sd, t_itemid item_id)
 
 	s_pet_initial_stats stats = pet_build_initial_stats(mdb);
 	intif_create_pet(sd->status.account_id, sd->status.char_id, pet->class_, mdb->lv, pet->EggID, 0, pet->intimate, 100, 0, 1, mdb->jname.c_str(),
-		stats.exp, stats.hp, stats.max_hp, stats.sp, stats.max_sp, stats.str, stats.agi, stats.vit, stats.int_, stats.dex, stats.luk);
+		stats.str, stats.agi, stats.vit, stats.int_, stats.dex, stats.luk);
 
 	return true;
 }
@@ -1160,9 +1151,6 @@ bool pet_data_init(map_session_data *sd, struct s_pet *pet)
 
 	map_addiddb(pd);
 	status_calc_pet(pd,SCO_FIRST);
-	if (pd->pet.max_hp == 0 || pd->pet.max_sp == 0) {
-		pet_sync_status_data(*pd);
-	}
 
 	pd->last_thinktime = gettick();
 	pd->state.skillbonus = 0;
@@ -1477,7 +1465,7 @@ void pet_catch_process_end( map_session_data& sd, int32 target_id ){
 
 		s_pet_initial_stats stats = pet_build_initial_stats(mdb);
 		intif_create_pet(sd.status.account_id, sd.status.char_id, pet->class_, mdb->lv, pet->EggID, 0, pet->intimate, 100, 0, 1, mdb->jname.c_str(),
-			stats.exp, stats.hp, stats.max_hp, stats.sp, stats.max_sp, stats.str, stats.agi, stats.vit, stats.int_, stats.dex, stats.luk);
+			stats.str, stats.agi, stats.vit, stats.int_, stats.dex, stats.luk);
 	} else {
 		clif_pet_roulette( sd, false );
 	}

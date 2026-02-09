@@ -481,9 +481,6 @@ struct s_pet {
 	int32 pet_id;
 	int16 class_;
 	int16 level;
-	t_exp exp;
-	uint32 hp, max_hp;
-	uint32 sp, max_sp;
 	int32 str;
 	int32 agi;
 	int32 vit;

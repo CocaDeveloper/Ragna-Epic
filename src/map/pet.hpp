@@ -193,11 +193,6 @@ struct s_pet_autobonus_wrapper {
 extern std::unordered_map<std::string, std::shared_ptr<s_pet_autobonus_wrapper>> pet_autobonuses;
 
 struct s_pet_initial_stats {
-	t_exp exp;
-	uint32 hp;
-	uint32 max_hp;
-	uint32 sp;
-	uint32 max_sp;
 	int16 str;
 	int16 agi;
 	int16 vit;

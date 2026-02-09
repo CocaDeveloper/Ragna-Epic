@@ -72,7 +72,7 @@ int32 intif_guild_castle_datasave(int32 castle_id, int32 index, int32 value);
 void intif_itembound_guild_retrieve(uint32 char_id, uint32 account_id, int32 guild_id);
 #endif
 
-int32 intif_create_pet(uint32 account_id, uint32 char_id, int16 pet_type, int16 pet_lv, t_itemid pet_egg_id, t_itemid pet_equip, int16 intimate, int16 hungry, char rename_flag, char incubate, const char *pet_name, t_exp exp, uint32 hp, uint32 max_hp, uint32 sp, uint32 max_sp, int16 str, int16 agi, int16 vit, int16 int_, int16 dex, int16 luk);
+int32 intif_create_pet(uint32 account_id, uint32 char_id, int16 pet_type, int16 pet_lv, t_itemid pet_egg_id, t_itemid pet_equip, int16 intimate, int16 hungry, char rename_flag, char incubate, const char *pet_name, int16 str, int16 agi, int16 vit, int16 int_, int16 dex, int16 luk);
 int32 intif_request_petdata(uint32 account_id, uint32 char_id, int32 pet_id);
 int32 intif_save_petdata(uint32 account_id, struct s_pet *p);
 int32 intif_delete_petdata(int32 pet_id);

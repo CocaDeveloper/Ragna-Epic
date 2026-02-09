@@ -5450,22 +5450,6 @@ struct PACKET_ZC_PROPERTY_PET {
 	int16 job;
 #endif
 
-#if PACKETVER_MAIN_NUM >= 20210303 || PACKETVER_RE_NUM >= 20211103 || PACKETVER_ZERO_NUM >= 20221024
-	uint32 hp;
-	uint32 maxHp;
-	uint32 sp;
-	uint32 maxSp;
-	int64 exp;
-	int64 expNext;
-#elif PACKETVER_MAIN_NUM >= 20200819 || PACKETVER_RE_NUM >= 20200723
-	uint32 hp;
-	uint32 maxHp;
-	uint32 sp;
-	uint32 maxSp;
-	uint32 exp;
-	uint32 expNext;
-#endif
-
 } __attribute__((packed));
 DEFINE_PACKET_HEADER(ZC_PROPERTY_PET, 0x01a2)
 

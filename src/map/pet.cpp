@@ -2656,7 +2656,6 @@ TIMER_FUNC(pet_heal_timer){
 		return 0;
 	}
 
-	status_data* status = status_get_status_data(*sd);
 	int16 hp_rate = get_percentage(status->hp, status->max_hp);
 	int16 sp_rate = get_percentage(status->sp, status->max_sp);
 
@@ -2729,7 +2728,6 @@ TIMER_FUNC(pet_heal_timer){
 TIMER_FUNC(pet_skill_support_timer){
 	map_session_data *sd = map_id2sd(id);
 	struct pet_data *pd;
-	int16 rate = 100;
 
 	if(sd == nullptr || sd->pd == nullptr || sd->pd->s_skill == nullptr)
 		return 1;
@@ -2741,7 +2739,6 @@ TIMER_FUNC(pet_skill_support_timer){
 		return 0;
 	}
 
-	status_data* status = status_get_status_data(*sd);
 
 	if (DIFF_TICK(pd->ud.canact_tick, tick) > 0) {
 		//Wait until the pet can act again.
@@ -2749,13 +2746,11 @@ TIMER_FUNC(pet_skill_support_timer){
 		return 0;
 	}
 
-	const int16 sp_rate = get_percentage(status->sp, status->max_sp);
-	const int16 hp_rate = get_percentage(status->hp, status->max_hp);
-
-	if (pc_isdead(sd) || (rate = (pd->ud.skilltimer != INVALID_TIMER))) { // Another skill is in effect
-		pd->s_skill->timer=add_timer(tick+(rate>10?rate:10)*100,pet_skill_support_timer,sd->id,0);
+	if( pc_isdead(sd) || pd->ud.skilltimer != INVALID_TIMER ) {
+		pd->s_skill->timer = add_timer( tick + 1000, pet_skill_support_timer, sd->id, 0 );
 		return 0;
 	}
+
 	pet_skill_support_entry selected_skill{};
 	size_t selected_index = 0;
 	if (!pet_support_skill_pick_next(sd, pd, hp_rate, sp_rate, selected_skill, selected_index)) {
@@ -2771,6 +2766,20 @@ TIMER_FUNC(pet_skill_support_timer){
 	pd->s_skill->delay = selected_skill.delay;
 	if (!pd->s_skill->skills.empty()) {
 		pd->s_skill->current_index = (selected_index + 1) % pd->s_skill->skills.size();
+	}
+
+	const auto& skills = pd->s_skill->skills;
+	if( !skills.empty() ){
+		size_t skill_count = skills.size();
+		size_t index = pd->s_skill->current_index % skill_count;
+		const pet_skill_support_entry& selected = skills[index];
+
+		pd->s_skill->id = selected.id;
+		pd->s_skill->lv = selected.lv;
+		pd->s_skill->hp = selected.hp;
+		pd->s_skill->sp = selected.sp;
+		pd->s_skill->delay = selected.delay;
+		pd->s_skill->current_index = (index + 1) % skill_count;
 	}
 
 	unit_stop_attack( pd );

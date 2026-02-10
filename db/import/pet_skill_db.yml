@@ -24,3 +24,69 @@ Header:
   Version: 1
 
 Body:
+  # =============================
+  # MODELOS PRONTOS (copiar/colar)
+  # =============================
+
+  # 1) Suporte padrão (Bless + Agi)
+  - Mob: PORING
+    SupportSkills:
+      - Skill: AL_BLESSING
+        Level: 10
+        Delay: 30
+        Hp: 100
+        Sp: 100
+      - Skill: AL_INCAGI
+        Level: 10
+        Delay: 30
+        Hp: 100
+        Sp: 100
+
+  # 2) Suporte defensivo (Kyrie + Increase Agi)
+  - Mob: LUNATIC
+    SupportSkills:
+      - Skill: PR_KYRIE
+        Level: 5
+        Delay: 25
+        Hp: 100
+        Sp: 100
+      - Skill: AL_INCAGI
+        Level: 10
+        Delay: 25
+        Hp: 100
+        Sp: 100
+
+  # 3) Suporte de sustain (Magnificat + Gloria)
+  - Mob: POPORING
+    SupportSkills:
+      - Skill: PR_MAGNIFICAT
+        Level: 5
+        Delay: 35
+        Hp: 100
+        Sp: 100
+      - Skill: PR_GLORIA
+        Level: 5
+        Delay: 35
+        Hp: 100
+        Sp: 100
+
+  # 4) Suporte ofensivo físico (Impositio + Bless)
+  - Mob: DROPS
+    SupportSkills:
+      - Skill: PR_IMPOSITIO
+        Level: 5
+        Delay: 20
+        Hp: 100
+        Sp: 100
+      - Skill: AL_BLESSING
+        Level: 10
+        Delay: 20
+        Hp: 100
+        Sp: 100
+
+  # Dica:
+  # - Delay está em SEGUNDOS.
+  # - Como o core foi ajustado para buff por tempo, com Hp/Sp em 100
+  #   o pet sempre tenta usar assim que o delay permitir.
+  # - Para aplicar sem mexer no arquivo base, use este import e recarregue com:
+  #   @reloadpetdb

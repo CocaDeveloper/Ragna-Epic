@@ -70,6 +70,13 @@ Body:
     Fullness: 3
     IntimacyFed: 50
     CaptureRate: 2000
+    BaseStats:
+      Str: 99
+      Agi: 99
+      Vit: 99
+      Int: 99
+      Dex: 99
+      Luk: 99
     Script: >
       .@i = getpetinfo(PETINFO_INTIMATE);
 
@@ -79,7 +86,9 @@ Body:
       }
     SupportScript: >
       petskillsupport "AL_INCAGI",1,60,100,100;
-      petskillsupportadd "AL_BLESSING",1,60,100,100;
+      petskillsupport "AL_HEAL",10,1,99,100;
+      petskillsupportadd "CR_DEVOTION",5,1,100,100;
+      petskillsupportadd "AL_BLESSING",5,60,100,100;
   - Mob: DROPS
     TameItem: Orange_Juice
     EggItem: Drops_Egg

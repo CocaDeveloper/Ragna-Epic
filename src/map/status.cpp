@@ -3078,6 +3078,13 @@ void status_calc_pet_(struct pet_data *pd, uint8 opt)
 		pd->status.class_ = CLASS_NORMAL;
 		pd->status.speed = pd->get_pet_walk_speed();
 
+		if (pd->pet.str > 0) pd->status.str = pd->pet.str;
+		if (pd->pet.agi > 0) pd->status.agi = pd->pet.agi;
+		if (pd->pet.vit > 0) pd->status.vit = pd->pet.vit;
+		if (pd->pet.int_ > 0) pd->status.int_ = pd->pet.int_;
+		if (pd->pet.dex > 0) pd->status.dex = pd->pet.dex;
+		if (pd->pet.luk > 0) pd->status.luk = pd->pet.luk;
+
 		if(battle_config.pet_attack_support || battle_config.pet_damage_support) {
 			// Attack support requires the pet to be able to attack
 			pd->status.mode = static_cast<e_mode>(pd->status.mode|MD_CANATTACK);
@@ -3124,6 +3131,10 @@ void status_calc_pet_(struct pet_data *pd, uint8 opt)
 		status_calc_misc(pd, &pd->status, pd->db->lv);
 		if (!battle_config.pet_lv_rate && pd->pet.level != pd->db->lv)
 			pd->pet.level = pd->db->lv;
+	}
+
+	if( pd->master != nullptr && opt&SCO_FIRST ){
+		pet_sync_status_data(*pd);
 	}
 
 	// Support rate modifier (1000 = 100%)

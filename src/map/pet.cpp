@@ -86,6 +86,18 @@ static bool pet_support_skill_has_active_status(map_session_data* sd, uint16 ski
 	sc_type sc = skill_get_sc(skill_id);
 
 	if (sc == SC_NONE) {
+		switch (skill_id) {
+			case AL_INCAGI: sc = SC_INCREASEAGI; break;
+			case AL_BLESSING: sc = SC_BLESSING; break;
+			case HP_ASSUMPTIO: sc = SC_ASSUMPTIO; break;
+			case AC_CONCENTRATION: sc = SC_CONCENTRATION; break;
+			case CR_DEVOTION: sc = SC_DEVOTION; break;
+			case BA_POEMBRAGI: sc = SC_POEMBRAGI; break;
+			default: break;
+		}
+	}
+
+	if (sc == SC_NONE) {
 		return false;
 	}
 
@@ -95,6 +107,51 @@ static bool pet_support_skill_has_active_status(map_session_data* sd, uint16 ski
 
 	return false;
 }
+
+static bool pet_support_skill_pick_next(
+	map_session_data* sd, pet_data* pd, int16 hp_rate, int16 sp_rate,
+	pet_skill_support_entry& selected_skill, size_t& selected_index
+) {
+	if (sd == nullptr || pd == nullptr || pd->s_skill == nullptr) {
+		return false;
+	}
+
+	const auto& skills = pd->s_skill->skills;
+	if (skills.empty()) {
+		pet_skill_support_entry legacy_entry{ pd->s_skill->id, pd->s_skill->lv, pd->s_skill->hp, pd->s_skill->sp, pd->s_skill->delay };
+
+		if (sp_rate > legacy_entry.sp || hp_rate > legacy_entry.hp || pet_support_skill_has_active_status(sd, legacy_entry.id)) {
+			return false;
+		}
+
+		selected_skill = legacy_entry;
+		selected_index = 0;
+		return true;
+	}
+
+	const size_t skill_count = skills.size();
+	const size_t start_index = (pd->s_skill->current_index >= skill_count) ? 0 : pd->s_skill->current_index;
+
+	for (size_t i = 0; i < skill_count; ++i) {
+		size_t index = (start_index + i) % skill_count;
+		const pet_skill_support_entry& entry = skills[index];
+
+		if (sp_rate > entry.sp || hp_rate > entry.hp) {
+			continue;
+		}
+
+		if (pet_support_skill_has_active_status(sd, entry.id)) {
+			continue;
+		}
+
+		selected_skill = entry;
+		selected_index = index;
+		return true;
+	}
+
+	return false;
+}
+
 
 const std::string PetDatabase::getDefaultLocation(){
 	return std::string(db_path) + "/pet_db.yml";
@@ -1075,49 +1132,11 @@ int32 pet_attackskill(struct pet_data *pd, int32 target_id)
 int32 pet_target_check(struct pet_data *pd,block_list *bl,int32 type)
 {
 	nullpo_ret(pd);
-
+	(void)bl;
+	(void)type;
 	Assert((pd->master == 0) || (pd->master->pd == pd));
 
-
-	if(bl == nullptr || bl->type != BL_MOB || bl->prev == nullptr ||
-		pd->pet.intimate < battle_config.pet_support_min_friendly ||
-		pd->pet.hungry <= PET_HUNGRY_NONE ||
-		pd->pet.class_ == status_get_class(bl))
-		return 0;
-
-	if(pd->m != bl->m ||
-		!check_distance_bl(pd, bl, pd->db->range2))
-		return 0;
-
-	if (!battle_config.pet_master_dead && pc_isdead(pd->master)) {
-		pet_unlocktarget(pd);
-		return 0;
-	}
-
-	if (!status_check_skilluse(pd, bl, 0, 0))
-		return 0;
-
-	std::shared_ptr<s_pet_db> pet_db_ptr = pd->get_pet_db();
-	int32 rate;
-
-	if(!type) {
-		rate = pet_db_ptr->attack_rate;
-		rate = rate * pd->rate_fix / 1000;
-
-		if(pet_db_ptr->attack_rate > 0 && rate <= 0)
-			rate = 1;
-	} else {
-		rate = pet_db_ptr->defence_attack_rate;
-		rate = rate * pd->rate_fix / 1000;
-
-		if(pet_db_ptr->defence_attack_rate > 0 && rate <= 0)
-			rate = 1;
-	}
-
-	if(rnd_chance(rate, 10000)) {
-		if(pd->target_id == 0 || rnd_chance<uint16>(pet_db_ptr->change_target_rate, 10000))
-			pd->target_id = bl->id;
-	}
+	// Pets are currently support/loot only and should not acquire combat targets.
 
 	return 0;
 }
@@ -2248,15 +2267,10 @@ static int32 pet_ai_sub_hard(struct pet_data *pd, map_session_data *sd, t_tick t
 		return 0; //Target already locked.
 
 	if (target->type != BL_ITEM) { // enemy targeted
-		if(!battle_check_range(pd,target,pd->status.rhw.range)) { // Chase
-			if(!unit_walktobl(pd, target, pd->status.rhw.range, 2))
-				pet_unlocktarget(pd); // Unreachable target.
+		pet_unlocktarget(pd);
+		return 0;
 
-			return 0;
-		}
 
-		//Continuous attack.
-		unit_attack(pd, pd->target_id, 1);
 	} else { // Item Targeted, attempt loot
 		if (!check_distance_bl(pd, target, 1)) { // Out of range
 			if(!unit_walktobl(pd, target, 1, 1)) // Unreachable target.
@@ -2735,13 +2749,28 @@ TIMER_FUNC(pet_skill_support_timer){
 		return 0;
 	}
 
-	if(pc_isdead(sd) ||
-		(rate = get_percentage(status->sp, status->max_sp)) > pd->s_skill->sp ||
-		(rate = get_percentage(status->hp, status->max_hp)) > pd->s_skill->hp ||
-		(rate = (pd->ud.skilltimer != INVALID_TIMER)) //Another skill is in effect
-	) {  //Wait (how long? 1 sec for every 10% of remaining)
+	const int16 sp_rate = get_percentage(status->sp, status->max_sp);
+	const int16 hp_rate = get_percentage(status->hp, status->max_hp);
+
+	if (pc_isdead(sd) || (rate = (pd->ud.skilltimer != INVALID_TIMER))) { // Another skill is in effect
 		pd->s_skill->timer=add_timer(tick+(rate>10?rate:10)*100,pet_skill_support_timer,sd->id,0);
 		return 0;
+	}
+	pet_skill_support_entry selected_skill{};
+	size_t selected_index = 0;
+	if (!pet_support_skill_pick_next(sd, pd, hp_rate, sp_rate, selected_skill, selected_index)) {
+		rate = max(hp_rate, sp_rate);
+		pd->s_skill->timer = add_timer(tick + (rate > 10 ? rate : 10) * 100, pet_skill_support_timer, sd->id, 0);
+		return 0;
+	}
+
+	pd->s_skill->id = selected_skill.id;
+	pd->s_skill->lv = selected_skill.lv;
+	pd->s_skill->hp = selected_skill.hp;
+	pd->s_skill->sp = selected_skill.sp;
+	pd->s_skill->delay = selected_skill.delay;
+	if (!pd->s_skill->skills.empty()) {
+		pd->s_skill->current_index = (selected_index + 1) % pd->s_skill->skills.size();
 	}
 
 	unit_stop_attack( pd );

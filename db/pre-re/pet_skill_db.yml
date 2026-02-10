@@ -24,24 +24,10 @@ Header:
   Version: 1
 
 Body:
-   - Mob: PORING
-     SupportSkills:
-       - Skill: AL_INCAGI
-         Level: 1
-         Delay: 100
-         Hp: 60
-         Sp: 100
-   - Mob: PORING
-     SupportSkills:
-       - Skill: AL_HEAL
-         Level: 10
-         Delay: 100
-         Hp: 99
-         Sp: 100
-   - Mob: PORING
-     SupportSkills:
-       - Skill: CR_DEVOTION
-         Level: 10
-         Delay: 1000
-         Hp: 30
-         Sp: 100
+- Mob: PORING
+  SupportSkills:
+    - Skill: AL_HEAL
+      Level: 10
+      Delay: 2
+      Hp: 90
+      Sp: 100

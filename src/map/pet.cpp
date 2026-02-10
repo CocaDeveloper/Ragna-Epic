@@ -2644,12 +2644,14 @@ TIMER_FUNC(pet_recovery_timer){
 TIMER_FUNC(pet_heal_timer){
 	map_session_data *sd = map_id2sd(id);
 	struct pet_data *pd;
+	status_data *status;
 	uint32 rate = 100;
 
 	if(sd == nullptr || sd->pd == nullptr || sd->pd->s_skill == nullptr)
 		return 1;
 
 	pd = sd->pd;
+	status = &sd->battle_status;
 
 	if(pd->s_skill->timer != tid) {
 		ShowError("pet_heal_timer %d != %d\n",pd->s_skill->timer,tid);
@@ -2728,11 +2730,16 @@ TIMER_FUNC(pet_heal_timer){
 TIMER_FUNC(pet_skill_support_timer){
 	map_session_data *sd = map_id2sd(id);
 	struct pet_data *pd;
+	status_data *status;
+	int16 hp_rate, sp_rate;
+	uint32 rate = 100;
+
 
 	if(sd == nullptr || sd->pd == nullptr || sd->pd->s_skill == nullptr)
 		return 1;
 
 	pd = sd->pd;
+	status = &sd->battle_status;
 
 	if(pd->s_skill->timer != tid) {
 		ShowError("pet_skill_support_timer %d != %d\n",pd->s_skill->timer,tid);
@@ -2750,6 +2757,9 @@ TIMER_FUNC(pet_skill_support_timer){
 		pd->s_skill->timer = add_timer( tick + 1000, pet_skill_support_timer, sd->id, 0 );
 		return 0;
 	}
+
+	hp_rate = get_percentage(status->hp, status->max_hp);
+	sp_rate = get_percentage(status->sp, status->max_sp);
 
 	pet_skill_support_entry selected_skill{};
 	size_t selected_index = 0;

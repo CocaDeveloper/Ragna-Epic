@@ -84,11 +84,6 @@ Body:
         bonus bLuk,2;
         bonus bCritical,1;
       }
-    SupportScript: >
-      petskillsupport "AL_INCAGI",1,60,100,100;
-      petskillsupport "AL_HEAL",10,1,99,100;
-      petskillsupportadd "CR_DEVOTION",5,1,100,100;
-      petskillsupportadd "AL_BLESSING",5,60,100,100;
   - Mob: DROPS
     TameItem: Orange_Juice
     EggItem: Drops_Egg

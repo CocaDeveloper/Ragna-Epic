@@ -16,6 +16,7 @@
 #include "status.hpp"
 #include "unit.hpp"
 
+#include <optional>
 #include <unordered_map>
 #include <vector>
 
@@ -24,6 +25,15 @@
 struct s_pet_evo_data {
 	uint16 target_mob_id;
 	std::unordered_map<t_itemid, uint16> requirements;
+};
+
+struct s_pet_initial_stats {
+	int16 str;
+	int16 agi;
+	int16 vit;
+	int16 int_;
+	int16 dex;
+	int16 luk;
 };
 
 /// Pet DB
@@ -51,6 +61,7 @@ struct s_pet_db {
 	struct script_code
 		*pet_support_script, ///< Script since pet hatched. For pet* script commands only.
 		*pet_bonus_script; ///< Bonus script for this pet.
+std::optional<s_pet_initial_stats> initial_stats; ///< Overrides initial pet stats when present.
 
 	~s_pet_db()
 	{
@@ -156,6 +167,26 @@ public:
 
 extern PetDatabase pet_db;
 
+struct s_pet_skill_db {
+	uint16 class_;
+	std::vector<pet_skill_support_entry> support_skills;
+	std::optional<pet_skill_attack> attack_skill;
+};
+
+class PetSkillDatabase : public TypesafeYamlDatabase<uint16, s_pet_skill_db>{
+public:
+	PetSkillDatabase() : TypesafeYamlDatabase( "PET_SKILL_DB", 1 ){
+
+	}
+
+	const std::string getDefaultLocation() override;
+	uint64 parseBodyNode( const ryml::NodeRef& node ) override;
+
+	bool reload();
+};
+
+extern PetSkillDatabase pet_skill_db;
+
 TIMER_FUNC(pet_endautobonus);
 
 /// Pet AutoBonus bonus struct
@@ -191,16 +222,6 @@ struct s_pet_autobonus_wrapper {
 };
 
 extern std::unordered_map<std::string, std::shared_ptr<s_pet_autobonus_wrapper>> pet_autobonuses;
-
-struct s_pet_initial_stats {
-	int16 str;
-	int16 agi;
-	int16 vit;
-	int16 int_;
-	int16 dex;
-	int16 luk;
-};
-
 
 struct pet_data : public block_list {
 	struct unit_data ud;
@@ -276,7 +297,8 @@ int32 pet_food(map_session_data *sd, struct pet_data *pd);
 void pet_clear_support_bonuses(map_session_data *sd);
 
 void pet_sync_status_data(pet_data& pd);
-s_pet_initial_stats pet_build_initial_stats(const std::shared_ptr<s_mob_db>& mob);
+s_pet_initial_stats pet_build_initial_stats(const std::shared_ptr<s_mob_db>& mob, const std::shared_ptr<s_pet_db>& pet_db);
+void pet_apply_skill_db(map_session_data *sd, pet_data& pd);
 
 bool pet_addautobonus(std::vector<std::shared_ptr<s_petautobonus>> &bonus, const std::string &script, int16 rate, uint32 dur, uint16 atk_type, const std::string &other_script, bool onskill);
 void pet_exeautobonus(map_session_data &sd, std::vector<std::shared_ptr<s_petautobonus>> *bonus, std::shared_ptr<s_petautobonus> &autobonus);

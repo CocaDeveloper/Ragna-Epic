@@ -28,6 +28,7 @@
 #include "npc.hpp"
 #include "party.hpp"
 #include "pc.hpp"
+#include "skill.hpp"
 
 using namespace rathena;
 
@@ -48,8 +49,12 @@ void pet_sync_status_data(pet_data& pd) {
 	pd.pet.luk = pd.status.luk;
 }
 
-s_pet_initial_stats pet_build_initial_stats(const std::shared_ptr<s_mob_db>& mob) {
+s_pet_initial_stats pet_build_initial_stats(const std::shared_ptr<s_mob_db>& mob, const std::shared_ptr<s_pet_db>& pet_db) {
 	s_pet_initial_stats stats{};
+	if (pet_db && pet_db->initial_stats.has_value()) {
+		return pet_db->initial_stats.value();
+	}
+
 	if (!mob) {
 		return stats;
 	}
@@ -424,6 +429,46 @@ uint64 PetDatabase::parseBodyNode( const ryml::NodeRef& node ){
 		}
 	}
 
+	if( this->nodeExists( node, "BaseStats" ) ){
+		const auto& statsNode = node["BaseStats"];
+
+		if( !this->nodesExist( statsNode, { "Str", "Agi", "Vit", "Int", "Dex", "Luk" } ) ){
+			return 0;
+		}
+
+		s_pet_initial_stats stats{};
+
+		if( !this->asInt16( statsNode, "Str", stats.str ) ){
+			return 0;
+		}
+
+		if( !this->asInt16( statsNode, "Agi", stats.agi ) ){
+			return 0;
+		}
+
+		if( !this->asInt16( statsNode, "Vit", stats.vit ) ){
+			return 0;
+		}
+
+		if( !this->asInt16( statsNode, "Int", stats.int_ ) ){
+			return 0;
+		}
+
+		if( !this->asInt16( statsNode, "Dex", stats.dex ) ){
+			return 0;
+		}
+
+		if( !this->asInt16( statsNode, "Luk", stats.luk ) ){
+			return 0;
+		}
+
+		pet->initial_stats = stats;
+	}else{
+		if( !exists ){
+			pet->initial_stats.reset();
+		}
+	}
+
 	if( this->nodeExists( node, "Script" ) ){
 		std::string script;
 
@@ -535,6 +580,148 @@ uint64 PetDatabase::parseBodyNode( const ryml::NodeRef& node ){
 	return 1;
 }
 
+const std::string PetSkillDatabase::getDefaultLocation(){
+	return std::string(db_path) + "/pet_skill_db.yml";
+}
+
+uint64 PetSkillDatabase::parseBodyNode( const ryml::NodeRef& node ){
+	std::string mob_name;
+
+	if( !this->asString( node, "Mob", mob_name ) ){
+		return 0;
+	}
+
+	std::shared_ptr<s_mob_db> mob = mobdb_search_aegisname( mob_name.c_str() );
+
+	if( mob == nullptr ){
+		this->invalidWarning( node["Mob"], "Mob %s does not exist and cannot be used as a pet skill entry.\n", mob_name.c_str() );
+		return 0;
+	}
+
+	uint16 mob_id = mob->id;
+
+	std::shared_ptr<s_pet_skill_db> skill_entry = this->find( mob_id );
+	bool exists = skill_entry != nullptr;
+
+	if( !exists ){
+		skill_entry = std::make_shared<s_pet_skill_db>();
+		skill_entry->class_ = mob_id;
+	}else{
+		skill_entry->support_skills.clear();
+		skill_entry->attack_skill.reset();
+	}
+
+	if( this->nodeExists( node, "SupportSkills" ) ){
+		const auto& skillsNode = node["SupportSkills"];
+		for( const auto& skillNode : skillsNode ){
+			std::string skill_name;
+
+			if( !this->asString( skillNode, "Skill", skill_name ) ){
+				return 0;
+			}
+
+			uint16 skill_id = skill_name2id( skill_name.c_str() );
+
+			if( skill_id == 0 ){
+				this->invalidWarning( skillNode["Skill"], "Support skill %s does not exist.\n", skill_name.c_str() );
+				return 0;
+			}
+
+			uint16 level;
+			if( !this->asUInt16( skillNode, "Level", level ) ){
+				return 0;
+			}
+
+			uint16 delay;
+			if( !this->asUInt16( skillNode, "Delay", delay ) ){
+				return 0;
+			}
+
+			uint16 hp;
+			if( !this->asUInt16( skillNode, "Hp", hp ) ){
+				return 0;
+			}
+
+			uint16 sp;
+			if( !this->asUInt16( skillNode, "Sp", sp ) ){
+				return 0;
+			}
+
+			pet_skill_support_entry entry = {
+				skill_id,
+				static_cast<uint16>(min(level, skill_get_max(skill_id))),
+				hp,
+				sp,
+				delay
+			};
+
+			skill_entry->support_skills.push_back(entry);
+		}
+	}
+
+	if( this->nodeExists( node, "AttackSkill" ) ){
+		const auto& attackNode = node["AttackSkill"];
+		std::string skill_name;
+
+		if( !this->asString( attackNode, "Skill", skill_name ) ){
+			return 0;
+		}
+
+		uint16 skill_id = skill_name2id( skill_name.c_str() );
+
+		if( skill_id == 0 ){
+			this->invalidWarning( attackNode["Skill"], "Attack skill %s does not exist.\n", skill_name.c_str() );
+			return 0;
+		}
+
+		uint16 level;
+		if( !this->asUInt16( attackNode, "Level", level ) ){
+			return 0;
+		}
+
+		uint16 rate;
+		if( !this->asUInt16( attackNode, "Rate", rate ) ){
+			return 0;
+		}
+
+		uint16 bonusrate;
+		if( !this->asUInt16( attackNode, "BonusRate", bonusrate ) ){
+			return 0;
+		}
+
+		uint16 damage = 0;
+		if( this->nodeExists( attackNode, "Damage" ) ){
+			if( !this->asUInt16( attackNode, "Damage", damage ) ){
+				return 0;
+			}
+		}
+
+		uint16 div_ = 0;
+		if( this->nodeExists( attackNode, "Div" ) ){
+			if( !this->asUInt16( attackNode, "Div", div_ ) ){
+				return 0;
+			}
+		}
+
+		pet_skill_attack attack = {
+			skill_id,
+			static_cast<uint16>(min(level, skill_get_max(skill_id))),
+			damage,
+			div_,
+			rate,
+			bonusrate
+		};
+
+		skill_entry->attack_skill = attack;
+	}
+
+	if( !exists ){
+		this->put( mob_id, skill_entry );
+	}
+
+	return 1;
+}
+
 /**
  * Clear pet support bonuses from memory
  * @param sd: Pet owner
@@ -591,6 +778,70 @@ void pet_clear_support_bonuses(map_session_data *sd) {
 	}
 }
 
+static void pet_clear_skill_data(pet_data& pd) {
+	if (pd.a_skill) {
+		aFree(pd.a_skill);
+		pd.a_skill = nullptr;
+	}
+
+	if (pd.s_skill) {
+		if (pd.s_skill->timer != INVALID_TIMER) {
+			if (pd.s_skill->id)
+				delete_timer(pd.s_skill->timer, pet_skill_support_timer);
+			else
+				delete_timer(pd.s_skill->timer, pet_heal_timer);
+		}
+
+		delete pd.s_skill;
+		pd.s_skill = nullptr;
+	}
+}
+
+void pet_apply_skill_db(map_session_data *sd, pet_data& pd) {
+	if (sd == nullptr) {
+		return;
+	}
+
+	std::shared_ptr<s_pet_skill_db> skill_db_ptr = pet_skill_db.find(pd.pet.class_);
+	if (skill_db_ptr == nullptr) {
+		return;
+	}
+
+	pet_clear_skill_data(pd);
+
+	if (skill_db_ptr->attack_skill.has_value()) {
+		if (pd.a_skill == nullptr) {
+			pd.a_skill = (struct pet_skill_attack *)aMalloc(sizeof(struct pet_skill_attack));
+		}
+
+		const pet_skill_attack& attack = skill_db_ptr->attack_skill.value();
+		pd.a_skill->id = attack.id;
+		pd.a_skill->lv = attack.lv;
+		pd.a_skill->damage = attack.damage;
+		pd.a_skill->div_ = attack.div_;
+		pd.a_skill->rate = attack.rate;
+		pd.a_skill->bonusrate = attack.bonusrate;
+	}
+
+	if (!skill_db_ptr->support_skills.empty()) {
+		pd.s_skill = new pet_skill_support();
+		pd.s_skill->skills = skill_db_ptr->support_skills;
+		pd.s_skill->current_index = 0;
+
+		const pet_skill_support_entry& entry = pd.s_skill->skills.front();
+		pd.s_skill->id = entry.id;
+		pd.s_skill->lv = entry.lv;
+		pd.s_skill->delay = entry.delay;
+		pd.s_skill->hp = entry.hp;
+		pd.s_skill->sp = entry.sp;
+
+		if (battle_config.pet_equip_required && pd.pet.equip == 0)
+			pd.s_skill->timer = INVALID_TIMER;
+		else
+			pd.s_skill->timer = add_timer(gettick() + entry.delay * 1000, pet_skill_support_timer, sd->id, 0);
+	}
+}
+
 /**
  * Apply the proper data on pet owners and pets during pet_db reload.
  * @param sd: Pet owner
@@ -619,6 +870,8 @@ static int32 pet_reload_sub( map_session_data *sd, va_list args ){
 		run_script( pet_db_ptr->pet_support_script, 0, sd->id, 0 );
 	}
 
+	pet_apply_skill_db(sd, *pd);
+
 	// Recalculate the player status based on the new data
 	status_calc_pc( sd, SCO_NONE );
 
@@ -638,6 +891,26 @@ bool PetDatabase::reload(){
 }
 
 PetDatabase pet_db;
+
+static int32 pet_skill_reload_sub( map_session_data *sd, va_list args ){
+	if( sd->pd == nullptr ){
+		return 0;
+	}
+
+	pet_apply_skill_db(sd, *sd->pd);
+	return 0;
+}
+
+bool PetSkillDatabase::reload(){
+	if( !TypesafeYamlDatabase::reload() ){
+		return false;
+	}
+
+	map_foreachpc( pet_skill_reload_sub );
+	return true;
+}
+
+PetSkillDatabase pet_skill_db;
 
 std::unordered_map<uint32, std::shared_ptr<s_item_drop_list>> pet_delayed_drops;
 
@@ -734,7 +1007,7 @@ bool pet_create_egg(map_session_data *sd, t_itemid item_id)
 	if (!pc_inventoryblank(sd))
 		return false; // Inventory full
 
-	s_pet_initial_stats stats = pet_build_initial_stats(mdb);
+	s_pet_initial_stats stats = pet_build_initial_stats(mdb, pet);
 	intif_create_pet(sd->status.account_id, sd->status.char_id, pet->class_, mdb->lv, pet->EggID, 0, pet->intimate, 100, 0, 1, mdb->jname.c_str(),
 		stats.str, stats.agi, stats.vit, stats.int_, stats.dex, stats.luk);
 
@@ -1159,6 +1432,8 @@ bool pet_data_init(map_session_data *sd, struct s_pet *pet)
 		if( battle_config.pet_status_support )
 			run_script(pet_db_ptr->pet_support_script,0,sd->id,0);
 
+		pet_apply_skill_db(sd, *pd);
+
 		if( pet_db_ptr->pet_bonus_script )
 			status_calc_pc(sd,SCO_NONE);
 
@@ -1463,7 +1738,7 @@ void pet_catch_process_end( map_session_data& sd, int32 target_id ){
 
 		std::shared_ptr<s_mob_db> mdb = mob_db.find(pet->class_);
 
-		s_pet_initial_stats stats = pet_build_initial_stats(mdb);
+		s_pet_initial_stats stats = pet_build_initial_stats(mdb, pet);
 		intif_create_pet(sd.status.account_id, sd.status.char_id, pet->class_, mdb->lv, pet->EggID, 0, pet->intimate, 100, 0, 1, mdb->jname.c_str(),
 			stats.str, stats.agi, stats.vit, stats.int_, stats.dex, stats.luk);
 	} else {
@@ -2473,8 +2748,11 @@ TIMER_FUNC(pet_skill_support_timer){
 	unit_stop_walking( pd, USW_FIXPOS );
 	pd->s_skill->timer=add_timer(tick+pd->s_skill->delay*1000,pet_skill_support_timer,sd->id,0);
 
-	if (skill_get_inf(pd->s_skill->id) & INF_GROUND_SKILL)
+	int32 inf = skill_get_inf(pd->s_skill->id);
+	if (inf & INF_GROUND_SKILL)
 		unit_skilluse_pos(pd, sd->x, sd->y, pd->s_skill->id, pd->s_skill->lv);
+	else if (inf & INF_SELF_SKILL)
+		unit_skilluse_id(pd, pd->id, pd->s_skill->id, pd->s_skill->lv);
 	else
 		unit_skilluse_id(pd, sd->id, pd->s_skill->id, pd->s_skill->lv);
 	return 0;
@@ -2771,6 +3049,7 @@ TIMER_FUNC(pet_endautobonus) {
 void do_init_pet(void)
 {
 	pet_db.load();
+	pet_skill_db.load();
 
 	add_timer_func_list(pet_hungry,"pet_hungry");
 	add_timer_func_list(pet_ai_hard,"pet_ai_hard");
@@ -2793,4 +3072,5 @@ void do_final_pet(void)
 	pet_autobonuses.clear();
 
 	pet_db.clear();
+	pet_skill_db.clear();
 }

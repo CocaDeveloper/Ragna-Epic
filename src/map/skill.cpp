@@ -7873,6 +7873,10 @@ int32 skill_castend_nodamage_id (block_list *src, block_list *bl, uint16 skill_i
 	break;
 
 	case PR_REDEMPTIO:
+		if (sd == nullptr && src->type == BL_PET) {
+			sd = ((TBL_PET*)src)->master;
+		}
+
 		if (sd && !(flag&1)) {
 			if (sd->status.party_id == 0) {
 				clif_skill_fail( *sd, skill_id );

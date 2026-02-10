@@ -3213,7 +3213,7 @@ ACMD_FUNC(makeegg) {
 	if (pet != nullptr) {
 		std::shared_ptr<s_mob_db> mdb = mob_db.find(pet->class_);
 		if(mdb){
-			s_pet_initial_stats stats = pet_build_initial_stats(mdb);
+			s_pet_initial_stats stats = pet_build_initial_stats(mdb, pet);
 			if(intif_create_pet(sd->status.account_id, sd->status.char_id, pet->class_, mdb->lv, pet->EggID, 0, pet->intimate, 100, 0, 1, mdb->jname.c_str(),
 				stats.str, stats.agi, stats.vit, stats.int_, stats.dex, stats.luk)){
 				res = 0;
@@ -3343,6 +3343,34 @@ ACMD_FUNC(petrename)
 	intif_save_petdata(sd->status.account_id, &pd->pet);
 	clif_send_petstatus( *sd, *pd );
 	clif_displaymessage(fd, msg_txt(sd,187)); // You can now rename your pet.
+
+	return 0;
+}
+
+/*==========================================
+ *
+ *------------------------------------------*/
+
+ACMD_FUNC(petstats)
+{
+	struct pet_data *pd;
+
+	if (!sd->status.pet_id || !(pd = sd->pd)) {
+		clif_displaymessage(fd, msg_txt(sd,184)); // Sorry, but you have no pet.
+		return -1;
+	}
+
+	snprintf(atcmd_output, sizeof(atcmd_output),
+		"Pet stats for %s (Lv %d): STR %d AGI %d VIT %d INT %d DEX %d LUK %d",
+		pd->pet.name,
+		pd->pet.level,
+		pd->pet.str,
+		pd->pet.agi,
+		pd->pet.vit,
+		pd->pet.int_,
+		pd->pet.dex,
+		pd->pet.luk);
+	clif_displaymessage(fd, atcmd_output);
 
 	return 0;
 }
@@ -4345,6 +4373,7 @@ ACMD_FUNC(reloadmobdb){
 
 	mob_reload();
 	pet_db.reload();
+	pet_skill_db.reload();
 	hom_reload();
 	mercenary_db.reload();
 	elemental_db.reload();
@@ -11478,6 +11507,7 @@ void atcommand_basecommands(void) {
 		ACMD_DEF(petfriendly),
 		ACMD_DEF(pethungry),
 		ACMD_DEF(petrename),
+		ACMD_DEF(petstats),
 		ACMD_DEF(recall), // + /recall
 		ACMD_DEF(night),
 		ACMD_DEF(day),

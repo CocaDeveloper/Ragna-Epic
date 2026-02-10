@@ -41,6 +41,13 @@
 #   RetaliateRate            Rate of which the pet will retaliate when master is being attacked [requires at least pet_support_min_friendly intimacy]. (10000 = 100%)
 #   ChangeTargetRate         Rate of which the pet will change its attack target. (10000 = 100%)
 #   AllowAutoFeed            Allows turning automatic pet feeding on. (Default: false)
+#   BaseStats                Overrides the pet's base stats when creating the egg. (Optional)
+#     Str
+#     Agi
+#     Vit
+#     Int
+#     Dex
+#     Luk
 #   Script                   Bonus script to execute when the pet is alive. (Default: null)
 #   SupportScript            Bonus script to execute when pet_status_support is enabled. (Default: null)
 #   Evolution:               Pet evolution settings. (Optional) (Default: null)
@@ -229,6 +236,7 @@ Body:
       }
     SupportScript: >
       petskillsupport "BA_POEMBRAGI",3,60,100,100;
+      petskillsupportadd "AL_HEAL",10,60,100,100;
   - Mob: SPORE
     TameItem: Dew_Laden_Moss
     EggItem: Spore_Egg

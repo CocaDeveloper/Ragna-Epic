@@ -70,6 +70,40 @@ s_pet_initial_stats pet_build_initial_stats(const std::shared_ptr<s_mob_db>& mob
 }
 
 const t_tick MIN_PETTHINKTIME = 100;
+constexpr t_tick PET_SUPPORT_COMBAT_POLL_DELAY = 500;
+constexpr t_tick PET_SUPPORT_IDLE_POLL_DELAY = 1000;
+
+static bool pet_owner_in_combat(const map_session_data* sd) {
+	if (sd == nullptr || pc_isdead(sd)) {
+		return false;
+	}
+
+	if (sd->ud.attacktimer != INVALID_TIMER || sd->ud.skilltimer != INVALID_TIMER || sd->ud.target != 0) {
+		return true;
+	}
+
+	return unit_counttargeted(&sd->bl) > 0;
+}
+
+static t_tick pet_support_retry_delay(const map_session_data* sd, int16 hp_rate, int16 sp_rate) {
+	if (pet_owner_in_combat(sd)) {
+		return PET_SUPPORT_COMBAT_POLL_DELAY;
+	}
+
+	uint32 rate = max(hp_rate, sp_rate);
+	t_tick dynamic_delay = (rate > 10 ? rate : 10) * 100;
+	return min<t_tick>(dynamic_delay, PET_SUPPORT_IDLE_POLL_DELAY);
+}
+
+static t_tick pet_support_initial_delay(const map_session_data* sd, uint16 configured_delay_seconds) {
+	t_tick configured_delay = static_cast<t_tick>(configured_delay_seconds) * 1000;
+
+	if (pet_owner_in_combat(sd)) {
+		return min<t_tick>(configured_delay, PET_SUPPORT_COMBAT_POLL_DELAY);
+	}
+
+	return min<t_tick>(configured_delay, PET_SUPPORT_IDLE_POLL_DELAY);
+}
 
 static uint16 pet_support_skill_delay(const pet_skill_support* s_skill) {
 	if (s_skill == nullptr) {
@@ -754,7 +788,7 @@ uint64 PetSkillDatabase::parseBodyNode( const ryml::NodeRef& node ){
 
 			pet_skill_support_entry entry = {
 				skill_id,
-				static_cast<uint16>(min(level, skill_get_max(skill_id))),
+				static_cast<uint16>(std::min(level, skill_get_max(skill_id))),
 				hp,
 				sp,
 				delay
@@ -810,7 +844,7 @@ uint64 PetSkillDatabase::parseBodyNode( const ryml::NodeRef& node ){
 
 		pet_skill_attack attack = {
 			skill_id,
-			static_cast<uint16>(min(level, skill_get_max(skill_id))),
+			static_cast<uint16>(std::min(level, skill_get_max(skill_id))),
 			damage,
 			div_,
 			rate,
@@ -983,7 +1017,7 @@ void pet_apply_skill_db(map_session_data *sd, pet_data& pd) {
 		if (battle_config.pet_equip_required && pd.pet.equip == 0)
 			pd.s_skill->timer = INVALID_TIMER;
 		else
-			pd.s_skill->timer = add_timer(gettick() + entry.delay * 1000, pet_skill_support_timer, sd->id, 0);
+			pd.s_skill->timer = add_timer(gettick() + pet_support_initial_delay(sd, entry.delay), pet_skill_support_timer, sd->id, 0);
 	}
 }
 
@@ -1287,7 +1321,7 @@ static int32 pet_food_autofeed(map_session_data *sd, struct pet_data *pd){
 	}
 
 	status_calc_pet(pd,SCO_NONE);
-	pd->pet.hungry = min(pd->pet.hungry + pet_db_ptr->hunger_increase, PET_HUNGRY_STUFFED);
+	pd->pet.hungry = std::min(pd->pet.hungry + pet_db_ptr->hunger_increase, PET_HUNGRY_STUFFED);
 
 	if( pd->pet.hungry > 100 )
 		pd->pet.hungry = 100;
@@ -2063,11 +2097,12 @@ int32 pet_equipitem(map_session_data *sd,int32 index)
 
 		if (pd->s_skill && pd->s_skill->timer == INVALID_TIMER) {
 			uint16 delay = pet_support_skill_delay(pd->s_skill);
+			t_tick timer_delay = pet_support_initial_delay(sd, delay);
 
 			if (pd->s_skill->id)
-				pd->s_skill->timer=add_timer(tick+delay*1000, pet_skill_support_timer, sd->id, 0);
+				pd->s_skill->timer=add_timer(tick + timer_delay, pet_skill_support_timer, sd->id, 0);
 			else
-				pd->s_skill->timer=add_timer(tick+delay*1000, pet_heal_timer, sd->id, 0);
+				pd->s_skill->timer=add_timer(tick + timer_delay, pet_heal_timer, sd->id, 0);
 		}
 
 		if (pd->bonus && pd->bonus->timer == INVALID_TIMER)
@@ -2182,7 +2217,7 @@ int32 pet_food(map_session_data *sd, struct pet_data *pd)
 	}
 
 	status_calc_pet(pd,SCO_NONE);
-	pd->pet.hungry = min(pd->pet.hungry + pet_db_ptr->hunger_increase, PET_HUNGRY_STUFFED);
+	pd->pet.hungry = std::min(pd->pet.hungry + pet_db_ptr->hunger_increase, PET_HUNGRY_STUFFED);
 
 	if( pd->pet.hungry > 100 )
 		pd->pet.hungry = 100;
@@ -2733,7 +2768,6 @@ TIMER_FUNC(pet_heal_timer){
 	map_session_data *sd = map_id2sd(id);
 	struct pet_data *pd;
 	status_data *status;
-	uint32 rate = 100;
 
 	if(sd == nullptr || sd->pd == nullptr || sd->pd->s_skill == nullptr)
 		return 1;
@@ -2749,9 +2783,14 @@ TIMER_FUNC(pet_heal_timer){
 	int16 hp_rate = get_percentage(status->hp, status->max_hp);
 	int16 sp_rate = get_percentage(status->sp, status->max_sp);
 
+	if (!pet_owner_in_combat(sd)) {
+		pd->s_skill->timer = add_timer(tick + pet_support_retry_delay(sd, hp_rate, sp_rate), pet_heal_timer, sd->id, 0);
+		return 0;
+	}
+
+
 	if (pc_isdead(sd) || pd->ud.skilltimer != INVALID_TIMER) {
-		rate = max(hp_rate, sp_rate);
-		pd->s_skill->timer = add_timer(tick + (rate > 10 ? rate : 10) * 100, pet_skill_support_timer, sd->id, 0);
+		pd->s_skill->timer = add_timer(tick + pet_support_retry_delay(sd, hp_rate, sp_rate), pet_skill_support_timer, sd->id, 0);
 		return 0;
 	}
 
@@ -2787,8 +2826,7 @@ TIMER_FUNC(pet_heal_timer){
 	}
 
 	if (!found_skill) {  //Wait (how long? 1 sec for every 10% of remaining)
-		rate = max(hp_rate, sp_rate);
-		pd->s_skill->timer = add_timer(tick + (rate > 10 ? rate : 10) * 100, pet_skill_support_timer, sd->id, 0);
+		pd->s_skill->timer = add_timer(tick + pet_support_retry_delay(sd, hp_rate, sp_rate), pet_skill_support_timer, sd->id, 0);
 		return 0;
 	}
 
@@ -2820,7 +2858,6 @@ TIMER_FUNC(pet_skill_support_timer){
 	struct pet_data *pd;
 	status_data *status;
 	int16 hp_rate, sp_rate;
-	uint32 rate = 100;
 
 
 	if(sd == nullptr || sd->pd == nullptr || sd->pd->s_skill == nullptr)
@@ -2849,11 +2886,15 @@ TIMER_FUNC(pet_skill_support_timer){
 	hp_rate = get_percentage(status->hp, status->max_hp);
 	sp_rate = get_percentage(status->sp, status->max_sp);
 
+	if (!pet_owner_in_combat(sd)) {
+		pd->s_skill->timer = add_timer(tick + pet_support_retry_delay(sd, hp_rate, sp_rate), pet_skill_support_timer, sd->id, 0);
+		return 0;
+	}
+
 	pet_skill_support_entry selected_skill{};
 	size_t selected_index = 0;
 	if (!pet_support_skill_pick_next(sd, pd, hp_rate, sp_rate, selected_skill, selected_index)) {
-		rate = max(hp_rate, sp_rate);
-		pd->s_skill->timer = add_timer(tick + (rate > 10 ? rate : 10) * 100, pet_skill_support_timer, sd->id, 0);
+		pd->s_skill->timer = add_timer(tick + pet_support_retry_delay(sd, hp_rate, sp_rate), pet_skill_support_timer, sd->id, 0);
 		return 0;
 	}
 
@@ -2868,7 +2909,16 @@ TIMER_FUNC(pet_skill_support_timer){
 
 	unit_stop_attack( pd );
 	unit_stop_walking( pd, USW_FIXPOS );
-	pd->s_skill->timer=add_timer(tick+pd->s_skill->delay*1000,pet_skill_support_timer,sd->id,0);
+	t_tick next_timer_delay = static_cast<t_tick>(pd->s_skill->delay) * 1000;
+	if (!pd->s_skill->skills.empty()) {
+		pet_skill_support_entry next_skill{};
+		size_t next_index = 0;
+		if (pet_support_skill_pick_next(sd, pd, hp_rate, sp_rate, next_skill, next_index)) {
+			next_timer_delay = min<t_tick>(next_timer_delay, PET_SUPPORT_IDLE_POLL_DELAY);
+		}
+	}
+
+	pd->s_skill->timer=add_timer(tick + next_timer_delay, pet_skill_support_timer, sd->id, 0);
 
 	int32 inf = skill_get_inf(pd->s_skill->id);
 	if ((inf & (INF_SELF_SKILL | INF_GROUND_SKILL)) && pet_support_skill_force_owner_status(sd, pd, selected_skill)) {
@@ -2976,7 +3026,7 @@ void pet_evolution(map_session_data *sd, int16 pet_id) {
 		int32 count = requirement.second;
 		for (int32 i = 0; i < MAX_INVENTORY; i++) {
 			item *slot = &sd->inventory.u.items_inventory[i];
-			int32 deduction = min(requirement.second, slot->amount);
+			int32 deduction = std::min(requirement.second, slot->amount);
 			if (slot->nameid == requirement.first) {
 				pc_delitem(sd, i, deduction, 0, 0, LOG_TYPE_OTHER);
 				count -= deduction;

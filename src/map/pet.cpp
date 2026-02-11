@@ -92,17 +92,17 @@ static t_tick pet_support_retry_delay(const map_session_data* sd, int16 hp_rate,
 
 	uint32 rate = max(hp_rate, sp_rate);
 	t_tick dynamic_delay = (rate > 10 ? rate : 10) * 100;
-	return min<t_tick>(dynamic_delay, PET_SUPPORT_IDLE_POLL_DELAY);
+	return std::min<t_tick>(dynamic_delay, PET_SUPPORT_IDLE_POLL_DELAY);
 }
 
 static t_tick pet_support_initial_delay(const map_session_data* sd, uint16 configured_delay_seconds) {
 	t_tick configured_delay = static_cast<t_tick>(configured_delay_seconds) * 1000;
 
 	if (pet_owner_in_combat(sd)) {
-		return min<t_tick>(configured_delay, PET_SUPPORT_COMBAT_POLL_DELAY);
+		return std::min<t_tick>(configured_delay, PET_SUPPORT_COMBAT_POLL_DELAY);
 	}
 
-	return min<t_tick>(configured_delay, PET_SUPPORT_IDLE_POLL_DELAY);
+	return std::min<t_tick>(configured_delay, PET_SUPPORT_IDLE_POLL_DELAY);
 }
 
 static uint16 pet_support_skill_delay(const pet_skill_support* s_skill) {
@@ -788,7 +788,7 @@ uint64 PetSkillDatabase::parseBodyNode( const ryml::NodeRef& node ){
 
 			pet_skill_support_entry entry = {
 				skill_id,
-				static_cast<uint16>(std::min(level, skill_get_max(skill_id))),
+				static_cast<uint16>(std::min<int32>(level, skill_get_max(skill_id))),
 				hp,
 				sp,
 				delay
@@ -844,7 +844,7 @@ uint64 PetSkillDatabase::parseBodyNode( const ryml::NodeRef& node ){
 
 		pet_skill_attack attack = {
 			skill_id,
-			static_cast<uint16>(std::min(level, skill_get_max(skill_id))),
+			static_cast<uint16>(std::min<int32>(level, skill_get_max(skill_id))),
 			damage,
 			div_,
 			rate,
@@ -1321,7 +1321,7 @@ static int32 pet_food_autofeed(map_session_data *sd, struct pet_data *pd){
 	}
 
 	status_calc_pet(pd,SCO_NONE);
-	pd->pet.hungry = std::min(pd->pet.hungry + pet_db_ptr->hunger_increase, PET_HUNGRY_STUFFED);
+	pd->pet.hungry = std::min<int32>(pd->pet.hungry + pet_db_ptr->hunger_increase, PET_HUNGRY_STUFFED);
 
 	if( pd->pet.hungry > 100 )
 		pd->pet.hungry = 100;
@@ -2217,7 +2217,7 @@ int32 pet_food(map_session_data *sd, struct pet_data *pd)
 	}
 
 	status_calc_pet(pd,SCO_NONE);
-	pd->pet.hungry = std::min(pd->pet.hungry + pet_db_ptr->hunger_increase, PET_HUNGRY_STUFFED);
+	pd->pet.hungry = std::min<int32>(pd->pet.hungry + pet_db_ptr->hunger_increase, PET_HUNGRY_STUFFED);
 
 	if( pd->pet.hungry > 100 )
 		pd->pet.hungry = 100;
@@ -2914,7 +2914,7 @@ TIMER_FUNC(pet_skill_support_timer){
 		pet_skill_support_entry next_skill{};
 		size_t next_index = 0;
 		if (pet_support_skill_pick_next(sd, pd, hp_rate, sp_rate, next_skill, next_index)) {
-			next_timer_delay = min<t_tick>(next_timer_delay, PET_SUPPORT_IDLE_POLL_DELAY);
+			next_timer_delay = std::min<t_tick>(next_timer_delay, PET_SUPPORT_IDLE_POLL_DELAY);
 		}
 	}
 
@@ -3026,8 +3026,8 @@ void pet_evolution(map_session_data *sd, int16 pet_id) {
 		int32 count = requirement.second;
 		for (int32 i = 0; i < MAX_INVENTORY; i++) {
 			item *slot = &sd->inventory.u.items_inventory[i];
-			int32 deduction = std::min(requirement.second, slot->amount);
 			if (slot->nameid == requirement.first) {
+				int32 deduction = std::min<int32>(count, slot->amount);
 				pc_delitem(sd, i, deduction, 0, 0, LOG_TYPE_OTHER);
 				count -= deduction;
 				if (count == 0)

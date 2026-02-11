@@ -73,7 +73,7 @@ const t_tick MIN_PETTHINKTIME = 100;
 constexpr t_tick PET_SUPPORT_COMBAT_POLL_DELAY = 500;
 constexpr t_tick PET_SUPPORT_IDLE_POLL_DELAY = 1000;
 
-static bool pet_owner_in_combat(const map_session_data* sd) {
+static bool pet_owner_in_combat(map_session_data* sd) {
 	if (sd == nullptr || pc_isdead(sd)) {
 		return false;
 	}
@@ -82,10 +82,10 @@ static bool pet_owner_in_combat(const map_session_data* sd) {
 		return true;
 	}
 
-	return unit_counttargeted(&sd->bl) > 0;
+	return unit_counttargeted(sd) > 0;
 }
 
-static t_tick pet_support_retry_delay(const map_session_data* sd, int16 hp_rate, int16 sp_rate) {
+static t_tick pet_support_retry_delay(map_session_data* sd, int16 hp_rate, int16 sp_rate) {
 	if (pet_owner_in_combat(sd)) {
 		return PET_SUPPORT_COMBAT_POLL_DELAY;
 	}
@@ -95,7 +95,7 @@ static t_tick pet_support_retry_delay(const map_session_data* sd, int16 hp_rate,
 	return std::min<t_tick>(dynamic_delay, PET_SUPPORT_IDLE_POLL_DELAY);
 }
 
-static t_tick pet_support_initial_delay(const map_session_data* sd, uint16 configured_delay_seconds) {
+static t_tick pet_support_initial_delay(map_session_data* sd, uint16 configured_delay_seconds) {
 	t_tick configured_delay = static_cast<t_tick>(configured_delay_seconds) * 1000;
 
 	if (pet_owner_in_combat(sd)) {

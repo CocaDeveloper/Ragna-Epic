@@ -3,6 +3,7 @@
 
 #include "pet.hpp"
 
+#include <algorithm>
 #include <cstdlib>
 #include <map>
 #include <string>
@@ -152,6 +153,20 @@ static bool pet_support_skill_pick_next(
 	return false;
 }
 
+
+static void pet_support_skill_add_unique(std::vector<pet_skill_support_entry>& skills, const pet_skill_support_entry& entry) {
+	auto duplicate = std::find_if(skills.begin(), skills.end(), [&entry](const pet_skill_support_entry& existing) {
+		return existing.id == entry.id
+			&& existing.lv == entry.lv
+			&& existing.hp == entry.hp
+			&& existing.sp == entry.sp
+			&& existing.delay == entry.delay;
+	});
+
+	if (duplicate == skills.end()) {
+		skills.push_back(entry);
+	}
+}
 
 const std::string PetDatabase::getDefaultLocation(){
 	return std::string(db_path) + "/pet_db.yml";
@@ -859,14 +874,46 @@ void pet_apply_skill_db(map_session_data *sd, pet_data& pd) {
 		return;
 	}
 
-	std::shared_ptr<s_pet_skill_db> skill_db_ptr = pet_skill_db.find(pd.pet.class_);
-	if (skill_db_ptr == nullptr) {
-		return;
+	std::optional<pet_skill_attack> legacy_attack;
+	std::vector<pet_skill_support_entry> legacy_support;
+
+	if (pd.a_skill != nullptr) {
+		legacy_attack = pet_skill_attack{
+			pd.a_skill->id,
+			pd.a_skill->lv,
+			pd.a_skill->damage,
+			pd.a_skill->div_,
+			pd.a_skill->rate,
+			pd.a_skill->bonusrate
+		};
+	}
+
+	if (pd.s_skill != nullptr) {
+		if (!pd.s_skill->skills.empty()) {
+			legacy_support = pd.s_skill->skills;
+		} else if (pd.s_skill->id != 0) {
+			legacy_support.push_back({ pd.s_skill->id, pd.s_skill->lv, pd.s_skill->hp, pd.s_skill->sp, pd.s_skill->delay });
+		}
 	}
 
 	pet_clear_skill_data(pd);
 
-	if (skill_db_ptr->attack_skill.has_value()) {
+	std::shared_ptr<s_pet_skill_db> skill_db_ptr = pet_skill_db.find(pd.pet.class_);
+	if (skill_db_ptr == nullptr && !legacy_attack.has_value() && legacy_support.empty()) {
+		return;
+	}
+
+	if (legacy_attack.has_value()) {
+		pd.a_skill = (struct pet_skill_attack *)aMalloc(sizeof(struct pet_skill_attack));
+		pd.a_skill->id = legacy_attack->id;
+		pd.a_skill->lv = legacy_attack->lv;
+		pd.a_skill->damage = legacy_attack->damage;
+		pd.a_skill->div_ = legacy_attack->div_;
+		pd.a_skill->rate = legacy_attack->rate;
+		pd.a_skill->bonusrate = legacy_attack->bonusrate;
+	}
+
+	if (skill_db_ptr != nullptr && skill_db_ptr->attack_skill.has_value()) {
 		if (pd.a_skill == nullptr) {
 			pd.a_skill = (struct pet_skill_attack *)aMalloc(sizeof(struct pet_skill_attack));
 		}
@@ -880,9 +927,17 @@ void pet_apply_skill_db(map_session_data *sd, pet_data& pd) {
 		pd.a_skill->bonusrate = attack.bonusrate;
 	}
 
-	if (!skill_db_ptr->support_skills.empty()) {
+	if (!legacy_support.empty() || (skill_db_ptr != nullptr && !skill_db_ptr->support_skills.empty())) {
 		pd.s_skill = new pet_skill_support();
-		pd.s_skill->skills = skill_db_ptr->support_skills;
+		for (const pet_skill_support_entry& entry : legacy_support) {
+			pet_support_skill_add_unique(pd.s_skill->skills, entry);
+		}
+
+		if (skill_db_ptr != nullptr) {
+			for (const pet_skill_support_entry& entry : skill_db_ptr->support_skills) {
+				pet_support_skill_add_unique(pd.s_skill->skills, entry);
+			}
+		}
 		pd.s_skill->current_index = 0;
 
 		const pet_skill_support_entry& entry = pd.s_skill->skills.front();
@@ -2776,20 +2831,6 @@ TIMER_FUNC(pet_skill_support_timer){
 	pd->s_skill->delay = selected_skill.delay;
 	if (!pd->s_skill->skills.empty()) {
 		pd->s_skill->current_index = (selected_index + 1) % pd->s_skill->skills.size();
-	}
-
-	const auto& skills = pd->s_skill->skills;
-	if( !skills.empty() ){
-		size_t skill_count = skills.size();
-		size_t index = pd->s_skill->current_index % skill_count;
-		const pet_skill_support_entry& selected = skills[index];
-
-		pd->s_skill->id = selected.id;
-		pd->s_skill->lv = selected.lv;
-		pd->s_skill->hp = selected.hp;
-		pd->s_skill->sp = selected.sp;
-		pd->s_skill->delay = selected.delay;
-		pd->s_skill->current_index = (index + 1) % skill_count;
 	}
 
 	unit_stop_attack( pd );

@@ -24,10 +24,6 @@ Header:
   Version: 1
 
 Body:
-  # =============================
-  # MODELOS PRONTOS (copiar/colar)
-  # =============================
-
   # 1) Suporte padrão (Bless + Agi)
   - Mob: PORING
     SupportSkills:
@@ -38,16 +34,26 @@ Body:
         Sp: 100
       - Skill: AL_INCAGI
         Level: 10
+        Delay: 25
+        Hp: 100
+        Sp: 100
+      - Skill: PR_GLORIA
+        Level: 5
         Delay: 30
         Hp: 100
         Sp: 100
+    AttackSkill:
+      Skill: SM_BASH
+      Level: 10
+      Rate: 15
+      BonusRate: 20
 
   # 2) Suporte defensivo (Kyrie + Increase Agi)
   - Mob: LUNATIC
     SupportSkills:
       - Skill: PR_KYRIE
         Level: 5
-        Delay: 25
+        Delay: 20
         Hp: 100
         Sp: 100
       - Skill: AL_INCAGI
@@ -55,7 +61,16 @@ Body:
         Delay: 25
         Hp: 100
         Sp: 100
-
+      - Skill: HP_ASSUMPTIO
+        Level: 3
+        Delay: 45
+        Hp: 80
+        Sp: 100
+    AttackSkill:
+      Skill: MG_FIREBOLT
+      Level: 5
+      Rate: 10
+      BonusRate: 15
   # 3) Suporte de sustain (Magnificat + Gloria)
   - Mob: POPORING
     SupportSkills:
@@ -66,8 +81,13 @@ Body:
         Sp: 100
       - Skill: PR_GLORIA
         Level: 5
-        Delay: 35
+        Delay: 30
         Hp: 100
+        Sp: 100
+      - Skill: AL_HEAL
+        Level: 10
+        Delay: 10
+        Hp: 60
         Sp: 100
 
   # 4) Suporte ofensivo físico (Impositio + Bless)
@@ -83,7 +103,40 @@ Body:
         Delay: 20
         Hp: 100
         Sp: 100
+      - Skill: AC_CONCENTRATION
+        Level: 5
+        Delay: 30
+        Hp: 100
+        Sp: 100
+    AttackSkill:
+      Skill: KN_PIERCE
+      Level: 5
+      Rate: 12
+      BonusRate: 18
 
+  # 5) Suporte híbrido (Bragi + Magnificat + Gloria + Agi)
+  - Mob: CHONCHON
+    SupportSkills:
+      - Skill: BA_POEMBRAGI
+        Level: 5
+        Delay: 45
+        Hp: 100
+        Sp: 100
+      - Skill: PR_MAGNIFICAT
+        Level: 5
+        Delay: 30
+        Hp: 100
+        Sp: 100
+      - Skill: PR_GLORIA
+        Level: 5
+        Delay: 30
+        Hp: 100
+        Sp: 100
+      - Skill: AL_INCAGI
+        Level: 10
+        Delay: 20
+        Hp: 100
+        Sp: 100
   # Dica:
   # - Delay está em SEGUNDOS.
   # - Como o core foi ajustado para buff por tempo, com Hp/Sp em 100

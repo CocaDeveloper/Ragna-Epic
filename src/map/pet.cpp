@@ -83,26 +83,59 @@ static uint16 pet_support_skill_delay(const pet_skill_support* s_skill) {
 	return s_skill->delay;
 }
 
-static bool pet_support_skill_has_active_status(map_session_data* sd, uint16 skill_id) {
+static sc_type pet_support_skill_owner_sc(uint16 skill_id) {
 	sc_type sc = skill_get_sc(skill_id);
 
-	if (sc == SC_NONE) {
-		switch (skill_id) {
-			case AL_INCAGI: sc = SC_INCREASEAGI; break;
-			case AL_BLESSING: sc = SC_BLESSING; break;
-			case HP_ASSUMPTIO: sc = SC_ASSUMPTIO; break;
-			case AC_CONCENTRATION: sc = SC_CONCENTRATION; break;
-			case CR_DEVOTION: sc = SC_DEVOTION; break;
-			case BA_POEMBRAGI: sc = SC_POEMBRAGI; break;
-			default: break;
-		}
+	if (sc != SC_NONE) {
+		return sc;
 	}
+
+	switch (skill_id) {
+		case AL_INCAGI: return SC_INCREASEAGI;
+		case AL_BLESSING: return SC_BLESSING;
+		case HP_ASSUMPTIO: return SC_ASSUMPTIO;
+		case AC_CONCENTRATION: return SC_CONCENTRATION;
+		case CR_DEVOTION: return SC_DEVOTION;
+		case BA_POEMBRAGI: return SC_POEMBRAGI;
+		default: return SC_NONE;
+	}
+}
+
+static t_tick pet_support_skill_duration(uint16 skill_id, uint16 skill_lv) {
+	t_tick duration = skill_get_time(skill_id, skill_lv);
+
+	if (duration <= 0) {
+		duration = skill_get_time2(skill_id, skill_lv);
+	}
+
+	return duration > 0 ? duration : 1000;
+}
+
+static bool pet_support_skill_force_owner_status(map_session_data* sd, pet_data* pd, const pet_skill_support_entry& entry) {
+	if (sd == nullptr || pd == nullptr) {
+		return false;
+	}
+
+	sc_type sc = pet_support_skill_owner_sc(entry.id);
 
 	if (sc == SC_NONE) {
 		return false;
 	}
 
-	if (status_change* sc_data = status_get_sc(sd); sc_data != nullptr) {
+	clif_skill_nodamage(pd, *sd, entry.id, entry.lv);
+	const t_tick duration = pet_support_skill_duration(entry.id, entry.lv);
+	return sc_start(pd, sd, sc, 100, entry.lv, duration);
+}
+
+static bool pet_support_skill_has_active_status(map_session_data* sd, uint16 skill_id) {
+	sc_type sc = pet_support_skill_owner_sc(skill_id);
+
+	if (sc == SC_NONE) {
+		return false;
+	}
+
+	status_change* sc_data = status_get_sc(sd);
+	if (sc_data != nullptr) {
 		return sc_data->hasSCE(sc);
 	}
 
@@ -2838,6 +2871,10 @@ TIMER_FUNC(pet_skill_support_timer){
 	pd->s_skill->timer=add_timer(tick+pd->s_skill->delay*1000,pet_skill_support_timer,sd->id,0);
 
 	int32 inf = skill_get_inf(pd->s_skill->id);
+	if ((inf & (INF_SELF_SKILL | INF_GROUND_SKILL)) && pet_support_skill_force_owner_status(sd, pd, selected_skill)) {
+		return 0;
+	}
+
 	if (inf & INF_GROUND_SKILL)
 		unit_skilluse_pos(pd, sd->x, sd->y, pd->s_skill->id, pd->s_skill->lv);
 	else if (inf & INF_SELF_SKILL)

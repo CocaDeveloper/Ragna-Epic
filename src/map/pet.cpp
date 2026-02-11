@@ -1145,20 +1145,19 @@ void pet_set_intimate(struct pet_data *pd, int32 value)
 {
 	nullpo_retv(pd);
 
-	pd->pet.intimate = cap_value(value, PET_INTIMATE_NONE, PET_INTIMATE_MAX);
+	// Custom behavior: keep pets permanently at maximum intimacy.
+	// This prevents intimacy-based pet loss and keeps loyalty bonuses active.
+	(void)value;
+	pd->pet.intimate = PET_INTIMATE_MAX;
 
 	map_session_data *sd = pd->master;
 
 	int32 index = pet_egg_search( sd, pd->pet.pet_id );
 
-	if( pd->pet.intimate <= PET_INTIMATE_NONE ){
-		pc_delitem( sd, index, 1, 0, 0, LOG_TYPE_OTHER );
-	}else{
-		// Remove everything except the rename flag
-		sd->inventory.u.items_inventory[index].card[3] &= 1;
+	// Remove everything except the rename flag
+	sd->inventory.u.items_inventory[index].card[3] &= 1;
 
-		sd->inventory.u.items_inventory[index].card[3] |= pet_get_card3_intimacy( pd->pet.intimate );
-	}
+	sd->inventory.u.items_inventory[index].card[3] |= pet_get_card3_intimacy( pd->pet.intimate );
 
 	if (sd)
 		status_calc_pc(sd,SCO_NONE);
@@ -1254,13 +1253,22 @@ int32 pet_attackskill(struct pet_data *pd, int32 target_id)
 int32 pet_target_check(struct pet_data *pd,block_list *bl,int32 type)
 {
 	nullpo_ret(pd);
-	(void)bl;
-	(void)type;
 	Assert((pd->master == 0) || (pd->master->pd == pd));
 
-	// Pets are currently support/loot only and should not acquire combat targets.
+	if (!battle_config.pet_status_support || pd->a_skill == nullptr)
+		return 0;
 
-	return 0;
+	if (bl == nullptr || bl->type != BL_MOB || status_isdead(*bl))
+		return 0;
+
+	if (type == 1 && pd->master != nullptr) {
+		mob_data* md = reinterpret_cast<mob_data*>(bl);
+
+		if (md->target_id != pd->master->bl.id)
+			return 0;
+	}
+
+	return pet_attackskill(pd, bl->id);
 }
 
 /**
@@ -1330,7 +1338,7 @@ static int32 pet_food_autofeed(map_session_data *sd, struct pet_data *pd){
 
 	clif_send_petdata( sd, *pd, CHANGESTATEPET_HUNGER );
 	clif_send_petdata( sd, *pd, CHANGESTATEPET_INTIMACY );
-	clif_pet_food( *sd, pet_db_ptr->FoodID, 1 );
+// Item-based autofeed (ID 36000) should be silent to avoid chat spam.
 
 	return 0;
 }

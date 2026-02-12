@@ -12,7 +12,7 @@
 // v1.2: Melhorias implementadas - Cobrança de zeny, bloqueio de cartas, proteção contra duplicatas.
 //===============================================================
 
-1@herbs,265,58,4	script	Jessé, O Aprendiz	944,{
+trendhall,115,49,3	script	Jess, O Aprendiz	4_f_job_blacksmith,{
 
 L_MainMenu:
 	mes "^339966[Jessé, O Aprendiz]^000000";

@@ -22,7 +22,7 @@
 //= Remove efeitos, slots e cartas dos equipamentos originais
 //============================================
 
-1@herbs,300,92,3	script	Cientista Maluco	4_M_SAGE_A,{
+trendhall,138,30,3	script	Cientista Maluco	4_M_SAGE_A,{
 	
 	mes "[Conversor Visual]";
 	mes "Olá, aventureiro!";

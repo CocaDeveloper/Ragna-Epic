@@ -164,7 +164,7 @@ OnInit:
 	}
 }
 
-1@herbs,263,65,5	script	#teleportewoe2	111,{
+trendhall,38,41,5	script	#teleportewoe2	111,{
 
 OnInit:
 	// Chat em cima do npc

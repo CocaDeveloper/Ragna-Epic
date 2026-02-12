@@ -10,7 +10,7 @@
 //                  NPC - KAFRA
 //===============================================================
 
-1@herbs,290,63,3	script	Serviço Kafra::kaf_prontera#20	113,{
+trendhall,94,78,3	script	Servio Kafra::kaf_prontera#20	113,{
 	cutin "kafra_05",2;
 	callfunc "F_KafSet";
 mes "^339966[Funcionária Kafra]^000000";

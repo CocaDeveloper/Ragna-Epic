@@ -16,7 +16,7 @@
 // - GMs recebem os mesmos benefícios de um Super VIP.
 //===============================================================
 
-1@herbs,271,63,5	script	Resetadora VIP	90,{
+trendhall,118,93,5	script	Resetadora VIP	90,{
 
 //-------------------------
 // Função principal

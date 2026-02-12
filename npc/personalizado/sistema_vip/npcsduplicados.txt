@@ -10,7 +10,7 @@
 //                 NPC's Duplicados Sala VIP 
 //===============================================================
 
-1@herbs, 290, 58, 4	duplicate(Curandeira)	Curandeira#vip1	936
+trendhall,89,78,5	duplicate(Curandeira)	Curandeira#vip1	936
 
 //===============================================================
 //                       Teste de Dano 
@@ -82,7 +82,7 @@ OnInit:
 //                     Mestre Refino
 //===============================================================
 
-1@herbs,269,55,5	duplicate(Bigornox, o Ferreiro)	Bigornox, o Ferreiro#vip1	813
+trendhall,119,52,3	duplicate(Bigornox, o Ferreiro)	Bigornox, o Ferreiro#vip1	813
 
 1@herbs,267,55,5	script	 	10026,{}
 
@@ -96,7 +96,7 @@ OnInit:
 //= Cooldown de 3 minutos entre mensagens
 //===============================================================
 
-1@herbs, 278, 53, 5	script	Mensageiro Expresso	888,{
+trendhall,97,101,3	script	Mensageiro Expresso	888,{
 	// Verifica se o jogador é VIP
 	// ALTERE AQUI: Substitua pela sua verificação de VIP
 	.@is_vip = (getgroupid() >= 1) ? 1 : 0; // Mude conforme seu sistema VIP
@@ -266,7 +266,7 @@ OnInit:
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=+
 // Compatível com eAmod
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=+
-1@herbs,273,113,3	script	Elementalista	743,{
+trendhall,86,74,5	script	Elementalista	743,{
 	
 set .@npcencantador$,"^339966[Encantador Premium]^000000";
 set @PrecoEncantar,20000;	// Preço para encantar a arma
@@ -340,7 +340,7 @@ OnInit:
 
 //malangdo,229,265,3	duplicate(Encantador Premium)	Encantador Test	743
 
-1@herbs,266,41,5	script	Guardião do Descanso#dup	687,{
+trendhall,101,63,4	script	Guardião do Descanso#dup	687,{
 
 	setnpcdisplay "Guardião do Descanso#dup", 688;
 

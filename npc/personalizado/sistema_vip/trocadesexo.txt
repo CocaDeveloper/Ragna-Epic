@@ -16,7 +16,7 @@
 // - GMs recebem os mesmos benefícios de um Super VIP.
 //===============================================================
 
-1@herbs,300,63,3	script	Estilista Cirurgião#011	878,{
+trendhall,138,98,3	script	Estilista Cirurgio#011	878,{
     if (countitem(501) < 1) {
 		mes "^339966[Estilista Cirurgião]^000000";
 		mes "^ff0000Acesso Negado!^000000";

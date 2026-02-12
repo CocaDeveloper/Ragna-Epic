@@ -317,7 +317,7 @@ function	script	GetMVPName	{
 }
 
 // NPC duplicado para mapa VIP
-1@herbs,295,96,4	duplicate(Rastreadora MVP)	Rastreadora MVP#VIP	469
+trendhall,101,101,4	duplicate(Rastreadora MVP)	Rastreadora MVP#VIP	469
 
 //===================================================================
 

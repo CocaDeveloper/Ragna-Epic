@@ -10,7 +10,7 @@
 //              NPC - Recicladora de Cartas
 //===============================================================
 
-1@herbs,249,61,5	script	Recicladora de Cartas	789,{
+trendhall,117,88,5	script	Recicladora de Cartas	789,{
 	mes "^339966[Recicladora de Cartas]^000000";
 	mes "Saudações, ^FFA500"+strcharinfo(0)+"^000000!";
 	mes "Aqui você pode trocar as cartas que não têm mais utilidade para você.";

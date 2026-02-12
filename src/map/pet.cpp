@@ -1264,7 +1264,7 @@ int32 pet_target_check(struct pet_data *pd,block_list *bl,int32 type)
 	if (type == 1 && pd->master != nullptr) {
 		mob_data* md = reinterpret_cast<mob_data*>(bl);
 
-		if (md->target_id != pd->master->bl.id)
+		if (md->target_id != pd->master->id)
 			return 0;
 	}
 

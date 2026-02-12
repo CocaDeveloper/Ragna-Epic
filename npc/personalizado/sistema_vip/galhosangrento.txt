@@ -10,7 +10,7 @@
 //                  NPC - Galho Sangrento
 //===============================================================
 
-1@herbs,276,96,5	script	Galhos Sangrentos	497,{
+trendhall,101,74,3	script	Galhos Sangrentos	497,{
 	
 	mes "^339966[Gato Félix]^000000"; 
 	mes (gettime(3) >= 6 && gettime(3) <= 12 ? "Bom-dia" : (gettime(3) >= 13 && gettime(3) <= 18 ? "Boa-tarde" : "Boa-noite"))+", ^ffa500"+strcharinfo(0)+"^000000!";

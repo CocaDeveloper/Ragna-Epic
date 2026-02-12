@@ -16,7 +16,7 @@
 // - GMs recebem os mesmos benefícios de um Super VIP.
 //===============================================================
 
-1@herbs,300,84,3	script	Empacotador VIP	461,{
+trendhall,83,74,5	script	Empacotador VIP	4_steelbox,{
 	
 	mes "^339966[Empacotador VIP]^000000"; 
 	mes (gettime(3) >= 6 && gettime(3) <= 12 ? "Bom-dia" : (gettime(3) >= 13 && gettime(3) <= 18 ? "Boa-tarde" : "Boa-noite"))+", ^ffa500"+strcharinfo(0)+"^000000!";

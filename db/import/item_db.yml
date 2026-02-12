@@ -2958,3 +2958,21 @@ Body:
     Weight: 10
     Flags:
       NoConsume: true
+  - Id: 36001
+    AegisName: Menu_Banquete
+    Name: Menu do Banquete
+    Type: Usable
+    Weight: 10
+    Flags:
+      NoConsume: true
+    Script: |
+      callfunc "F_BanqueteReal_Menu";
+  - Id: 36002
+    AegisName: Banquete_Real
+    Name: Banquete Real
+    Type: Usable
+    Weight: 10
+    Flags:
+      NoConsume: true
+    Script: |
+      callfunc "F_BanqueteReal_Usar";

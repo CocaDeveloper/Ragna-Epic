@@ -1,0 +1,175 @@
+//===== rAthena Script ==============================================
+//= Banquete Real
+//===== Description: =================================================
+//= Sistema de consumo simultâneo de consumíveis configuráveis.
+//===================================================================
+
+function	script	F_BanqueteReal_Menu	{
+	if (!BanqueteReal_Notifica_Iniciado) {
+		BanqueteReal_Notifica = 1;
+		BanqueteReal_Notifica_Iniciado = 1;
+	}
+
+	if (!#BanqueteReal_Recebeu) {
+		#BanqueteReal_Recebeu = 1;
+		getitem 36002,1;
+		dispbottom "[Banquete Real] Você recebeu 1x " + getitemname(36002) + ".";
+	}
+
+	while (true) {
+		.@op = select("Configurar Consumíveis:Visualizar Lista:Configurar Notificações:Editar Lista:Excluir Lista:Fechar");
+		switch (.@op) {
+		case 1:
+			callfunc "F_BanqueteReal_Configurar";
+			break;
+		case 2:
+			callfunc "F_BanqueteReal_Visualizar";
+			break;
+		case 3:
+			callfunc "F_BanqueteReal_Notificacoes";
+			break;
+		case 4:
+			callfunc "F_BanqueteReal_Editar";
+			break;
+		case 5:
+			callfunc "F_BanqueteReal_Excluir";
+			break;
+		default:
+			end;
+		}
+	}
+}
+
+function	script	F_BanqueteReal_Configurar	{
+	getinventorylist;
+	.@menu$ = "";
+	.@count = 0;
+	for (.@i = 0; .@i < @inventorylist_count; .@i++) {
+		.@id = @inventorylist_id[.@i];
+		.@tipo = getiteminfo(.@id, ITEMINFO_TYPE);
+		if (.@id == 36001 || .@id == 36002)
+			continue;
+		if (.@tipo != IT_HEALING && .@tipo != IT_USABLE && .@tipo != IT_DELAYCONSUME)
+			continue;
+		if (inarray(.@itens[0], .@id) != -1)
+			continue;
+
+		.@itens[.@count] = .@id;
+		.@menu$ += getitemname(.@id) + " (" + countitem(.@id) + "x):";
+		.@count++;
+	}
+
+	if (!.@count) {
+		dispbottom "[Banquete Real] Você não possui consumíveis elegíveis no inventário.";
+		return;
+	}
+
+	.@sel = select(.@menu$ + "Cancelar") - 1;
+	if (.@sel >= .@count)
+		return;
+
+	.@id = .@itens[.@sel];
+	if (inarray(BanqueteReal_Lista[0], .@id) != -1) {
+		dispbottom "[Banquete Real] Este consumível já está na lista.";
+		return;
+	}
+
+	if (getarraysize(BanqueteReal_Lista) >= 30) {
+		dispbottom "[Banquete Real] Limite de 30 consumíveis na lista.";
+		return;
+	}
+
+	BanqueteReal_Lista[getarraysize(BanqueteReal_Lista)] = .@id;
+	dispbottom "[Banquete Real] Consumível adicionado: " + getitemname(.@id) + ".";
+	return;
+}
+
+function	script	F_BanqueteReal_Visualizar	{
+	.@size = getarraysize(BanqueteReal_Lista);
+	if (!.@size) {
+		dispbottom "[Banquete Real] Sua lista está vazia.";
+		return;
+	}
+
+	dispbottom "[Banquete Real] Lista atual:";
+	for (.@i = 0; .@i < .@size; .@i++)
+		dispbottom " - " + getitemname(BanqueteReal_Lista[.@i]) + " (" + countitem(BanqueteReal_Lista[.@i]) + "x)";
+	return;
+}
+
+function	script	F_BanqueteReal_Notificacoes	{
+	BanqueteReal_Notifica = !BanqueteReal_Notifica;
+	dispbottom "[Banquete Real] Notificações " + (BanqueteReal_Notifica ? "ativadas" : "desativadas") + ".";
+	return;
+}
+
+function	script	F_BanqueteReal_Editar	{
+	.@size = getarraysize(BanqueteReal_Lista);
+	if (!.@size) {
+		dispbottom "[Banquete Real] Sua lista está vazia.";
+		return;
+	}
+
+	.@menu$ = "";
+	for (.@i = 0; .@i < .@size; .@i++)
+		.@menu$ += getitemname(BanqueteReal_Lista[.@i]) + ":";
+
+	.@sel = select(.@menu$ + "Cancelar") - 1;
+	if (.@sel >= .@size)
+		return;
+
+	.@removido = BanqueteReal_Lista[.@sel];
+	deletearray BanqueteReal_Lista[.@sel],1;
+	dispbottom "[Banquete Real] Removido da lista: " + getitemname(.@removido) + ".";
+	return;
+}
+
+function	script	F_BanqueteReal_Excluir	{
+	if (!getarraysize(BanqueteReal_Lista)) {
+		dispbottom "[Banquete Real] Sua lista já está vazia.";
+		return;
+	}
+
+	if (select("Não:Sim") == 2) {
+		deletearray BanqueteReal_Lista[0], getarraysize(BanqueteReal_Lista);
+		dispbottom "[Banquete Real] Lista apagada.";
+	}
+	return;
+}
+
+function	script	F_BanqueteReal_Usar	{
+	if (!BanqueteReal_Notifica_Iniciado) {
+		BanqueteReal_Notifica = 1;
+		BanqueteReal_Notifica_Iniciado = 1;
+	}
+
+	.@size = getarraysize(BanqueteReal_Lista);
+	if (!.@size) {
+		dispbottom "[Banquete Real] Configure sua lista no Menu do Banquete.";
+		end;
+	}
+
+	.@usados = 0;
+	.@falhas = 0;
+	for (.@i = 0; .@i < .@size; .@i++) {
+		.@id = BanqueteReal_Lista[.@i];
+		if (countitem(.@id) <= 0) {
+			if (BanqueteReal_Notifica)
+				dispbottom "[Banquete Real] Item sem estoque: [" + getitemname(.@id) + "].";
+			continue;
+		}
+
+		if (useinvitem(.@id)) {
+			.@usados++;
+			if (BanqueteReal_Notifica)
+				dispbottom "[Banquete Real] Consumível usado: [" + getitemname(.@id) + "].";
+		} else {
+			.@falhas++;
+			if (BanqueteReal_Notifica)
+				dispbottom "[Banquete Real] Não foi possível usar: [" + getitemname(.@id) + "] (efeito ativo, bloqueio ou condição inválida).";
+		}
+	}
+
+	dispbottom "[Banquete Real] Resultado: " + .@usados + " usado(s), " + .@falhas + " bloqueado(s).";
+	end;
+}

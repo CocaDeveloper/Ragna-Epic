@@ -16,7 +16,7 @@
 // - GMs recebem os mesmos benefícios de um Super VIP.
 //===============================================================
 
-1@herbs,300,71,3	script	Sacoleiro VIP	963,{
+trendhall,80,75,3	script	Sacoleiro VIP	963,{
 	set .npc_name$,"^339966[Sacoleiro VIP]^000000";
 
 	mes .npc_name$;

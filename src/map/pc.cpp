@@ -6931,6 +6931,7 @@ enum e_setpos pc_setpos(map_session_data* sd, uint16 mapindex, int32 x, int32 y,
 	sd->state.workinprogress = WIP_DISABLE_NONE;
 	sd->state.mail_writing = false;
 	sd->state.refineui_open = false;
+	sd->state.refineui_blacksmith = false;
 	sd->state.stylist_open = false;
 	sd->state.inventory_expansion_confirmation = 0;
 	sd->state.barter_open = false;

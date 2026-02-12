@@ -16,7 +16,7 @@
 // - GMs recebem os mesmos benefícios de um Super VIP.
 //===============================================================
 
-1@herbs,300,67,3	script	Mestre das Identidades	775,{
+trendhall,133,97,5	script	Mestre das Identidades	775,{
 
 	// Restrição de acesso
 	if (getgmlevel() < 99 && #VIP_LEVEL != 2) {

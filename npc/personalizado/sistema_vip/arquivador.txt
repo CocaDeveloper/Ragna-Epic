@@ -16,7 +16,7 @@
 // - GMs recebem os mesmos benefícios de um Super VIP.
 //===============================================================
 
-1@herbs,271,71,5	script	Arquivador de Build	865,{
+trendhall,119,102,5	script	Arquivador de Build	865,{
 if (BaseLevel < 99) { mes "Você so pode usar dos meus serviços se for level 99"; end; }
 set @npc$, "^339966[Arquivador de Build]^000000";
 mes @npc$;

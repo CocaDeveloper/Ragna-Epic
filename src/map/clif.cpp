@@ -22447,6 +22447,51 @@ TIMER_FUNC( clif_ping_timer ){
 	return 0;
 }
 
+static constexpr int32 REFINE_BASE_CHANCE_REDUCTION = 1000; // -10.00%
+
+static int32 clif_get_blacksmith_anvil_index( map_session_data* sd, int32& bonus ){
+	bonus = 0;
+
+	int32 idx = pc_search_inventory( sd, ITEMID_EMPERIUM_ANVIL );
+	if( idx >= 0 ){
+		bonus = 400;
+		return idx;
+	}
+
+	idx = pc_search_inventory( sd, ITEMID_GOLDEN_ANVIL );
+	if( idx >= 0 ){
+		bonus = 300;
+		return idx;
+	}
+
+	idx = pc_search_inventory( sd, ITEMID_ORIDECON_ANVIL );
+	if( idx >= 0 ){
+		bonus = 200;
+		return idx;
+	}
+
+	idx = pc_search_inventory( sd, ITEMID_ANVIL );
+	if( idx >= 0 ){
+		bonus = 100;
+	}
+
+	return idx;
+}
+
+static int32 clif_get_refine_chance( map_session_data* sd, std::shared_ptr<s_refine_cost> cost, bool blacksmith_refine ){
+	int32 chance = max( 0, static_cast<int32>( cost->chance ) - REFINE_BASE_CHANCE_REDUCTION );
+
+	if( blacksmith_refine ){
+		chance += max( 0, static_cast<int32>( sd->status.job_level ) ) * 10; // +0.10% per job level
+
+		int32 anvil_bonus = 0;
+		clif_get_blacksmith_anvil_index( sd, anvil_bonus );
+		chance += anvil_bonus;
+	}
+
+	return cap_value( chance, 0, 10000 );
+}
+
 /**
  * Opens the refine UI on the designated client.
  * 0aa0
@@ -22462,6 +22507,7 @@ void clif_refineui_open( map_session_data* sd ){
 	clif_send( &p, sizeof( p ), sd, SELF );
 
 	sd->state.refineui_open = true;
+	sd->state.refineui_blacksmith = false;
 #endif
 }
 
@@ -22472,6 +22518,7 @@ void clif_refineui_open( map_session_data* sd ){
 void clif_parse_refineui_close( int32 fd, map_session_data* sd ){
 #if PACKETVER >= 20161012
 	sd->state.refineui_open = false;
+	sd->state.refineui_blacksmith = false;
 #endif
 }
 
@@ -22525,6 +22572,10 @@ void clif_refineui_info( map_session_data* sd, uint16 index ){
 		p->blacksmithBlessing = static_cast<decltype(p->blacksmithBlessing)>( info->blessing_amount );
 
 		for( uint16 i = REFINE_COST_NORMAL, count = 0; i < REFINE_COST_MAX; i++ ){
+			if( i == REFINE_COST_HD ){
+				continue;
+			}
+
 			std::shared_ptr<s_refine_cost> cost = util::umap_find( info->costs, i );
 
 			if( cost == nullptr ){
@@ -22534,7 +22585,7 @@ void clif_refineui_info( map_session_data* sd, uint16 index ){
 			PACKET_ZC_REFINING_MATERIAL_LIST_SUB& entry = p->req[count];
 
 			entry.itemId = client_nameid( cost->nameid );
-			entry.chance = static_cast<decltype(entry.chance)>( cost->chance / 100 );
+			entry.chance = static_cast<decltype(entry.chance)>( clif_get_refine_chance( sd, cost, sd->state.refineui_blacksmith ) / 100 );
 			entry.zeny = cost->zeny;
 
 			p->packetLength += static_cast<decltype(p->packetLength)>( sizeof( entry ) );
@@ -22662,6 +22713,10 @@ void clif_parse_refineui_refine( int32 fd, map_session_data* sd ){
 	std::shared_ptr<s_refine_cost> cost = nullptr;
 
 	for( const auto& pair : info->costs ){
+		if( pair.first == REFINE_COST_HD ){
+			continue;
+		}
+
 		if( pair.second->nameid == material ){
 			cost = pair.second;
 			break;
@@ -22690,7 +22745,16 @@ void clif_parse_refineui_refine( int32 fd, map_session_data* sd ){
 	}
 
 	// Try to refine the item
-	if( cost->chance >= ( rnd() % 10000 ) ){
+	int32 refine_chance = clif_get_refine_chance( sd, cost, sd->state.refineui_blacksmith );
+	int16 anvil_index = -1;
+
+	if( sd->state.refineui_blacksmith )
+		{
+		int32 anvil_bonus = 0;
+		anvil_index = static_cast<int16>( clif_get_blacksmith_anvil_index( sd, anvil_bonus ) );
+	}
+
+	if( refine_chance >= ( rnd() % 10000 ) ){
 		log_pick_pc( sd, LOG_TYPE_OTHER, -1, item );
 		// Success
 		item->refine = cap_value( item->refine + 1, 0, MAX_REFINE );
@@ -22706,6 +22770,10 @@ void clif_parse_refineui_refine( int32 fd, map_session_data* sd ){
 		clif_refineui_info( sd, index );
 	}else{
 		// Failure
+
+		if( sd->state.refineui_blacksmith && anvil_index >= 0 ){
+			pc_delitem( sd, anvil_index, 1, 0, 0, LOG_TYPE_CONSUME );
+		}
 
 		if (info->broadcast_failure) {
 			clif_broadcast_refine_result(*sd, item->nameid, item->refine, false);

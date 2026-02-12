@@ -36,7 +36,7 @@
 //==============================================================
 
 //prontera,188,198,9	script	Guauda da Arena	417,{}
-prontera,163,184,7	script	Arena de Batalha	801,{	
+trendhall,58,79,7	script	Arena de Batalha	801,{	
 	callsub(NPC_PVP_SUB);
 	close;
 

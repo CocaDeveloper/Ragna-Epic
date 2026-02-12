@@ -9705,7 +9705,7 @@ BUILDIN_FUNC(getequippercentrefinery)
 			return SCRIPT_CMD_SUCCESS;
 		}
 
-		script_pushint( st, cost->chance / 100 );
+		script_pushint( st, max( 0, static_cast<int32>( ( cost->chance - 1000 ) / 100 ) ) );
 	}
 	else
 		script_pushint(st,0);
@@ -23476,6 +23476,55 @@ BUILDIN_FUNC(consumeitem)
 	return SCRIPT_CMD_SUCCESS;
 }
 
+/* Uses one inventory item through the regular item-use validation flow.
+ * useinvitem <item id>{,<char_id>};
+ * useinvitem "<item name>"{,<char_id>};
+ */
+BUILDIN_FUNC(useinvitem)
+{
+	map_session_data *sd;
+	std::shared_ptr<item_data> item_data;
+	t_itemid nameid;
+
+	if (!script_charid2sd(3, sd)) {
+		script_pushint(st, 0);
+		return SCRIPT_CMD_FAILURE;
+	}
+
+	if (script_isstring(st, 2)) {
+		const char *name = script_getstr(st, 2);
+		item_data = item_db.searchname(name);
+
+		if (item_data == nullptr) {
+			ShowError("buildin_useinvitem: Nonexistant item %s requested.\n", name);
+			script_pushint(st, 0);
+			return SCRIPT_CMD_FAILURE;
+		}
+
+		nameid = item_data->nameid;
+	} else {
+		nameid = script_getnum(st, 2);
+		item_data = item_db.find(nameid);
+
+		if (item_data == nullptr) {
+			ShowError("buildin_useinvitem: Nonexistant item %u requested.\n", nameid);
+			script_pushint(st, 0);
+			return SCRIPT_CMD_FAILURE;
+		}
+	}
+
+	int16 index = pc_search_inventory(sd, nameid);
+
+	if (index < 0 || sd->inventory.u.items_inventory[index].amount <= 0) {
+		script_pushint(st, 0);
+		return SCRIPT_CMD_SUCCESS;
+	}
+
+	script_pushint(st, pc_useitem(sd, index));
+	return SCRIPT_CMD_SUCCESS;
+}
+
+
 /** Makes a player sit/stand.
  * sit {"<character name>"};
  * stand {"<character name>"};
@@ -28438,6 +28487,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF2(cleanmap,"cleanarea","siiii"),
 	BUILDIN_DEF(npcskill,"viii"),
 	BUILDIN_DEF(consumeitem,"v?"),
+	BUILDIN_DEF(useinvitem,"v?"),
 	BUILDIN_DEF(delequip,"i?"),
 	BUILDIN_DEF(breakequip,"i?"),
 	BUILDIN_DEF(sit,"?"),

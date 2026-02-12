@@ -16,7 +16,7 @@
 // - GMs recebem os mesmos benefícios de um Super VIP.
 //===============================================================
 
-1@herbs,293,53,3	script	Procurador Global	125,{
+trendhall,86,101,5	script	Procurador Global	125,{
 	
 // ========================================================
 // Configurações ******************************************

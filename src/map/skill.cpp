@@ -9705,7 +9705,15 @@ int32 skill_castend_nodamage_id (block_list *src, block_list *bl, uint16 skill_i
 	// Weapon Refining [Celest]
 	case WS_WEAPONREFINE:
 		if( sd != nullptr ){
-			clif_item_refine_list( *sd );
+#if PACKETVER >= 20161012
+			if( battle_config.feature_refineui ){
+				clif_refineui_open( sd );
+				sd->state.refineui_blacksmith = true;
+			}else
+#endif
+			{
+				clif_item_refine_list( *sd );
+			}
 		}
 		break;
 
@@ -20814,7 +20822,7 @@ void skill_weaponrefine( map_session_data& sd, int32 idx ){
 				return;
 			}
 
-			int32 per = ( cost->chance / 100 );
+			int32 per = max( 0, static_cast<int32>( ( cost->chance - 1000 ) / 100 ) );
 			if( sd.class_&JOBL_THIRD )
 				per += 10;
 			else

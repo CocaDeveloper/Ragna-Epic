@@ -16,7 +16,7 @@
 // - GMs recebem os mesmos benefícios de um Super VIP.
 //===============================================================
 
-1@herbs,300,96,3	script	Casamenteiro	415,{
+trendhall,136,52,3	script	Casamenteiro	415,{
 	
 OnInit:
 

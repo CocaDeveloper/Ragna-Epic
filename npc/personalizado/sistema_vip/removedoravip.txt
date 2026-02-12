@@ -26,7 +26,7 @@
 //= 1.2a Added 'disable_items' command. [Euphy]
 //============================================================
 
-1@herbs,271,67,5	script	Removedora VIP	535,{
+trendhall,123,102,5	script	Removedora VIP	535,{
 
 	disable_items;
 

@@ -1,175 +1,293 @@
-//===== rAthena Script ==============================================
-//= Banquete Real
-//===== Description: =================================================
-//= Sistema de consumo simultâneo de consumíveis configuráveis.
-//===================================================================
+//===============================================================
+// Sistema Banquete Real
+// - Consome itens configurados do inventário (não aplica efeito)
+// - Configuração persistida por personagem em SQL
+// - Seleção de consumíveis com menu paginado estilo loja
+//===============================================================
 
-function	script	F_BanqueteReal_Menu	{
-	if (!BanqueteReal_Notifica_Iniciado) {
-		BanqueteReal_Notifica = 1;
-		BanqueteReal_Notifica_Iniciado = 1;
-	}
-
-	if (!#BanqueteReal_Recebeu) {
-		#BanqueteReal_Recebeu = 1;
-		getitem 36002,1;
-		dispbottom "[Banquete Real] Você recebeu 1x " + getitemname(36002) + ".";
-	}
-
-	while (true) {
-		.@op = select("Configurar Consumíveis:Visualizar Lista:Configurar Notificações:Editar Lista:Excluir Lista:Fechar");
-		switch (.@op) {
-		case 1:
-			callfunc "F_BanqueteReal_Configurar";
-			break;
-		case 2:
-			callfunc "F_BanqueteReal_Visualizar";
-			break;
-		case 3:
-			callfunc "F_BanqueteReal_Notificacoes";
-			break;
-		case 4:
-			callfunc "F_BanqueteReal_Editar";
-			break;
-		case 5:
-			callfunc "F_BanqueteReal_Excluir";
-			break;
-		default:
-			end;
-		}
-	}
+function	script	F_Banquete_IsConsumable	{
+	.@item_id = getarg(0);
+	.@t = getiteminfo(.@item_id, ITEMINFO_TYPE);
+	// IT_HEALING=0, IT_USABLE=2, IT_CASH=10, IT_DELAYCONSUME=11
+	if (.@t == 0 || .@t == 2 || .@t == 10 || .@t == 11) return 1;
+	return 0;
 }
 
-function	script	F_BanqueteReal_Configurar	{
+function	script	F_Banquete_LoadSQL	{
+	deletearray #BanqueteItems[0], getarraysize(#BanqueteItems);
+	deletearray #BanqueteQty[0], getarraysize(#BanqueteQty);
+
+	.@char_id = getcharid(0);
+	.@rows = query_sql(
+		"SELECT `item_id`,`target_qty` FROM `banquete_real_config` WHERE `char_id` = " + .@char_id + " ORDER BY `position` ASC",
+		.@items, .@qty
+	);
+
+	for (.@i = 0; .@i < .@rows; .@i++) {
+		if (.@items[.@i] <= 0 || .@qty[.@i] <= 0) continue;
+		setarray #BanqueteItems[getarraysize(#BanqueteItems)], .@items[.@i];
+		setarray #BanqueteQty[getarraysize(#BanqueteQty)], .@qty[.@i];
+	}
+	return getarraysize(#BanqueteItems);
+}
+
+function	script	F_Banquete_SaveSQL	{
+	.@char_id = getcharid(0);
+	query_sql "DELETE FROM `banquete_real_config` WHERE `char_id` = " + .@char_id;
+
+	for (.@i = 0; .@i < getarraysize(#BanqueteItems); .@i++) {
+		if (#BanqueteItems[.@i] <= 0 || #BanqueteQty[.@i] <= 0) continue;
+		query_sql "INSERT INTO `banquete_real_config` (`char_id`,`item_id`,`target_qty`,`position`,`updated_at`) VALUES ("
+			+ .@char_id + "," + #BanqueteItems[.@i] + "," + #BanqueteQty[.@i] + "," + .@i + ",NOW())";
+	}
+	return getarraysize(#BanqueteItems);
+}
+
+function	script	F_Banquete_BuildInventoryPool	{
 	getinventorylist;
-	.@menu$ = "";
-	.@count = 0;
+	deletearray .@pool_item[0], getarraysize(.@pool_item);
+
 	for (.@i = 0; .@i < @inventorylist_count; .@i++) {
 		.@id = @inventorylist_id[.@i];
-		.@tipo = getiteminfo(.@id, ITEMINFO_TYPE);
-		if (.@id == 36001 || .@id == 36002)
-			continue;
-		if (.@tipo != IT_HEALING && .@tipo != IT_USABLE && .@tipo != IT_DELAYCONSUME)
-			continue;
-		if (inarray(.@itens[0], .@id) != -1)
-			continue;
-
-		.@itens[.@count] = .@id;
-		.@menu$ += getitemname(.@id) + " (" + countitem(.@id) + "x):";
-		.@count++;
+		if (.@id <= 0) continue;
+		if (@inventorylist_equip[.@i]) continue;
+		if (!callfunc("F_Banquete_IsConsumable", .@id)) continue;
+		if (inarray(#BanqueteItems, .@id) != -1) continue;
+		if (inarray(.@pool_item, .@id) != -1) continue;
+		setarray .@pool_item[getarraysize(.@pool_item)], .@id;
 	}
 
-	if (!.@count) {
-		dispbottom "[Banquete Real] Você não possui consumíveis elegíveis no inventário.";
-		return;
-	}
-
-	.@sel = select(.@menu$ + "Cancelar") - 1;
-	if (.@sel >= .@count)
-		return;
-
-	.@id = .@itens[.@sel];
-	if (inarray(BanqueteReal_Lista[0], .@id) != -1) {
-		dispbottom "[Banquete Real] Este consumível já está na lista.";
-		return;
-	}
-
-	if (getarraysize(BanqueteReal_Lista) >= 30) {
-		dispbottom "[Banquete Real] Limite de 30 consumíveis na lista.";
-		return;
-	}
-
-	BanqueteReal_Lista[getarraysize(BanqueteReal_Lista)] = .@id;
-	dispbottom "[Banquete Real] Consumível adicionado: " + getitemname(.@id) + ".";
-	return;
+	copyarray @banquete_pool[0], .@pool_item[0], getarraysize(.@pool_item);
+	return getarraysize(@banquete_pool);
 }
 
-function	script	F_BanqueteReal_Visualizar	{
-	.@size = getarraysize(BanqueteReal_Lista);
-	if (!.@size) {
-		dispbottom "[Banquete Real] Sua lista está vazia.";
-		return;
-	}
+-	script	BanqueteReal	-1,{
+OnInit:
+	query_sql "CREATE TABLE IF NOT EXISTS `banquete_real_config` ("
+		+ "`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,"
+		+ "`char_id` INT UNSIGNED NOT NULL,"
+		+ "`item_id` INT UNSIGNED NOT NULL,"
+		+ "`target_qty` INT UNSIGNED NOT NULL DEFAULT 1,"
+		+ "`position` SMALLINT UNSIGNED NOT NULL DEFAULT 0,"
+		+ "`updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,"
+		+ "PRIMARY KEY (`id`),"
+		+ "KEY `idx_char` (`char_id`)"
+		+ ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
 
-	dispbottom "[Banquete Real] Lista atual:";
-	for (.@i = 0; .@i < .@size; .@i++)
-		dispbottom " - " + getitemname(BanqueteReal_Lista[.@i]) + " (" + countitem(BanqueteReal_Lista[.@i]) + "x)";
-	return;
-}
+	query_sql "CREATE TABLE IF NOT EXISTS `banquete_real_log` ("
+		+ "`id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,"
+		+ "`char_id` INT UNSIGNED NOT NULL,"
+		+ "`char_name` VARCHAR(30) NOT NULL,"
+		+ "`used_count` SMALLINT UNSIGNED NOT NULL DEFAULT 0,"
+		+ "`blocked_count` SMALLINT UNSIGNED NOT NULL DEFAULT 0,"
+		+ "`created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,"
+		+ "PRIMARY KEY (`id`),"
+		+ "KEY `idx_char_log` (`char_id`,`created_at`)"
+		+ ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
 
-function	script	F_BanqueteReal_Notificacoes	{
-	BanqueteReal_Notifica = !BanqueteReal_Notifica;
-	dispbottom "[Banquete Real] Notificações " + (BanqueteReal_Notifica ? "ativadas" : "desativadas") + ".";
-	return;
-}
+	bindatcmd "banquete", strnpcinfo(3) + "::OnAtcommand";
+	end;
 
-function	script	F_BanqueteReal_Editar	{
-	.@size = getarraysize(BanqueteReal_Lista);
-	if (!.@size) {
-		dispbottom "[Banquete Real] Sua lista está vazia.";
-		return;
-	}
+OnPCLoginEvent:
+	callfunc("F_Banquete_LoadSQL");
+	end;
 
-	.@menu$ = "";
-	for (.@i = 0; .@i < .@size; .@i++)
-		.@menu$ += getitemname(BanqueteReal_Lista[.@i]) + ":";
-
-	.@sel = select(.@menu$ + "Cancelar") - 1;
-	if (.@sel >= .@size)
-		return;
-
-	.@removido = BanqueteReal_Lista[.@sel];
-	deletearray BanqueteReal_Lista[.@sel],1;
-	dispbottom "[Banquete Real] Removido da lista: " + getitemname(.@removido) + ".";
-	return;
-}
-
-function	script	F_BanqueteReal_Excluir	{
-	if (!getarraysize(BanqueteReal_Lista)) {
-		dispbottom "[Banquete Real] Sua lista já está vazia.";
-		return;
-	}
-
-	if (select("Não:Sim") == 2) {
-		deletearray BanqueteReal_Lista[0], getarraysize(BanqueteReal_Lista);
-		dispbottom "[Banquete Real] Lista apagada.";
-	}
-	return;
-}
-
-function	script	F_BanqueteReal_Usar	{
-	if (!BanqueteReal_Notifica_Iniciado) {
-		BanqueteReal_Notifica = 1;
-		BanqueteReal_Notifica_Iniciado = 1;
-	}
-
-	.@size = getarraysize(BanqueteReal_Lista);
-	if (!.@size) {
-		dispbottom "[Banquete Real] Configure sua lista no Menu do Banquete.";
+OnAtcommand:
+	if (.@atcmd_numparameters >= 1 && strtolower(.@atcmd_parameters$[0]) == "config") {
+		doevent strnpcinfo(3) + "::OnOpenConfig";
 		end;
 	}
 
-	.@usados = 0;
-	.@falhas = 0;
-	for (.@i = 0; .@i < .@size; .@i++) {
-		.@id = BanqueteReal_Lista[.@i];
-		if (countitem(.@id) <= 0) {
-			if (BanqueteReal_Notifica)
-				dispbottom "[Banquete Real] Item sem estoque: [" + getitemname(.@id) + "].";
+	if (getarraysize(#BanqueteItems) == 0) {
+		dispbottom "[Banquete Real] Sua lista está vazia. Use @banquete config.";
+		end;
+	}
+
+	.@used = 0;
+	.@blocked = 0;
+
+	for (.@i = 0; .@i < getarraysize(#BanqueteItems); .@i++) {
+		.@item = #BanqueteItems[.@i];
+		.@target = #BanqueteQty[.@i];
+		if (.@target <= 0) .@target = 1;
+
+		.@have = countitem(.@item);
+		if (.@have <= 0) {
+			.@blocked++;
+			dispbottom "[Banquete Real] Sem item no inventário: [" + getitemname(.@item) + "]";
 			continue;
 		}
 
-		if (useinvitem(.@id)) {
-			.@usados++;
-			if (BanqueteReal_Notifica)
-				dispbottom "[Banquete Real] Consumível usado: [" + getitemname(.@id) + "].";
-		} else {
-			.@falhas++;
-			if (BanqueteReal_Notifica)
-				dispbottom "[Banquete Real] Não foi possível usar: [" + getitemname(.@id) + "] (efeito ativo, bloqueio ou condição inválida).";
-		}
+		.@consume = (.@have < .@target) ? .@have : .@target;
+		delitem .@item, .@consume;
+		.@used++;
 	}
 
-	dispbottom "[Banquete Real] Resultado: " + .@usados + " usado(s), " + .@falhas + " bloqueado(s).";
+	query_sql "INSERT INTO `banquete_real_log` (`char_id`,`char_name`,`used_count`,`blocked_count`) VALUES ("
+		+ getcharid(0) + ",'" + escape_sql(strcharinfo(0)) + "'," + .@used + "," + .@blocked + ")";
+
+	dispbottom "[Banquete Real] Resultado: " + .@used + " item(ns) consumido(s), " + .@blocked + " bloqueado(s).";
+	end;
+
+OnOpenConfig:
+	callfunc("F_Banquete_LoadSQL");
+	goto L_Main;
+
+L_Main:
+	mes "^4B0082[Banquete Real]^000000";
+	mes "Este sistema consome os itens configurados do seu inventário.";
+	mes "Não aplica efeito manualmente, apenas consome.";
+	next;
+	switch(select("Adicionar consumíveis (estilo loja):Editar quantidade configurada:Listar configuração atual:Remover item:Resetar configuração:Fechar")) {
+	case 1:
+		goto L_AddPaged;
+	case 2:
+		goto L_EditQty;
+	case 3:
+		goto L_List;
+	case 4:
+		goto L_Remove;
+	case 5:
+		deletearray #BanqueteItems[0], getarraysize(#BanqueteItems);
+		deletearray #BanqueteQty[0], getarraysize(#BanqueteQty);
+		callfunc("F_Banquete_SaveSQL");
+		mes "^4B0082[Banquete Real]^000000";
+		mes "Configuração resetada com sucesso.";
+		close;
+	default:
+		close;
+	}
+
+L_AddPaged:
+	.@total = callfunc("F_Banquete_BuildInventoryPool");
+	if (.@total <= 0) {
+		mes "^4B0082[Banquete Real]^000000";
+		mes "Nenhum consumível elegível no inventário (ou já configurado).";
+		close;
+	}
+
+	.@page = 0;
+	while (true) {
+		.@start = .@page * 15;
+		if (.@start < 0) .@start = 0;
+		if (.@start >= .@total) .@start = 0;
+		.@end = .@start + 15;
+		if (.@end > .@total) .@end = .@total;
+
+		mes "^4B0082[Banquete Real]^000000";
+		mes "Consumíveis do inventário (página " + (.@page + 1) + ")";
+		mes "Seleção estilo loja (lista grande paginada).";
+
+		.@menu$ = "";
+		for (.@i = .@start; .@i < .@end; .@i++) {
+			.@id = @banquete_pool[.@i];
+			.@menu$ += getitemname(.@id) + " (x" + countitem(.@id) + "):";
+		}
+
+		.@has_next = (.@end < .@total);
+		.@has_prev = (.@page > 0);
+		if (.@has_next) .@menu$ += "Próxima página:";
+		if (.@has_prev) .@menu$ += "Página anterior:";
+		.@menu$ += "Concluir";
+
+		.@sel = select(.@menu$);
+		.@entries = .@end - .@start;
+		if (.@sel <= .@entries) {
+			.@id = @banquete_pool[.@start + .@sel - 1];
+			if (inarray(#BanqueteItems, .@id) == -1) {
+				setarray #BanqueteItems[getarraysize(#BanqueteItems)], .@id;
+				setarray #BanqueteQty[getarraysize(#BanqueteQty)], 1;
+				callfunc("F_Banquete_SaveSQL");
+			}
+			mes "^4B0082[Banquete Real]^000000";
+			mes getitemname(.@id) + " adicionado com quantidade 1.";
+			next;
+			.@total = callfunc("F_Banquete_BuildInventoryPool");
+			if (.@total <= 0) {
+				mes "Todos os consumíveis elegíveis já foram adicionados.";
+				close;
+			}
+			continue;
+		}
+
+		.@cursor = .@entries;
+		if (.@has_next) {
+			.@cursor++;
+			if (.@sel == .@cursor) { .@page++; continue; }
+		}
+		if (.@has_prev) {
+			.@cursor++;
+			if (.@sel == .@cursor) { .@page--; continue; }
+		}
+		break;
+	}
+	close;
+
+L_EditQty:
+	if (getarraysize(#BanqueteItems) == 0) {
+		mes "^4B0082[Banquete Real]^000000";
+		mes "Sua configuração está vazia.";
+		close;
+	}
+	.@menu$ = "";
+	for (.@i = 0; .@i < getarraysize(#BanqueteItems); .@i++) {
+		.@menu$ += getitemname(#BanqueteItems[.@i]) + " [" + #BanqueteQty[.@i] + "]:";
+	}
+	.@menu$ += "Cancelar";
+	.@s = select(.@menu$);
+	if (.@s == getarraysize(#BanqueteItems) + 1) close;
+
+	.@idx = .@s - 1;
+	.@id = #BanqueteItems[.@idx];
+	mes "^4B0082[Banquete Real]^000000";
+	mes "Item: " + getitemname(.@id);
+	mes "Quantidade atual por uso: " + #BanqueteQty[.@idx];
+	mes "Digite a nova quantidade (1~10000):";
+	input .@q;
+	if (.@q < 1 || .@q > 10000) {
+		mes "Quantidade inválida.";
+		close;
+	}
+	#BanqueteQty[.@idx] = .@q;
+	callfunc("F_Banquete_SaveSQL");
+	mes "Quantidade atualizada com sucesso.";
+	close;
+
+L_List:
+	mes "^4B0082[Banquete Real]^000000";
+	if (getarraysize(#BanqueteItems) == 0) {
+		mes "Você não possui itens configurados.";
+		close;
+	}
+	for (.@i = 0; .@i < getarraysize(#BanqueteItems); .@i++) {
+		.@id = #BanqueteItems[.@i];
+		.@have = countitem(.@id);
+		mes "• " + (.@i + 1) + ") " + getitemname(.@id) + " | Config: " + #BanqueteQty[.@i] + " | Inventário: " + .@have;
+	}
+	close;
+
+L_Remove:
+	if (getarraysize(#BanqueteItems) == 0) {
+		mes "^4B0082[Banquete Real]^000000";
+		mes "Não há itens para remover.";
+		close;
+	}
+	.@menu$ = "";
+	for (.@i = 0; .@i < getarraysize(#BanqueteItems); .@i++) {
+		.@menu$ += getitemname(#BanqueteItems[.@i]) + ":";
+	}
+	.@menu$ += "Cancelar";
+	.@s = select(.@menu$);
+	if (.@s == getarraysize(#BanqueteItems) + 1) close;
+	deletearray #BanqueteItems[.@s - 1], 1;
+	deletearray #BanqueteQty[.@s - 1], 1;
+	callfunc("F_Banquete_SaveSQL");
+	mes "^4B0082[Banquete Real]^000000";
+	mes "Item removido da configuração.";
+	close;
+}
+
+prontera,155,181,4	script	Banquete Real	4_F_KAFRA1,{
+	doevent "BanqueteReal::OnOpenConfig";
 	end;
 }

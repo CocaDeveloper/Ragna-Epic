@@ -1,28 +1,11 @@
- conf/battle/monster.conf     |  18 +++++
- src/map/atcommand.cpp        |  63 +++++++++++++++
- src/map/battle.cpp           |   9 +++
- src/map/battle.hpp           |   9 +++
- src/map/clif.cpp             | 100 ++++++++++++++++++++++++
- src/map/clif.hpp             |   5 ++
- src/map/mob.cpp              | 182 +++++++++++++++++++++++++++++++++++++++++++
- src/map/mob.hpp              |  17 ++++
- src/map/pc.cpp               |  49 ++++++++++++
- src/map/pc.hpp               |  12 +++
- src/map/quest.cpp            |  20 +++++
- src/map/script.cpp           | 132 +++++++++++++++++++++++++++++++
- src/map/script.hpp           |  77 ++++++++++++++++++
- src/map/script_constants.hpp |  78 +++++++++++++++++++
- 14 files changed, 771 insertions(+)
-
 diff --git a/conf/battle/monster.conf b/conf/battle/monster.conf
-index 7adb35844..9dca1b6cf 100644
+index 939da1fd..6fa53d6e 100644
 --- a/conf/battle/monster.conf
 +++ b/conf/battle/monster.conf
-@@ -302,3 +302,21 @@ slave_stick_with_master: no
- // Also used in delaying the spawning of guardians when a guild is not loaded.
+@@ -332,6 +332,25 @@ achievement_mob_share: no
  // Default (Official): 1000
  mob_respawn_time: 1000
-+
+ 
 +// [RomuloSM]: Mob MvP Effect
 +// Show MvP Effect in monsters?
 +mob_show_mvp_effect: yes
@@ -40,11 +23,16 @@ index 7adb35844..9dca1b6cf 100644
 +// [RomuloSM]: Mob Hat Effects
 +// Show hat effect of monster Quest?
 +mob_show_hateffect_quest: yes
++
++
+ // Defines the time (in ms) after which a monster unlocks its target when trapped.
+ // During this time monsters will still be in idle mode and use idle skills on random
+ // targets, but they continue chasing their original target when no longer trapped.
 diff --git a/src/map/atcommand.cpp b/src/map/atcommand.cpp
-index bfe08a186..53a0aab86 100644
+index 8165ef24..a652154d 100644
 --- a/src/map/atcommand.cpp
 +++ b/src/map/atcommand.cpp
-@@ -10959,6 +10959,63 @@ ACMD_FUNC(setcard)
+@@ -11414,6 +11414,63 @@ ACMD_FUNC(macrochecker){
  
  #include <custom/atcommand.inc>
  
@@ -108,7 +96,7 @@ index bfe08a186..53a0aab86 100644
  /**
   * Fills the reference of available commands in atcommand DBMap
   **/
-@@ -11285,6 +11342,12 @@ void atcommand_basecommands(void) {
+@@ -11741,6 +11798,12 @@ void atcommand_basecommands(void) {
  		ACMD_DEFR(enchantgradeui, ATCMD_NOCONSOLE|ATCMD_NOAUTOTRADE),
  		ACMD_DEFR(roulette, ATCMD_NOCONSOLE|ATCMD_NOAUTOTRADE),
  		ACMD_DEF(setcard),
@@ -118,16 +106,16 @@ index bfe08a186..53a0aab86 100644
 +		ACMD_DEF(showmobelement),
 +		ACMD_DEF(showmobrace),
 +		ACMD_DEF(showmobquest),
+ 		ACMD_DEF(macrochecker),
  	};
  	AtCommandInfo* atcommand;
- 	int i;
 diff --git a/src/map/battle.cpp b/src/map/battle.cpp
-index 35d15caae..0e79367c8 100644
+index 922cc872..f22d99e3 100644
 --- a/src/map/battle.cpp
 +++ b/src/map/battle.cpp
-@@ -10888,6 +10888,15 @@ static const struct _battle_data {
- 	{ "feature.instance_allow_reconnect",   &battle_config.instance_allow_reconnect,        0,      0,      1,              },
- #endif
+@@ -12363,6 +12363,15 @@ static const struct _battle_data {
+ 	{ "trade_count_stackable",              &battle_config.trade_count_stackable,           1,      0,      1,              },
+ 	{ "enable_bonus_map_drops",             &battle_config.enable_bonus_map_drops,          1,      0,      1,              },
  
 +	// [RomuloSM]: Mob MvP Effect
 +	{ "mob_show_mvp_effect",                &battle_config.mob_show_mvp_effect,             1,      0,      1,              },
@@ -142,12 +130,12 @@ index 35d15caae..0e79367c8 100644
  };
  
 diff --git a/src/map/battle.hpp b/src/map/battle.hpp
-index 600e62775..de418fe94 100644
+index 845cd5fa..5ef363ea 100644
 --- a/src/map/battle.hpp
 +++ b/src/map/battle.hpp
-@@ -732,6 +732,15 @@ struct Battle_Config
- 	int feature_banking_state_enforce;
- 	int instance_allow_reconnect;
+@@ -782,6 +782,15 @@ struct Battle_Config
+ 	int32 trade_count_stackable;
+ 	int32 enable_bonus_map_drops;
  
 +	// [RomuloSM]: Mob MvP effect
 +	int mob_show_mvp_effect;
@@ -162,28 +150,28 @@ index 600e62775..de418fe94 100644
  };
  
 diff --git a/src/map/clif.cpp b/src/map/clif.cpp
-index 103a6fa4b..fbbab1d53 100644
+index afbdd588..25750629 100644
 --- a/src/map/clif.cpp
 +++ b/src/map/clif.cpp
-@@ -1748,6 +1748,8 @@ int clif_spawn( struct block_list *bl, bool walking ){
- 				clif_specialeffect(&md->bl,EF_BABYBODY2,AREA);
+@@ -1718,6 +1718,8 @@ int32 clif_spawn( block_list *bl, bool walking ){
+ 				clif_specialeffect(md,EF_BABYBODY2,AREA);
  			if ( md->special_state.ai == AI_ABR || md->special_state.ai == AI_BIONIC )
  				clif_summon_init(*md);
 +			// [RomuloSM]: Mob Hat Effects
 +			map_foreachinallrange(mob_hateffect_sub, &md->bl, AREA_SIZE, BL_PC, md);
+ 			clif_name_area(md);
  		}
  		break;
- 	case BL_NPC:
-@@ -5137,6 +5139,8 @@ void clif_getareachar_unit( map_session_data* sd,struct block_list *bl ){
- 						clif_monster_hp_bar(md, sd->fd);
+@@ -25727,6 +25729,8 @@ static int32 clif_parse(int32 fd)
+ 				ShowWarning( "clif_parse: It looks like you have disabled PACKET_OBFUSCATION on server side, but enabled it on client side.\n" );
  			}
  #endif
 +			// [RomuloSM]: Mob Hat Effects
 +			clif_mob_hat_effects(md,&sd->bl, SELF);
  		}
- 		break;
- 	case BL_PET:
-@@ -25187,6 +25191,102 @@ void clif_parse_reset_skill( int fd, map_session_data* sd ){
+ #endif
+ 
+@@ -25832,6 +25836,102 @@ void packetdb_readdb(){
  #endif
  }
  
@@ -284,15 +272,15 @@ index 103a6fa4b..fbbab1d53 100644
 +}
 +
  /*==========================================
-  * Main client packet processing function
+  *
   *------------------------------------------*/
 diff --git a/src/map/clif.hpp b/src/map/clif.hpp
-index 9155b9242..62581b387 100644
+index 535bb22c..b0013222 100644
 --- a/src/map/clif.hpp
 +++ b/src/map/clif.hpp
-@@ -1254,4 +1254,9 @@ void clif_macro_reporter_status(map_session_data &sd, e_macro_report_status styp
+@@ -1509,4 +1509,9 @@ void clif_noask_sub( map_session_data& sd, map_session_data& tsd, int32 type );
  
- void clif_dynamicnpc_result( map_session_data& sd, e_dynamicnpc_result result );
+ void clif_specialpopup(map_session_data& sd, int32 id);
  
 +/// [RomuloSM]: Mob Hat Effects
 +void clif_mob_hat_effects( struct mob_data* md, struct block_list* bl, enum send_target target );
@@ -301,10 +289,10 @@ index 9155b9242..62581b387 100644
 +
  #endif /* CLIF_HPP */
 diff --git a/src/map/mob.cpp b/src/map/mob.cpp
-index 9920a3f43..22c5b7223 100644
+index 1b494059..d216c4f2 100644
 --- a/src/map/mob.cpp
 +++ b/src/map/mob.cpp
-@@ -382,6 +382,109 @@ e_mob_bosstype mob_data::get_bosstype(){
+@@ -394,6 +394,109 @@ e_mob_bosstype mob_data::get_bosstype(){
  	}
  }
  
@@ -414,9 +402,9 @@ index 9920a3f43..22c5b7223 100644
  /**
   * Create unique view data associated to a spawned monster.
   * @param md: Mob to adjust
-@@ -1194,6 +1297,12 @@ int mob_spawn (struct mob_data *md)
- 		clif_spawn(&md->bl);
- 	skill_unit_move(&md->bl,tick,1);
+@@ -1220,6 +1323,12 @@ int32 mob_spawn (mob_data *md)
+ 		clif_spawn(md);
+ 	skill_unit_move(md,tick,1);
  	mobskill_use(md, tick, MSC_SPAWN);
 +
 +	// [RomuloSM]: Mob MvP Effect
@@ -427,7 +415,7 @@ index 9920a3f43..22c5b7223 100644
  	return 0;
  }
  
-@@ -3134,6 +3243,12 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
+@@ -3604,6 +3713,12 @@ int32 mob_dead(mob_data *md, block_list *src, int32 type)
  		}
  	}
  
@@ -440,9 +428,9 @@ index 9920a3f43..22c5b7223 100644
  	if(md->deletetimer != INVALID_TIMER) {
  		delete_timer(md->deletetimer,mob_timer_delete);
  		md->deletetimer = INVALID_TIMER;
-@@ -3172,6 +3287,10 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
- 	if (battle_config.mvp_tomb_enabled && md->spawn->state.boss && map_getmapflag(md->bl.m, MF_NOTOMB) != 1)
- 		mvptomb_create(md, mvp_sd ? mvp_sd->status.name : NULL, time(NULL));
+@@ -3643,6 +3758,10 @@ int32 mob_dead(mob_data *md, block_list *src, int32 type)
+ 	if (battle_config.mvp_tomb_enabled && md->spawn->state.boss && map_getmapflag(md->m, MF_NOTOMB) != 1)
+ 		mvptomb_create(md, mvp_sd != nullptr ? mvp_sd->status.name : (first_sd != nullptr ? first_sd->status.name : nullptr), time(nullptr));
  
 +	// [RomuloSM]: Mob Hat Effects
 +	if( battle_config.mob_show_hateffect_quest )
@@ -451,7 +439,7 @@ index 9920a3f43..22c5b7223 100644
  	if( !rebirth )
  		mob_setdelayspawn(md); //Set respawning.
  	return 3; //Remove from map.
-@@ -4244,6 +4363,66 @@ int mob_clone_delete(struct mob_data *md){
+@@ -4799,6 +4918,66 @@ int32 mob_clone_delete(mob_data *md){
  	return 0;
  }
  
@@ -516,10 +504,10 @@ index 9920a3f43..22c5b7223 100644
 +}
 +
  //Adjusts the drop rate of item according to the criteria given. [Skotlex]
- static unsigned int mob_drop_adjust(int baserate, int rate_adjust, unsigned short rate_min, unsigned short rate_max)
+ static uint32 mob_drop_adjust(int32 baserate, int32 rate_adjust, uint16 rate_min, uint16 rate_max)
  {
-@@ -6737,6 +6916,9 @@ void do_init_mob(void){
- 	add_timer_func_list(mvptomb_delayspawn,"mvptomb_delayspawn");
+@@ -7356,6 +7535,9 @@ void do_init_mob(void){
+ 	add_timer_func_list(mob_norm_attacked, "mob_norm_attacked");
  	add_timer_interval(gettick()+MIN_MOBTHINKTIME,mob_ai_hard,0,0,MIN_MOBTHINKTIME);
  	add_timer_interval(gettick()+MIN_MOBTHINKTIME*10,mob_ai_lazy,0,0,MIN_MOBTHINKTIME*10);
 +
@@ -529,10 +517,27 @@ index 9920a3f43..22c5b7223 100644
  
  /*==========================================
 diff --git a/src/map/mob.hpp b/src/map/mob.hpp
-index 37162ba2f..e70f39328 100644
+index 63f30207..920ffe87 100644
 --- a/src/map/mob.hpp
 +++ b/src/map/mob.hpp
-@@ -384,6 +384,16 @@ struct mob_data {
+@@ -281,6 +281,16 @@ struct s_mob_db {
+ 	std::string title;
+ 
+ 	e_mob_bosstype get_bosstype();
++
++	// [RomuloSM]: Mob MvP Effect
++	int mvp_effect_tid;
++
++	// [RomuloSM]: Mob Hat Effects
++#if PACKETVER_MAIN_NUM >= 20150507 || PACKETVER_RE_NUM >= 20150429 || defined(PACKETVER_ZERO)
++	std::vector<int16> hatEffects;
++#endif
++	e_hat_effects get_hatelement(int hub);
++	e_hat_effects get_hatrace(int hub);
+ 	s_mob_db();
+ };
+ 
+@@ -399,6 +409,16 @@ struct mob_data : public block_list {
  	uint16 damagetaken;
  
  	e_mob_bosstype get_bosstype();
@@ -546,10 +551,10 @@ index 37162ba2f..e70f39328 100644
 +#endif
 +	e_hat_effects get_hatelement(int hub);
 +	e_hat_effects get_hatrace(int hub);
+ 	map_session_data* get_mvp_player();
  };
  
- class MobAvailDatabase : public YamlDatabase {
-@@ -560,4 +570,11 @@ void mob_setdropitem_option(struct item *itm, struct s_mob_drop *mobdrop);
+@@ -584,4 +604,11 @@ void mob_setdropitem_option( item& itm, const std::shared_ptr<s_mob_drop>& mobdr
  
  #define CHK_MOBSIZE(size) ((size) >= SZ_SMALL && (size) < SZ_MAX) /// Check valid Monster Size
  
@@ -562,10 +567,10 @@ index 37162ba2f..e70f39328 100644
 +
  #endif /* MOB_HPP */
 diff --git a/src/map/pc.cpp b/src/map/pc.cpp
-index 1dc3263c9..fee959a7f 100755
+index 90a6e9ba..4ea0324d 100644
 --- a/src/map/pc.cpp
 +++ b/src/map/pc.cpp
-@@ -2085,6 +2085,10 @@ bool pc_authok(map_session_data *sd, uint32 login_id2, time_t expiration_time, i
+@@ -2155,6 +2155,10 @@ bool pc_authok(map_session_data *sd, uint32 login_id2, time_t expiration_time, i
  	sd->regen.tick.hp = tick;
  	sd->regen.tick.sp = tick;
  
@@ -573,10 +578,10 @@ index 1dc3263c9..fee959a7f 100755
 +	sd->showMobHatEffectElement = false;
 +	sd->showMobHatEffectQuest = false;
 +
- 	for(int i = 0; i < MAX_SPIRITBALL; i++)
+ 	for(int32 i = 0; i < MAX_SPIRITBALL; i++)
  		sd->spirit_timer[i] = INVALID_TIMER;
  
-@@ -15814,6 +15818,51 @@ uint64 CaptchaDatabase::parseBodyNode(const ryml::NodeRef &node) {
+@@ -16027,6 +16031,51 @@ uint64 CaptchaDatabase::parseBodyNode(const ryml::NodeRef &node) {
  	return 1;
  }
  
@@ -629,14 +634,13 @@ index 1dc3263c9..fee959a7f 100755
   * pc Init/Terminate
   *------------------------------------------*/
 diff --git a/src/map/pc.hpp b/src/map/pc.hpp
-index 22e2c8a66..0d6987fef 100644
+index 83299c7f..89fc72a3 100644
 --- a/src/map/pc.hpp
 +++ b/src/map/pc.hpp
-@@ -941,6 +941,14 @@ public:
- 	s_macro_detect macro_detect;
+@@ -946,6 +946,14 @@ public:
  
  	std::vector<uint32> party_booking_requests;
-+
+ 
 +	// [RomuloSM]: Show Mob MvP Effect
 +	bool showMobMvPEffect;
 +
@@ -644,10 +648,11 @@ index 22e2c8a66..0d6987fef 100644
 +	bool showMobHatEffectElement;
 +	bool showMobHatEffectRace;
 +	bool showMobHatEffectQuest;
++
+ 	void update_look( _look look );
  };
  
- extern struct eri *pc_sc_display_ers; /// Player's SC display table
-@@ -1752,4 +1760,8 @@ void pc_macro_reporter_process(map_session_data &sd, int32 reporter_account_id =
+@@ -1771,4 +1779,8 @@ void pc_macro_reporter_process(map_session_data &sd, int32 reporter_account_id =
  void pc_reputation_generate();
  #endif
  
@@ -657,10 +662,10 @@ index 22e2c8a66..0d6987fef 100644
 +
  #endif /* PC_HPP */
 diff --git a/src/map/quest.cpp b/src/map/quest.cpp
-index 062471081..320268d03 100644
+index 94f673e9..4c023f96 100644
 --- a/src/map/quest.cpp
 +++ b/src/map/quest.cpp
-@@ -588,6 +588,10 @@ int quest_add(map_session_data *sd, int quest_id)
+@@ -623,6 +623,10 @@ int32 quest_add(map_session_data *sd, int32 quest_id)
  	if( save_settings&CHARSAVE_QUEST )
  		chrif_save(sd, CSAVE_NORMAL);
  
@@ -671,7 +676,7 @@ index 062471081..320268d03 100644
  	return 0;
  }
  
-@@ -638,6 +642,10 @@ int quest_change(map_session_data *sd, int qid1, int qid2)
+@@ -673,6 +677,10 @@ int32 quest_change(map_session_data *sd, int32 qid1, int32 qid2)
  	if( save_settings&CHARSAVE_QUEST )
  		chrif_save(sd, CSAVE_NORMAL);
  
@@ -682,7 +687,7 @@ index 062471081..320268d03 100644
  	return 0;
  }
  
-@@ -677,6 +685,10 @@ int quest_delete(map_session_data *sd, int quest_id)
+@@ -712,6 +720,10 @@ int32 quest_delete(map_session_data *sd, int32 quest_id)
  	if( save_settings&CHARSAVE_QUEST )
  		chrif_save(sd, CSAVE_NORMAL);
  
@@ -693,7 +698,7 @@ index 062471081..320268d03 100644
  	return 0;
  }
  
-@@ -800,6 +812,10 @@ void quest_update_objective(map_session_data *sd, struct mob_data* md)
+@@ -835,6 +847,10 @@ void quest_update_objective(map_session_data *sd, mob_data* md)
  		}
  	}
  	pc_show_questinfo(sd);
@@ -704,7 +709,7 @@ index 062471081..320268d03 100644
  }
  
  /**
-@@ -843,6 +859,10 @@ int quest_update_status(map_session_data *sd, int quest_id, e_quest_state status
+@@ -878,6 +894,10 @@ int32 quest_update_status(map_session_data *sd, int32 quest_id, e_quest_state st
  	if (save_settings&CHARSAVE_QUEST)
  		chrif_save(sd, CSAVE_NORMAL);
  
@@ -716,10 +721,10 @@ index 062471081..320268d03 100644
  }
  
 diff --git a/src/map/script.cpp b/src/map/script.cpp
-index bb817be7a..c8d822514 100644
+index 13e63f0f..d87210d4 100644
 --- a/src/map/script.cpp
 +++ b/src/map/script.cpp
-@@ -27171,6 +27171,132 @@ BUILDIN_FUNC(preg_match) {
+@@ -27955,6 +27955,132 @@ BUILDIN_FUNC(preg_match) {
  #endif
  }
  
@@ -852,9 +857,9 @@ index bb817be7a..c8d822514 100644
  /// script command definitions
  /// for an explanation on args, see add_buildin_func
  struct script_function buildin_func[] = {
-@@ -27883,6 +28009,12 @@ struct script_function buildin_func[] = {
- 	BUILDIN_DEF(autoloot,"??"),
- 	BUILDIN_DEF(opentips, "i?"),
+@@ -28685,6 +28811,12 @@ struct script_function buildin_func[] = {
+ 
+ 	BUILDIN_DEF( mesitemicon, "v??" ),
  
 +	// [RomuloSM]: Mob Hat Effects
 +	BUILDIN_DEF(mob_hateffect, "iii"),
@@ -864,118 +869,14 @@ index bb817be7a..c8d822514 100644
 +
  #include <custom/script_def.inc>
  
- 	{NULL,NULL,NULL},
-diff --git a/src/map/script.hpp b/src/map/script.hpp
-index 3c0c6b128..6b02dab10 100644
---- a/src/map/script.hpp
-+++ b/src/map/script.hpp
-@@ -2121,8 +2121,85 @@ enum e_hat_effects : int16{
- 	HAT_EF_AUTUMN_FULL_MOON,
- 	HAT_EF_NIFLHEIM_NIGHT_SKY,
- 	HAT_EF_C_ROS2023_CAPE_1,
-+	HAT_EF_BLACK_THUNDER_,
- 	HAT_EF_C_ROS2023_CAPE_2,
- 	HAT_EF_C_15TH_NOV_HELMET,
-+	HAT_EF_COSMIC_CONNECTION,
-+	HAT_EF_C_BABY_GLOOM,
-+	HAT_EF_WINTERNIGHTBELLS,
-+	HAT_EF_NIGHTSKYOFRUTIE,
-+	// [RomuloSM]: Elements
-+	HAT_EF_ELE_NEUTRAL_1,
-+	HAT_EF_ELE_WATER_1,
-+	HAT_EF_ELE_EARTH_1,
-+	HAT_EF_ELE_FIRE_1,
-+	HAT_EF_ELE_WIND_1,
-+	HAT_EF_ELE_POISON_1,
-+	HAT_EF_ELE_HOLY_1,
-+	HAT_EF_ELE_DARK_1,
-+	HAT_EF_ELE_GHOST_1,
-+	HAT_EF_ELE_UNDEAD_1,
-+	HAT_EF_ELE_NEUTRAL_2,
-+	HAT_EF_ELE_WATER_2,
-+	HAT_EF_ELE_EARTH_2,
-+	HAT_EF_ELE_FIRE_2,
-+	HAT_EF_ELE_WIND_2,
-+	HAT_EF_ELE_POISON_2,
-+	HAT_EF_ELE_HOLY_2,
-+	HAT_EF_ELE_DARK_2,
-+	HAT_EF_ELE_GHOST_2,
-+	HAT_EF_ELE_UNDEAD_2,
-+	HAT_EF_ELE_NEUTRAL_3,
-+	HAT_EF_ELE_WATER_3,
-+	HAT_EF_ELE_EARTH_3,
-+	HAT_EF_ELE_FIRE_3,
-+	HAT_EF_ELE_WIND_3,
-+	HAT_EF_ELE_POISON_3,
-+	HAT_EF_ELE_HOLY_3,
-+	HAT_EF_ELE_DARK_3,
-+	HAT_EF_ELE_GHOST_3,
-+	HAT_EF_ELE_UNDEAD_3,
-+	// [RomuloSM]: Race
-+	HAT_EF_RC_FORMLESS_1,
-+	HAT_EF_RC_UNDEAD_1,
-+	HAT_EF_RC_BRUTE_1,
-+	HAT_EF_RC_PLANT_1,
-+	HAT_EF_RC_INSECT_1,
-+	HAT_EF_RC_FISH_1,
-+	HAT_EF_RC_DEMON_1,
-+	HAT_EF_RC_DEMIHUMAN_1,
-+	HAT_EF_RC_ANGEL_1,
-+	HAT_EF_RC_DRAGON_1,
-+	HAT_EF_RC_PLAYER_HUMAN_1,
-+	HAT_EF_RC_PLAYER_DORAM_1,
-+	HAT_EF_RC_FORMLESS_2,
-+	HAT_EF_RC_UNDEAD_2,
-+	HAT_EF_RC_BRUTE_2,
-+	HAT_EF_RC_PLANT_2,
-+	HAT_EF_RC_INSECT_2,
-+	HAT_EF_RC_FISH_2,
-+	HAT_EF_RC_DEMON_2,
-+	HAT_EF_RC_DEMIHUMAN_2,
-+	HAT_EF_RC_ANGEL_2,
-+	HAT_EF_RC_DRAGON_2,
-+	HAT_EF_RC_PLAYER_HUMAN_2,
-+	HAT_EF_RC_PLAYER_DORAM_2,
-+	HAT_EF_RC_FORMLESS_3,
-+	HAT_EF_RC_UNDEAD_3,
-+	HAT_EF_RC_BRUTE_3,
-+	HAT_EF_RC_PLANT_3,
-+	HAT_EF_RC_INSECT_3,
-+	HAT_EF_RC_FISH_3,
-+	HAT_EF_RC_DEMON_3,
-+	HAT_EF_RC_DEMIHUMAN_3,
-+	HAT_EF_RC_ANGEL_3,
-+	HAT_EF_RC_DRAGON_3,
-+	HAT_EF_RC_PLAYER_HUMAN_3,
-+	HAT_EF_RC_PLAYER_DORAM_3,
-+	// [RomuloSM]: Quest
-+	HAT_EF_QUEST_OBJECTIVE_1,
-+	HAT_EF_QUEST_OBJECTIVE_2,
-+	HAT_EF_QUEST_OBJECTIVE_3,
- 	HAT_EF_MAX
- };
- 
+ 	{nullptr,nullptr,nullptr},
 diff --git a/src/map/script_constants.hpp b/src/map/script_constants.hpp
-index 8ffda6775..f18421b30 100644
+index 26466cd4..8b86802c 100644
 --- a/src/map/script_constants.hpp
 +++ b/src/map/script_constants.hpp
-@@ -9622,8 +9622,13 @@
- 	export_constant(HAT_EF_AUTUMN_FULL_MOON);
- 	export_constant(HAT_EF_NIFLHEIM_NIGHT_SKY);
- 	export_constant(HAT_EF_C_ROS2023_CAPE_1);
-+	export_constant(HAT_EF_BLACK_THUNDER_);
- 	export_constant(HAT_EF_C_ROS2023_CAPE_2);
- 	export_constant(HAT_EF_C_15TH_NOV_HELMET);
-+	export_constant(HAT_EF_COSMIC_CONNECTION);
-+	export_constant(HAT_EF_C_BABY_GLOOM);
-+	export_constant(HAT_EF_WINTERNIGHTBELLS);
-+	export_constant(HAT_EF_NIGHTSKYOFRUTIE);
- 
- 	/* pet catch */
- 	export_constant(PET_CATCH_UNIVERSAL);
-@@ -10402,6 +10407,79 @@
- 	export_constant(MER_DIETER);
- 	export_constant(MER_ELEANOR);
+@@ -10888,6 +10888,79 @@
+ 	export_constant(GUILDINFO_MASTERID);
+ 	export_constant(GUILDINFO_MASTERNAME);
  
 +	// [RomuloSM]: Elements
 +	export_constant(HAT_EF_ELE_NEUTRAL_1);

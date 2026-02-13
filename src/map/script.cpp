@@ -27955,6 +27955,132 @@ BUILDIN_FUNC(preg_match) {
 #endif
 }
 
+// [RomuloSM]: Mob Hat Effects
+BUILDIN_FUNC(mob_hateffect){
+#if PACKETVER_MAIN_NUM >= 20150507 || PACKETVER_RE_NUM >= 20150429 || defined(PACKETVER_ZERO)
+	struct block_list* bl;
+	int16 effectID;
+	bool enable;
+	TBL_MOB* md;
+
+	if( !script_rid2bl(2,bl) ) {
+		script_pushint(st, 0);
+		return SCRIPT_CMD_FAILURE;
+	}
+
+	if( (md = map_id2md(bl->id)) == NULL ) {
+		ShowError( "buildin_mob_hateffect: invalid unit id %d\n", bl->id );
+		return SCRIPT_CMD_FAILURE;
+	}
+
+	effectID = script_getnum(st,3);
+	enable = script_getnum(st,4) ? true : false;
+
+	if( effectID <= HAT_EF_MIN || effectID >= HAT_EF_MAX ){
+		ShowError( "buildin_mob_hateffect: unsupported hat effect id %d\n", effectID );
+		return SCRIPT_CMD_FAILURE;
+	}
+
+	auto it = util::vector_get( md->hatEffects, effectID );
+
+	if( enable ){
+		if( it != md->hatEffects.end() ){
+			return SCRIPT_CMD_SUCCESS;
+		}
+
+		md->hatEffects.push_back( effectID );
+	}else{
+		if( it == md->hatEffects.end() ){
+			return SCRIPT_CMD_SUCCESS;
+		}
+
+		util::vector_erase_if_exists( md->hatEffects, effectID );
+	}
+
+	clif_mob_hat_effects(md, bl, AREA);
+
+#endif
+	return SCRIPT_CMD_SUCCESS;
+}
+
+BUILDIN_FUNC(mob_showelement) {
+#if PACKETVER_MAIN_NUM >= 20150507 || PACKETVER_RE_NUM >= 20150429 || defined(PACKETVER_ZERO)
+	map_session_data* sd;
+	int flag = script_getnum(st,2);
+
+	if( script_hasdata(st, 3) ){
+		if (script_isint(st, 3))
+			script_charid2sd(3, sd);
+		else
+			script_nick2sd(3, sd);
+	}else{
+		script_rid2sd(sd);
+	}
+
+	if( !sd ) {
+		script_pushint(st, 0);
+		return SCRIPT_CMD_FAILURE;
+	}
+
+	sd->showMobHatEffectElement = flag ? false : true;
+	map_foreachinallrange(pc_mob_hateffect_sub, &sd->bl, AREA_SIZE, BL_MOB, sd);
+	script_pushint(st,1);
+#endif
+	return SCRIPT_CMD_SUCCESS;
+}
+
+BUILDIN_FUNC(mob_showrace) {
+#if PACKETVER_MAIN_NUM >= 20150507 || PACKETVER_RE_NUM >= 20150429 || defined(PACKETVER_ZERO)
+	map_session_data* sd;
+	int flag = script_getnum(st,2);
+
+	if( script_hasdata(st, 3) ){
+		if (script_isint(st, 3))
+			script_charid2sd(3, sd);
+		else
+			script_nick2sd(3, sd);
+	}else{
+		script_rid2sd(sd);
+	}
+
+	if( !sd ) {
+		script_pushint(st, 0);
+		return SCRIPT_CMD_FAILURE;
+	}
+
+	sd->showMobHatEffectRace = flag ? false : true;
+	map_foreachinallrange(pc_mob_hateffect_sub, &sd->bl, AREA_SIZE, BL_MOB, sd);
+	script_pushint(st,1);
+#endif
+	return SCRIPT_CMD_SUCCESS;
+}
+
+BUILDIN_FUNC(mob_showquest) {
+#if PACKETVER_MAIN_NUM >= 20150507 || PACKETVER_RE_NUM >= 20150429 || defined(PACKETVER_ZERO)
+	map_session_data* sd;
+	int flag = script_getnum(st,2);
+
+	if( script_hasdata(st, 3) ){
+		if (script_isint(st, 3))
+			script_charid2sd(3, sd);
+		else
+			script_nick2sd(3, sd);
+	}else{
+		script_rid2sd(sd);
+	}
+
+	if( !sd ) {
+		script_pushint(st, 0);
+		return SCRIPT_CMD_FAILURE;
+	}
+
+	sd->showMobHatEffectQuest = flag ? false : true;
+	map_foreachinallrange(pc_mob_hateffect_sub, &sd->bl, AREA_SIZE, BL_MOB, sd);
+	script_pushint(st,1);
+#endif
+	return SCRIPT_CMD_SUCCESS;
+}
+
 /// script command definitions
 /// for an explanation on args, see add_buildin_func
 struct script_function buildin_func[] = {
@@ -28684,6 +28810,12 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF2(permission_add, "permission_remove", "i?"),
 
 	BUILDIN_DEF( mesitemicon, "v??" ),
+
+	// [RomuloSM]: Mob Hat Effects
+	BUILDIN_DEF(mob_hateffect, "iii"),
+	BUILDIN_DEF(mob_showelement, "i?"),
+	BUILDIN_DEF(mob_showrace, "i?"),
+	BUILDIN_DEF(mob_showquest, "i?"),
 
 #include <custom/script_def.inc>
 

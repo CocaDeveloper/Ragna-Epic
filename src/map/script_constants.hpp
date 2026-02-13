@@ -10888,6 +10888,79 @@
 	export_constant(GUILDINFO_MASTERID);
 	export_constant(GUILDINFO_MASTERNAME);
 
+	// [RomuloSM]: Elements
+	export_constant(HAT_EF_ELE_NEUTRAL_1);
+	export_constant(HAT_EF_ELE_WATER_1);
+	export_constant(HAT_EF_ELE_EARTH_1);
+	export_constant(HAT_EF_ELE_FIRE_1);
+	export_constant(HAT_EF_ELE_WIND_1);
+	export_constant(HAT_EF_ELE_POISON_1);
+	export_constant(HAT_EF_ELE_HOLY_1);
+	export_constant(HAT_EF_ELE_DARK_1);
+	export_constant(HAT_EF_ELE_GHOST_1);
+	export_constant(HAT_EF_ELE_UNDEAD_1);
+	export_constant(HAT_EF_ELE_NEUTRAL_2);
+	export_constant(HAT_EF_ELE_WATER_2);
+	export_constant(HAT_EF_ELE_EARTH_2);
+	export_constant(HAT_EF_ELE_FIRE_2);
+	export_constant(HAT_EF_ELE_WIND_2);
+	export_constant(HAT_EF_ELE_POISON_2);
+	export_constant(HAT_EF_ELE_HOLY_2);
+	export_constant(HAT_EF_ELE_DARK_2);
+	export_constant(HAT_EF_ELE_GHOST_2);
+	export_constant(HAT_EF_ELE_UNDEAD_2);
+	export_constant(HAT_EF_ELE_NEUTRAL_3);
+	export_constant(HAT_EF_ELE_WATER_3);
+	export_constant(HAT_EF_ELE_EARTH_3);
+	export_constant(HAT_EF_ELE_FIRE_3);
+	export_constant(HAT_EF_ELE_WIND_3);
+	export_constant(HAT_EF_ELE_POISON_3);
+	export_constant(HAT_EF_ELE_HOLY_3);
+	export_constant(HAT_EF_ELE_DARK_3);
+	export_constant(HAT_EF_ELE_GHOST_3);
+	export_constant(HAT_EF_ELE_UNDEAD_3);
+	// [RomuloSM]: Race
+	export_constant(HAT_EF_RC_FORMLESS_1),
+	export_constant(HAT_EF_RC_UNDEAD_1),
+	export_constant(HAT_EF_RC_BRUTE_1),
+	export_constant(HAT_EF_RC_PLANT_1),
+	export_constant(HAT_EF_RC_INSECT_1),
+	export_constant(HAT_EF_RC_FISH_1),
+	export_constant(HAT_EF_RC_DEMON_1),
+	export_constant(HAT_EF_RC_DEMIHUMAN_1),
+	export_constant(HAT_EF_RC_ANGEL_1),
+	export_constant(HAT_EF_RC_DRAGON_1),
+	export_constant(HAT_EF_RC_PLAYER_HUMAN_1),
+	export_constant(HAT_EF_RC_PLAYER_DORAM_1),
+	export_constant(HAT_EF_RC_FORMLESS_2),
+	export_constant(HAT_EF_RC_UNDEAD_2),
+	export_constant(HAT_EF_RC_BRUTE_2),
+	export_constant(HAT_EF_RC_PLANT_2),
+	export_constant(HAT_EF_RC_INSECT_2),
+	export_constant(HAT_EF_RC_FISH_2),
+	export_constant(HAT_EF_RC_DEMON_2),
+	export_constant(HAT_EF_RC_DEMIHUMAN_2),
+	export_constant(HAT_EF_RC_ANGEL_2),
+	export_constant(HAT_EF_RC_DRAGON_2),
+	export_constant(HAT_EF_RC_PLAYER_HUMAN_2),
+	export_constant(HAT_EF_RC_PLAYER_DORAM_2),
+	export_constant(HAT_EF_RC_FORMLESS_3),
+	export_constant(HAT_EF_RC_UNDEAD_3),
+	export_constant(HAT_EF_RC_BRUTE_3),
+	export_constant(HAT_EF_RC_PLANT_3),
+	export_constant(HAT_EF_RC_INSECT_3),
+	export_constant(HAT_EF_RC_FISH_3),
+	export_constant(HAT_EF_RC_DEMON_3),
+	export_constant(HAT_EF_RC_DEMIHUMAN_3),
+	export_constant(HAT_EF_RC_ANGEL_3),
+	export_constant(HAT_EF_RC_DRAGON_3),
+	export_constant(HAT_EF_RC_PLAYER_HUMAN_3),
+	export_constant(HAT_EF_RC_PLAYER_DORAM_3),
+	// [RomuloSM]: Quest
+	export_constant(HAT_EF_QUEST_OBJECTIVE_1);
+	export_constant(HAT_EF_QUEST_OBJECTIVE_2);
+	export_constant(HAT_EF_QUEST_OBJECTIVE_3);
+
 	#undef export_constant
 	#undef export_constant2
 	#undef export_parameter

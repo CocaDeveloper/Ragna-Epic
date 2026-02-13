@@ -12363,6 +12363,15 @@ static const struct _battle_data {
 	{ "trade_count_stackable",              &battle_config.trade_count_stackable,           1,      0,      1,              },
 	{ "enable_bonus_map_drops",             &battle_config.enable_bonus_map_drops,          1,      0,      1,              },
 
+	// [RomuloSM]: Mob MvP Effect
+	{ "mob_show_mvp_effect",                &battle_config.mob_show_mvp_effect,             1,      0,      1,              },
+	{ "mob_show_mvp_effect_timer",          &battle_config.mob_show_mvp_effect_timer,    1000,   2000,      INT_MAX,        },
+
+	// [RomuloSM]: Mob Hat Effect Element
+	{ "mob_show_hateffect_element",         &battle_config.mob_show_hateffect_element,      1,      0,      1,              },
+	{ "mob_show_hateffect_race",            &battle_config.mob_show_hateffect_race,         1,      0,      1,              },
+	{ "mob_show_hateffect_quest",           &battle_config.mob_show_hateffect_quest,        1,      0,      1,              },
+
 #include <custom/battle_config_init.inc>
 };
 

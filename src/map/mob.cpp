@@ -394,6 +394,109 @@ e_mob_bosstype mob_data::get_bosstype(){
 	}
 }
 
+// [RomuloSM]: Mob Hat Effects
+e_hat_effects mob_data::get_hatelement(int hub) {
+	if( this->db != nullptr ){
+		std::string name;
+		switch( this->db->status.def_ele ) {
+			case ELE_NEUTRAL:
+				name = "NEUTRAL";
+				break;
+			case ELE_WATER:
+				name = "WATER";
+				break;
+			case ELE_EARTH:
+				name = "EARTH";
+				break;
+			case ELE_FIRE:
+				name = "FIRE";
+				break;
+			case ELE_WIND:
+				name = "WIND";
+				break;
+			case ELE_POISON:
+				name = "POISON";
+				break;
+			case ELE_HOLY:
+				name = "HOLY";
+				break;
+			case ELE_DARK:
+				name = "DARK";
+				break;
+			case ELE_GHOST:
+				name = "GHOST";
+				break;
+			case ELE_UNDEAD:
+				name = "UNDEAD";
+				break;
+			default:
+				return HAT_EF_MIN;
+		}
+
+		int64 id;
+		if( !script_get_constant(("HAT_EF_ELE_" + name + "_" + std::to_string(hub)).c_str(), &id) )
+			return HAT_EF_MIN;
+
+		return static_cast<e_hat_effects>(id);
+	}else{
+		return HAT_EF_MIN;
+	}
+}
+
+e_hat_effects mob_data::get_hatrace(int hub) {
+	if( this->db != nullptr ){
+		std::string name;
+		switch( this->db->status.race ) {
+			case RC_FORMLESS:
+				name = "FORMLESS";
+				break;
+			case RC_UNDEAD:
+				name = "UNDEAD";
+				break;
+			case RC_BRUTE:
+				name = "BRUTE";
+				break;
+			case RC_PLANT:
+				name = "PLANT";
+				break;
+			case RC_INSECT:
+				name = "INSECT";
+				break;
+			case RC_FISH:
+				name = "FISH";
+				break;
+			case RC_DEMON:
+				name = "DEMON";
+				break;
+			case RC_DEMIHUMAN:
+				name = "DEMIHUMAN";
+				break;
+			case RC_ANGEL:
+				name = "ANGEL";
+				break;
+			case RC_DRAGON:
+				name = "DRAGON";
+				break;
+			case RC_PLAYER_HUMAN:
+				name = "PLAYER_HUMAN";
+				break;
+			case RC_PLAYER_DORAM:
+				name = "PLAYER_DORAM";
+				break;
+			default:
+				return HAT_EF_MIN;
+		}
+
+		int64 id;
+		if( !script_get_constant(("HAT_EF_RC_" + name + "_" + std::to_string(hub)).c_str(), &id) )
+			return HAT_EF_MIN;
+
+		return static_cast<e_hat_effects>(id);
+	}else{
+		return HAT_EF_MIN;
+	}
+}
+
 /**
  * Create unique view data associated to a spawned monster.
  * @param md: Mob to adjust
@@ -1220,6 +1323,12 @@ int32 mob_spawn (mob_data *md)
 		clif_spawn(md);
 	skill_unit_move(md,tick,1);
 	mobskill_use(md, tick, MSC_SPAWN);
+
+	// [RomuloSM]: Mob MvP Effect
+	md->mvp_effect_tid = INVALID_TIMER;
+	if( md->get_bosstype() == BOSSTYPE_MVP )
+		md->mvp_effect_tid = add_timer(gettick() + 1, mob_mvp_effect_timer, md->bl.id, 0);
+
 	return 0;
 }
 
@@ -3604,6 +3713,12 @@ int32 mob_dead(mob_data *md, block_list *src, int32 type)
 		}
 	}
 
+	// [RomuloSM]: Mob Mvp Effect
+	if(md->mvp_effect_tid != INVALID_TIMER) {
+		delete_timer(md->mvp_effect_tid,mob_mvp_effect_timer);
+		md->mvp_effect_tid = INVALID_TIMER;
+	}
+
 	if(md->deletetimer != INVALID_TIMER) {
 		delete_timer(md->deletetimer,mob_timer_delete);
 		md->deletetimer = INVALID_TIMER;
@@ -3642,6 +3757,10 @@ int32 mob_dead(mob_data *md, block_list *src, int32 type)
 	// MvP tomb [GreenBox]
 	if (battle_config.mvp_tomb_enabled && md->spawn->state.boss && map_getmapflag(md->m, MF_NOTOMB) != 1)
 		mvptomb_create(md, mvp_sd != nullptr ? mvp_sd->status.name : (first_sd != nullptr ? first_sd->status.name : nullptr), time(nullptr));
+
+	// [RomuloSM]: Mob Hat Effects
+	if( battle_config.mob_show_hateffect_quest )
+		map_foreachinallrange(mob_hateffect_sub, &md->bl, AREA_SIZE, BL_PC, md);
 
 	if( !rebirth )
 		mob_setdelayspawn(md); //Set respawning.
@@ -4797,6 +4916,66 @@ int32 mob_clone_delete(mob_data *md){
 		return 1;
 	}
 	return 0;
+}
+
+// [RomuloSM]: Mob MvP Effect
+int mob_mvp_sub(struct block_list *bl, va_list ap) {
+	struct mob_data *md;
+	map_session_data *sd;
+
+	sd = (map_session_data *)bl;
+	md = va_arg(ap,mob_data *);
+	
+	nullpo_ret(sd);
+	nullpo_ret(md);
+
+	if( sd && md ) {
+		if( battle_config.mob_show_mvp_effect && !sd->showMobMvPEffect )
+			clif_specialeffect_single(&md->bl,EF_MVP,sd->fd);
+	}
+	return 1;
+}
+
+TIMER_FUNC(mob_mvp_effect_timer) {
+	struct block_list* bl = map_id2bl(id);
+	struct mob_data* md = BL_CAST(BL_MOB, bl);
+
+	if( !md )
+		return 0;
+
+	if( md->mvp_effect_tid != tid ) {
+		ShowError("mob_mvp_effect_timer: Timer mismatch: %d != %d\n", tid, md->mvp_effect_tid);
+		return 0;
+	}
+
+	if( md->mvp_effect_tid != INVALID_TIMER ) {
+		delete_timer(md->mvp_effect_tid, mob_mvp_effect_timer);
+		md->mvp_effect_tid = INVALID_TIMER;
+	}
+
+	if( battle_config.mob_show_mvp_effect )
+		map_foreachinallrange(mob_mvp_sub, &md->bl, AREA_SIZE, BL_PC, md);
+	md->mvp_effect_tid = add_timer(gettick() + battle_config.mob_show_mvp_effect_timer, mob_mvp_effect_timer, md->bl.id, 0);
+	return 1;
+}
+
+// [RomuloSM]: Mob Hat Effects
+int mob_hateffect_sub(struct block_list *bl, va_list ap)
+{
+	struct mob_data *md;
+	map_session_data *sd;
+
+	sd = (map_session_data *)bl;
+	md = va_arg(ap,mob_data *);
+	
+	nullpo_ret(sd);
+	nullpo_ret(md);
+
+	if( sd && md ) {
+		clif_mob_hat_effect_hub_remove(md,sd);
+		clif_mob_hat_effects(md, &sd->bl, SELF);
+	}
+	return 1;
 }
 
 //Adjusts the drop rate of item according to the criteria given. [Skotlex]
@@ -7356,6 +7535,8 @@ void do_init_mob(void){
 	add_timer_func_list(mob_norm_attacked, "mob_norm_attacked");
 	add_timer_interval(gettick()+MIN_MOBTHINKTIME,mob_ai_hard,0,0,MIN_MOBTHINKTIME);
 	add_timer_interval(gettick()+MIN_MOBTHINKTIME*10,mob_ai_lazy,0,0,MIN_MOBTHINKTIME*10);
+	// [RomuloSM]: Mob MvP Effect
+	add_timer_func_list(mob_mvp_effect_timer,"mob_mvp_effect_timer");
 }
 
 /*==========================================

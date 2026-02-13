@@ -281,6 +281,17 @@ struct s_mob_db {
 	std::string title;
 
 	e_mob_bosstype get_bosstype();
+
+	// [RomuloSM]: Mob MvP Effect
+	int mvp_effect_tid;
+
+	// [RomuloSM]: Mob Hat Effects
+#if PACKETVER_MAIN_NUM >= 20150507 || PACKETVER_RE_NUM >= 20150429 || defined(PACKETVER_ZERO)
+	std::vector<int16> hatEffects;
+#endif
+	e_hat_effects get_hatelement(int hub);
+	e_hat_effects get_hatrace(int hub);
+
 	s_mob_db();
 };
 
@@ -399,6 +410,17 @@ struct mob_data : public block_list {
 	uint16 damagetaken;
 
 	e_mob_bosstype get_bosstype();
+
+	// [RomuloSM]: Mob MvP Effect
+	int mvp_effect_tid;
+
+	// [RomuloSM]: Mob Hat Effects
+#if PACKETVER_MAIN_NUM >= 20150507 || PACKETVER_RE_NUM >= 20150429 || defined(PACKETVER_ZERO)
+	std::vector<int16> hatEffects;
+#endif
+	e_hat_effects get_hatelement(int hub);
+	e_hat_effects get_hatrace(int hub);
+
 	map_session_data* get_mvp_player();
 };
 
@@ -583,5 +605,12 @@ void mvptomb_destroy(mob_data *md);
 void mob_setdropitem_option( item& itm, const std::shared_ptr<s_mob_drop>& mobdrop );
 
 #define CHK_MOBSIZE(size) ((size) >= SZ_SMALL && (size) < SZ_MAX) /// Check valid Monster Size
+
+// [RomuloSM]: Mob MvP Effect
+int mob_mvp_sub(struct block_list *bl, va_list ap);
+TIMER_FUNC(mob_mvp_effect_timer);
+
+// [RomuloSM]: Mob Hat Effects
+int mob_hateffect_sub(struct block_list *bl, va_list ap);
 
 #endif /* MOB_HPP */

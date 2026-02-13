@@ -1718,6 +1718,8 @@ int32 clif_spawn( block_list *bl, bool walking ){
 				clif_specialeffect(md,EF_BABYBODY2,AREA);
 			if ( md->special_state.ai == AI_ABR || md->special_state.ai == AI_BIONIC )
 				clif_summon_init(*md);
+			// [RomuloSM]: Mob Hat Effects
+			map_foreachinallrange(mob_hateffect_sub, &md->bl, AREA_SIZE, BL_PC, md);
 			clif_name_area(md);
 		}
 		break;
@@ -25727,6 +25729,10 @@ static int32 clif_parse(int32 fd)
 				ShowWarning( "clif_parse: It looks like you have disabled PACKET_OBFUSCATION on server side, but enabled it on client side.\n" );
 			}
 #endif
+
+			// [RomuloSM]: Mob Hat Effects
+			clif_mob_hat_effects(md,&sd->bl, SELF);
+
 		}
 #endif
 
@@ -25831,6 +25837,103 @@ void packetdb_readdb(){
 	ShowStatus("Packet Obfuscation: " CL_RED "Disabled" CL_RESET ".\n");
 #endif
 }
+
+/// [RomuloSM]: Mob Hat Effects
+/// Send hat effects to the client (ZC_HAT_EFFECT).
+/// 0A3B <Length>.W <AID>.L <Status>.B { <HatEffectId>.W }
+void clif_mob_hat_effects( struct mob_data* md, struct block_list* bl, enum send_target target ){
+#if PACKETVER_MAIN_NUM >= 20150507 || PACKETVER_RE_NUM >= 20150429 || defined(PACKETVER_ZERO)
+	nullpo_retv( md );
+	nullpo_retv( bl );
+
+	if( bl->type != BL_PC || map_getmapdata(bl->m)->getMapFlag(MF_NOCOSTUME) ){
+		return;
+	}
+
+	struct PACKET_ZC_EQUIPMENT_EFFECT* p = (struct PACKET_ZC_EQUIPMENT_EFFECT*)packet_buffer;
+	size_t i = 0, pSize = md->hatEffects.size();
+
+	if( !md->hatEffects.empty() ) {
+		for( i = 0; i < md->hatEffects.size(); i++ ){
+			p->effects[i] = md->hatEffects[i];
+		}
+	}
+
+	int hub = 1;
+	int64 id;
+	map_session_data* sd = BL_CAST( BL_PC, bl );
+	if( battle_config.mob_show_hateffect_element && sd && (id = md->get_hatelement(hub)) != HAT_EF_MIN && !sd->showMobHatEffectElement ) {
+		p->effects[i] = static_cast<e_hat_effects>(id);
+		i++;
+		hub++;
+	}
+
+	if( battle_config.mob_show_hateffect_race && sd && (id = md->get_hatrace(hub)) != HAT_EF_MIN && !sd->showMobHatEffectRace ) {
+		p->effects[i] = static_cast<e_hat_effects>(id);
+		i++;
+		hub++;
+	}
+
+	if( battle_config.mob_show_hateffect_quest && sd && pc_mob_quest_check(sd,md->mob_id) && !sd->showMobHatEffectQuest ) {
+		std::string constant = "HAT_EF_QUEST_OBJECTIVE_" + std::to_string(hub);
+		if( script_get_constant(constant.c_str(), &id) ) {
+			p->effects[i] = static_cast<e_hat_effects>(id);
+			i++;
+			hub++;
+		}
+	}
+
+	if( !i ) {
+		return;
+	}
+
+	p->packetType = HEADER_ZC_EQUIPMENT_EFFECT;
+	p->packetLength = (int16)(sizeof(struct PACKET_ZC_EQUIPMENT_EFFECT) + sizeof(int16) * i);
+	p->aid = md->bl.id;
+	p->status = 1;
+
+	clif_send( p, p->packetLength, bl, target );
+#endif
+}
+
+void clif_mob_hat_effect_single( struct mob_data *md, map_session_data* sd, uint16 effectId, bool enable ){
+#if PACKETVER_MAIN_NUM >= 20150507 || PACKETVER_RE_NUM >= 20150429 || defined(PACKETVER_ZERO)
+	nullpo_retv( md );
+	nullpo_retv( sd );
+
+	struct PACKET_ZC_EQUIPMENT_EFFECT* p = (struct PACKET_ZC_EQUIPMENT_EFFECT*)packet_buffer;
+
+	p->packetType = HEADER_ZC_EQUIPMENT_EFFECT;
+	p->packetLength = (int16)( sizeof( struct PACKET_ZC_EQUIPMENT_EFFECT ) + sizeof( int16 ) );
+	p->aid = md->bl.id;
+	p->status = enable;
+	p->effects[0] = effectId;
+
+	clif_send( p, p->packetLength, &sd->bl, SELF );
+#endif
+}
+
+void clif_mob_hat_effect_hub_remove( struct mob_data *md, map_session_data* sd ){
+#if PACKETVER_MAIN_NUM >= 20150507 || PACKETVER_RE_NUM >= 20150429 || defined(PACKETVER_ZERO)
+	nullpo_retv( md );
+	nullpo_retv( sd );
+
+	int i;
+
+	// Elements
+	for (i = HAT_EF_ELE_NEUTRAL_1; i <= HAT_EF_ELE_UNDEAD_3; i++)
+		clif_mob_hat_effect_single(md, sd, i, false);
+
+	// Race
+	for (i = HAT_EF_RC_FORMLESS_1; i <= HAT_EF_RC_PLAYER_DORAM_3; i++)
+		clif_mob_hat_effect_single(md, sd, i, false);
+
+	// Quests
+	for (i = HAT_EF_QUEST_OBJECTIVE_1; i <= HAT_EF_QUEST_OBJECTIVE_3; i++)
+		clif_mob_hat_effect_single(md, sd, i, false);
+#endif
+}
+
 
 /*==========================================
  *

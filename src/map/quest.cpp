@@ -623,6 +623,10 @@ int32 quest_add(map_session_data *sd, int32 quest_id)
 	if( save_settings&CHARSAVE_QUEST )
 		chrif_save(sd, CSAVE_NORMAL);
 
+	// [RomuloSM]: Mob Hat Effect Element
+	if( battle_config.mob_show_hateffect_quest )
+		map_foreachinallrange(pc_mob_hateffect_sub, &sd->bl, AREA_SIZE, BL_MOB, sd);
+
 	return 0;
 }
 
@@ -673,6 +677,10 @@ int32 quest_change(map_session_data *sd, int32 qid1, int32 qid2)
 	if( save_settings&CHARSAVE_QUEST )
 		chrif_save(sd, CSAVE_NORMAL);
 
+	// [RomuloSM]: Mob Hat Effect Element
+	if( battle_config.mob_show_hateffect_quest )
+		map_foreachinallrange(pc_mob_hateffect_sub, &sd->bl, AREA_SIZE, BL_MOB, sd);
+
 	return 0;
 }
 
@@ -711,6 +719,10 @@ int32 quest_delete(map_session_data *sd, int32 quest_id)
 
 	if( save_settings&CHARSAVE_QUEST )
 		chrif_save(sd, CSAVE_NORMAL);
+
+	// [RomuloSM]: Mob Hat Effect Element
+	if( battle_config.mob_show_hateffect_quest )
+		map_foreachinallrange(pc_mob_hateffect_sub, &sd->bl, AREA_SIZE, BL_MOB, sd);
 
 	return 0;
 }
@@ -835,6 +847,11 @@ void quest_update_objective(map_session_data *sd, mob_data* md)
 		}
 	}
 	pc_show_questinfo(sd);
+
+	// [RomuloSM]: Mob Hat Effect Element
+	if( battle_config.mob_show_hateffect_quest )
+		map_foreachinallrange(pc_mob_hateffect_sub, &sd->bl, AREA_SIZE, BL_MOB, sd);
+
 }
 
 /**
@@ -877,6 +894,10 @@ int32 quest_update_status(map_session_data *sd, int32 quest_id, e_quest_state st
 
 	if (save_settings&CHARSAVE_QUEST)
 		chrif_save(sd, CSAVE_NORMAL);
+
+	// [RomuloSM]: Mob Hat Effect Element
+	if( battle_config.mob_show_hateffect_quest )
+		map_foreachinallrange(pc_mob_hateffect_sub, &sd->bl, AREA_SIZE, BL_MOB, sd);
 
 	return 0;
 }

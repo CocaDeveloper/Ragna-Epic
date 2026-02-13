@@ -782,6 +782,15 @@ struct Battle_Config
 	int32 trade_count_stackable;
 	int32 enable_bonus_map_drops;
 
+	// [RomuloSM]: Mob MvP effect
+	int mob_show_mvp_effect;
+	int mob_show_mvp_effect_timer;
+
+	// [RomuloSM]: Mob Hat Effect Element
+	int mob_show_hateffect_element;
+	int mob_show_hateffect_race;
+	int mob_show_hateffect_quest;
+
 #include <custom/battle_config_struct.inc>
 };
 

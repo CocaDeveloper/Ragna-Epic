@@ -946,6 +946,14 @@ public:
 
 	std::vector<uint32> party_booking_requests;
 
+	// [RomuloSM]: Show Mob MvP Effect
+	bool showMobMvPEffect;
+
+	// [RomuloSM]: Show Mobs Hat Effects
+	bool showMobHatEffectElement;
+	bool showMobHatEffectRace;
+	bool showMobHatEffectQuest;
+
 	void update_look( _look look );
 };
 
@@ -1770,5 +1778,9 @@ void pc_macro_reporter_process(map_session_data &sd, int32 reporter_account_id =
 #ifdef MAP_GENERATOR
 void pc_reputation_generate();
 #endif
+
+// [RomuloSM]: Mob Hat Effects
+int pc_mob_hateffect_sub(struct block_list *bl, va_list ap);
+bool pc_mob_quest_check(map_session_data *sd, int mob_id);
 
 #endif /* PC_HPP */

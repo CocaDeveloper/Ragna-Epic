@@ -1509,4 +1509,9 @@ void clif_noask_sub( map_session_data& sd, map_session_data& tsd, int32 type );
 
 void clif_specialpopup(map_session_data& sd, int32 id);
 
+/// [RomuloSM]: Mob Hat Effects
+void clif_mob_hat_effects( struct mob_data* md, struct block_list* bl, enum send_target target );
+void clif_mob_hat_effect_single( struct mob_data *md, map_session_data* sd, uint16 effectId, bool enable );
+void clif_mob_hat_effect_hub_remove( struct mob_data *md, map_session_data* sd );
+
 #endif /* CLIF_HPP */

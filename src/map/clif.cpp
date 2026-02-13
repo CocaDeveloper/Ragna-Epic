@@ -1719,7 +1719,7 @@ int32 clif_spawn( block_list *bl, bool walking ){
 			if ( md->special_state.ai == AI_ABR || md->special_state.ai == AI_BIONIC )
 				clif_summon_init(*md);
 			// [RomuloSM]: Mob Hat Effects
-			map_foreachinallrange(mob_hateffect_sub, &md->bl, AREA_SIZE, BL_PC, md);
+			map_foreachinallrange(mob_hateffect_sub, md, AREA_SIZE, BL_PC, md);
 			clif_name_area(md);
 		}
 		break;
@@ -25729,10 +25729,6 @@ static int32 clif_parse(int32 fd)
 				ShowWarning( "clif_parse: It looks like you have disabled PACKET_OBFUSCATION on server side, but enabled it on client side.\n" );
 			}
 #endif
-
-			// [RomuloSM]: Mob Hat Effects
-			clif_mob_hat_effects(md,&sd->bl, SELF);
-
 		}
 #endif
 
@@ -25889,7 +25885,7 @@ void clif_mob_hat_effects( struct mob_data* md, struct block_list* bl, enum send
 
 	p->packetType = HEADER_ZC_EQUIPMENT_EFFECT;
 	p->packetLength = (int16)(sizeof(struct PACKET_ZC_EQUIPMENT_EFFECT) + sizeof(int16) * i);
-	p->aid = md->bl.id;
+	p->aid = md->id;
 	p->status = 1;
 
 	clif_send( p, p->packetLength, bl, target );
@@ -25905,11 +25901,11 @@ void clif_mob_hat_effect_single( struct mob_data *md, map_session_data* sd, uint
 
 	p->packetType = HEADER_ZC_EQUIPMENT_EFFECT;
 	p->packetLength = (int16)( sizeof( struct PACKET_ZC_EQUIPMENT_EFFECT ) + sizeof( int16 ) );
-	p->aid = md->bl.id;
+	p->aid = md->id;
 	p->status = enable;
 	p->effects[0] = effectId;
 
-	clif_send( p, p->packetLength, &sd->bl, SELF );
+	clif_send( p, p->packetLength, sd, SELF );
 #endif
 }
 

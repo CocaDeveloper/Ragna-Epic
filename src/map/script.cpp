@@ -28023,7 +28023,7 @@ BUILDIN_FUNC(mob_showelement) {
 	}
 
 	sd->showMobHatEffectElement = flag ? false : true;
-	map_foreachinallrange(pc_mob_hateffect_sub, &sd->bl, AREA_SIZE, BL_MOB, sd);
+	map_foreachinallrange(pc_mob_hateffect_sub, sd, AREA_SIZE, BL_MOB, sd);
 	script_pushint(st,1);
 #endif
 	return SCRIPT_CMD_SUCCESS;
@@ -28049,7 +28049,7 @@ BUILDIN_FUNC(mob_showrace) {
 	}
 
 	sd->showMobHatEffectRace = flag ? false : true;
-	map_foreachinallrange(pc_mob_hateffect_sub, &sd->bl, AREA_SIZE, BL_MOB, sd);
+	map_foreachinallrange(pc_mob_hateffect_sub, sd, AREA_SIZE, BL_MOB, sd);
 	script_pushint(st,1);
 #endif
 	return SCRIPT_CMD_SUCCESS;
@@ -28075,7 +28075,7 @@ BUILDIN_FUNC(mob_showquest) {
 	}
 
 	sd->showMobHatEffectQuest = flag ? false : true;
-	map_foreachinallrange(pc_mob_hateffect_sub, &sd->bl, AREA_SIZE, BL_MOB, sd);
+	map_foreachinallrange(pc_mob_hateffect_sub, sd, AREA_SIZE, BL_MOB, sd);
 	script_pushint(st,1);
 #endif
 	return SCRIPT_CMD_SUCCESS;

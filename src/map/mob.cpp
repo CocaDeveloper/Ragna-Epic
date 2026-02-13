@@ -1327,7 +1327,7 @@ int32 mob_spawn (mob_data *md)
 	// [RomuloSM]: Mob MvP Effect
 	md->mvp_effect_tid = INVALID_TIMER;
 	if( md->get_bosstype() == BOSSTYPE_MVP )
-		md->mvp_effect_tid = add_timer(gettick() + 1, mob_mvp_effect_timer, md->bl.id, 0);
+		md->mvp_effect_tid = add_timer(gettick() + 1, mob_mvp_effect_timer, md->id, 0);
 
 	return 0;
 }
@@ -3760,7 +3760,7 @@ int32 mob_dead(mob_data *md, block_list *src, int32 type)
 
 	// [RomuloSM]: Mob Hat Effects
 	if( battle_config.mob_show_hateffect_quest )
-		map_foreachinallrange(mob_hateffect_sub, &md->bl, AREA_SIZE, BL_PC, md);
+		map_foreachinallrange(mob_hateffect_sub, md, AREA_SIZE, BL_PC, md);
 
 	if( !rebirth )
 		mob_setdelayspawn(md); //Set respawning.
@@ -4931,7 +4931,7 @@ int mob_mvp_sub(struct block_list *bl, va_list ap) {
 
 	if( sd && md ) {
 		if( battle_config.mob_show_mvp_effect && !sd->showMobMvPEffect )
-			clif_specialeffect_single(&md->bl,EF_MVP,sd->fd);
+			clif_specialeffect_single(md,EF_MVP,sd->fd);
 	}
 	return 1;
 }
@@ -4954,8 +4954,8 @@ TIMER_FUNC(mob_mvp_effect_timer) {
 	}
 
 	if( battle_config.mob_show_mvp_effect )
-		map_foreachinallrange(mob_mvp_sub, &md->bl, AREA_SIZE, BL_PC, md);
-	md->mvp_effect_tid = add_timer(gettick() + battle_config.mob_show_mvp_effect_timer, mob_mvp_effect_timer, md->bl.id, 0);
+		map_foreachinallrange(mob_mvp_sub, md, AREA_SIZE, BL_PC, md);
+	md->mvp_effect_tid = add_timer(gettick() + battle_config.mob_show_mvp_effect_timer, mob_mvp_effect_timer, md->id, 0);
 	return 1;
 }
 
@@ -4973,7 +4973,7 @@ int mob_hateffect_sub(struct block_list *bl, va_list ap)
 
 	if( sd && md ) {
 		clif_mob_hat_effect_hub_remove(md,sd);
-		clif_mob_hat_effects(md, &sd->bl, SELF);
+		clif_mob_hat_effects(md, sd, SELF);
 	}
 	return 1;
 }

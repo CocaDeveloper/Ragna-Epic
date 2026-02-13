@@ -11439,7 +11439,7 @@ ACMD_FUNC(showmobelement) {
 		sd->showMobHatEffectElement = true;
 		clif_displaymessage(fd, "Show Mobs Element: Off");
 	}
-	map_foreachinallrange(pc_mob_hateffect_sub, &sd->bl, AREA_SIZE, BL_MOB, sd);
+	map_foreachinallrange(pc_mob_hateffect_sub, sd, AREA_SIZE, BL_MOB, sd);
 	return 0;
 }
 
@@ -11453,7 +11453,7 @@ ACMD_FUNC(showmobrace) {
 		sd->showMobHatEffectRace = true;
 		clif_displaymessage(fd, "Show Mobs Race: Off");
 	}
-	map_foreachinallrange(pc_mob_hateffect_sub, &sd->bl, AREA_SIZE, BL_MOB, sd);
+	map_foreachinallrange(pc_mob_hateffect_sub, sd, AREA_SIZE, BL_MOB, sd);
 	return 0;
 }
 
@@ -11467,7 +11467,7 @@ ACMD_FUNC(showmobquest) {
 		sd->showMobHatEffectQuest = true;
 		clif_displaymessage(fd, "Show Mobs Quest: Off");
 	}
-	map_foreachinallrange(pc_mob_hateffect_sub, &sd->bl, AREA_SIZE, BL_MOB, sd);
+	map_foreachinallrange(pc_mob_hateffect_sub, sd, AREA_SIZE, BL_MOB, sd);
 	return 0;
 }
 

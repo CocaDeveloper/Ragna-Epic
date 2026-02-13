@@ -2156,7 +2156,9 @@ bool pc_authok(map_session_data *sd, uint32 login_id2, time_t expiration_time, i
 	sd->regen.tick.sp = tick;
 
 	// [RomuloSM]: Show Mobs Hat Effects
+	sd->showMobMvPEffect = false;
 	sd->showMobHatEffectElement = false;
+	sd->showMobHatEffectRace = false;
 	sd->showMobHatEffectQuest = false;
 
 	for(int32 i = 0; i < MAX_SPIRITBALL; i++)
@@ -16045,7 +16047,7 @@ int pc_mob_hateffect_sub(struct block_list *bl, va_list ap)
 
 	if( sd && md ) {
 		clif_mob_hat_effect_hub_remove(md,sd);
-		clif_mob_hat_effects(md, &sd->bl, SELF);
+		clif_mob_hat_effects(md, sd, SELF);
 	}
 	return 1;
 }
